@@ -21,7 +21,7 @@
       html { background-color: #fafaf9; }
       html.dark { background-color: #1c1917; }
     </style>
-    <!-- Mirrors src/lib/appearance.ts. Key name `appearance` must stay in sync. -->
+    <!-- Mirrors src/lib/appearance.ts and src/lib/reading.ts. Storage keys must stay in sync. -->
     <script>
       (function () {
         try {
@@ -34,6 +34,13 @@
           document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
           var meta = document.querySelector('meta[name="theme-color"]')
           if (meta) meta.setAttribute('content', dark ? '#1c1917' : '#fafaf9')
+          var size = localStorage.getItem('text-size')
+          if (size === 'large' || size === 'larger') {
+            document.documentElement.classList.add('text-size-' + size)
+          }
+          if (localStorage.getItem('contrast') === 'more') {
+            document.documentElement.classList.add('contrast-more')
+          }
         } catch (e) {}
       })()
     </script>

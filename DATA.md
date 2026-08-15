@@ -57,6 +57,10 @@ Display labels use day-month-year (`2 March 1996`), which is the usual form in N
 
 Tags are split on commas, trimmed, and de-duplicated case-insensitively. Filter dropdowns hide themselves when a column has no values, so empty Category / Organizations fields do not produce broken controls. Keyword pills remain the working interactive taxonomy until those columns are filled.
 
+The filter bar shows the **16** most frequent keywords (`KEYWORD_CLOUD_LIMIT` in `src/lib/parseTags.ts`). The current sheet has about **60** unique keywords; the rest still appear on event cards.
+
+Search (`?q=`) is case-insensitive and matches **Detail**, the display date label, the year, and every tag field. Typeahead suggestions come from an in-memory index of those tags, years, and narrative tokens of four or more letters. Picking a suggestion fills `q` only; it does not set `tag` or `year`.
+
 ## Event identifiers
 
 Each loaded row gets an id:

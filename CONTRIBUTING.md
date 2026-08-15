@@ -14,7 +14,7 @@ Useful commands:
 | Command | Purpose |
 | --- | --- |
 | `npm run dev` | Local Vite server |
-| `npm test` | Unit tests (parsers, filters, URL/SEO/appearance helpers) |
+| `npm test` | Unit tests (parsers, filters, search, permalinks, teasers, reading prefs) |
 | `npm run build` | Production typecheck and bundle |
 | `npm run lint` | oxlint |
 
@@ -28,9 +28,15 @@ Please do not commit `node_modules/`, `dist/`, or `.env` files.
 | Date formats the app should accept | `src/lib/parseDate.ts` **and** `src/lib/parseDate.test.ts` |
 | Fetch / CSV mapping / event ids | `src/lib/loadEvents.ts` (ids feed permalinks; see DATA.md) |
 | Search, filters, year grouping | `src/lib/filterEvents.ts` |
+| Search typeahead (fills `q` only) | `src/lib/searchSuggest.ts`, `src/components/SearchSuggest.tsx` |
+| Search highlighting (`<mark>` text nodes) | `src/lib/highlight.ts` |
+| Card teasers (line/tag limits) | `src/lib/eventCardTeaser.ts`, `src/components/EventCard.tsx` |
+| Keyword chip cap (top 16) | `KEYWORD_CLOUD_LIMIT` in `src/lib/parseTags.ts` |
 | Query-string view state | `src/lib/urlState.ts` |
 | Card permalinks | `src/lib/eventAnchor.ts`, `src/components/EventCard.tsx` |
+| Copy / share confirmations | `src/lib/toast.ts`, `src/components/Toast.tsx` |
 | Light / dark appearance | `src/lib/appearance.ts`, `src/index.css`, boot script in `index.html` |
+| Text size and high contrast | `src/lib/reading.ts`, `src/components/ReadingControls.tsx` |
 | Site name, OG substitution | `src/lib/site.ts`, `index.html`, `vite.site-url.ts` |
 | Layout and theming | `src/components/*`, `src/index.css` |
 | Docs | `README.md`, `DATA.md`, this file |
@@ -38,9 +44,9 @@ Please do not commit `node_modules/`, `dist/`, or `.env` files.
 ## Pull requests
 
 - Keep PRs focused. Data edits and UI edits are easier to review separately.
-- Add or update tests when you change `parseDate`, tag parsing, filtering, URL state, permalinks, or appearance.
-- Do not introduce a backend, analytics, or third-party font CDN without discussion.
-- Do not render `Detail` as HTML.
+- Add or update tests when you change `parseDate`, tag parsing, filtering, search suggestions, highlighting, URL state, permalinks, card teasers, appearance, or reading prefs.
+- Do not introduce a backend, analytics, or a runtime font CDN (`fonts.googleapis.com`) without discussion. Type is self-hosted (Fontsource) in `src/index.css`.
+- Do not render `Detail` as HTML. Search highlighting must wrap text nodes in React (`<mark>`), never `dangerouslySetInnerHTML`.
 - Leave sensational styling out. The palette is paper, ink, and muted crimson on purpose (with a matching dark set in `src/index.css`).
 - Do not insert rows in the middle of the CSV without calling out permalink breakage (ids include the row index).
 - Keep `%SITE_URL%` in `index.html` / `robots.txt` / `sitemap.xml` if you add new absolute URLs; the Vite plugin replaces that token at build time.

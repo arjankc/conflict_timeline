@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { groupEventsByMonth, yearSectionId, type YearGroup } from '../lib/filterEvents'
 import { MONTH_NAMES } from '../lib/parseDate'
 import type { ConflictEvent } from '../types/event'
@@ -7,6 +8,7 @@ import { EventCard } from './EventCard'
 
 type TimelineFeedProps = {
   groups: YearGroup[]
+  search?: string
   activeKeyword: string
   activeCategory: string
   activeOrganization: string
@@ -25,12 +27,32 @@ function YearHeading({
   headingId: string
 }) {
   const label = year == null ? 'Undated' : String(year)
+  const headingRef = useRef<HTMLHeadingElement>(null)
+
+  useEffect(() => {
+    const heading = headingRef.current
+    if (!heading) return
+
+    function syncHeight() {
+      if (!heading) return
+      document.documentElement.style.setProperty(
+        '--year-h',
+        `${Math.round(heading.getBoundingClientRect().height)}px`,
+      )
+    }
+
+    syncHeight()
+    const observer = new ResizeObserver(syncHeight)
+    observer.observe(heading)
+    return () => observer.disconnect()
+  }, [])
 
   return (
     <h2
+      ref={headingRef}
       id={headingId}
       tabIndex={-1}
-      className="sticky top-[var(--filter-h)] z-10 -mx-1 mb-3 flex items-baseline gap-2 bg-paper/90 px-1 py-2 font-serif text-xl text-ink outline-none backdrop-blur-sm sm:mb-4 sm:text-3xl"
+      className="sticky top-[var(--filter-h)] z-10 -mx-1 mb-4 flex flex-wrap items-baseline gap-x-3 gap-y-1 bg-paper/90 px-1 py-2.5 font-serif text-xl leading-snug text-ink outline-none backdrop-blur-sm sm:mb-5 sm:text-3xl"
     >
       <span>{label}</span>
       <span className="font-sans text-sm font-normal text-muted">
@@ -42,6 +64,7 @@ function YearHeading({
 
 function EventEntry({
   event,
+  search,
   activeKeyword,
   activeCategory,
   activeOrganization,
@@ -51,6 +74,7 @@ function EventEntry({
   onOrganizationClick,
 }: {
   event: ConflictEvent
+  search: string
   activeKeyword: string
   activeCategory: string
   activeOrganization: string
@@ -60,13 +84,14 @@ function EventEntry({
   onOrganizationClick: (organization: string) => void
 }) {
   return (
-    <li className="relative pb-4 last:pb-0">
+    <li className="relative pb-5 last:pb-0">
       <span
         aria-hidden="true"
-        className="absolute -start-[1.15rem] top-5 size-2.5 rounded-full border-2 border-paper bg-crimson sm:-start-[1.7rem] sm:top-6"
+        className="absolute -start-[1.3rem] top-6 size-2.5 rounded-full border-2 border-paper bg-crimson sm:-start-[1.85rem] sm:top-7"
       />
       <EventCard
         event={event}
+        search={search}
         activeKeyword={activeKeyword}
         activeCategory={activeCategory}
         activeOrganization={activeOrganization}
@@ -81,6 +106,7 @@ function EventEntry({
 
 export function TimelineFeed({
   groups,
+  search = '',
   activeKeyword,
   activeCategory,
   activeOrganization,
@@ -97,7 +123,7 @@ export function TimelineFeed({
   }
 
   return (
-    <div className="flex flex-col gap-10">
+    <div className="flex flex-col gap-12">
       {groups.map((group) => {
         const months = groupEventsByMonth(group.events)
         // Month labels only when a year contains more than one month; then the date heading drops to h4.
@@ -110,23 +136,24 @@ export function TimelineFeed({
             key={sectionId}
             id={sectionId}
             aria-labelledby={headingId}
-            className="scroll-mt-[calc(var(--filter-h)+0.5rem)]"
+            className="scroll-mt-[calc(var(--filter-h)+var(--year-h)+0.35rem)]"
           >
             <YearHeading year={group.year} count={group.events.length} headingId={headingId} />
             {months.map((monthGroup) => (
               <div key={monthGroup.month ?? 'undated'} className="mb-2 last:mb-0">
                 {showMonths ? (
-                  <h3 className="ms-1 pb-2 pt-1 text-xs font-medium tracking-[0.14em] text-muted uppercase">
+                  <h3 className="ms-1 pb-2.5 pt-1.5 text-xs font-medium tracking-[0.14em] text-muted uppercase">
                     {monthGroup.month
                       ? MONTH_NAMES[monthGroup.month - 1]
                       : 'Date unknown'}
                   </h3>
                 ) : null}
-                <ol className="relative ms-1 border-s-2 border-control ps-4 sm:ms-3 sm:ps-7">
+                <ol className="relative ms-1.5 border-s-2 border-control ps-5 sm:ms-3 sm:ps-8">
                   {monthGroup.events.map((event) => (
                     <EventEntry
                       key={event.id}
                       event={event}
+                      search={search}
                       activeKeyword={activeKeyword}
                       activeCategory={activeCategory}
                       activeOrganization={activeOrganization}

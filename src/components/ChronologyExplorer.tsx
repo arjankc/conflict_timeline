@@ -10,6 +10,7 @@ import { YearNavigator } from './YearNavigator'
 type ChronologyExplorerProps = {
   events: ConflictEvent[]
   focusYear?: number
+  search?: string
   activeKeyword: string
   activeCategory: string
   activeOrganization: string
@@ -26,6 +27,7 @@ function prefersReducedMotion(): boolean {
 export function ChronologyExplorer({
   events,
   focusYear,
+  search = '',
   activeKeyword,
   activeCategory,
   activeOrganization,
@@ -72,7 +74,10 @@ export function ChronologyExplorer({
     const section = document.getElementById(yearSectionId(focusYear))
     if (!section) return
     didFocus.current = true
-    section.scrollIntoView({ block: 'start' })
+    section.scrollIntoView({
+      block: 'start',
+      behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+    })
     setActiveYear(focusYear)
   }, [focusYear, groups])
 
@@ -117,7 +122,7 @@ export function ChronologyExplorer({
 
   // Year nav is DOM-first (skip link / tab) but visually column 2 on large screens.
   return (
-    <div className="relative mx-auto grid max-w-5xl grid-cols-1 px-4 pb-8 sm:px-6 lg:grid-cols-[minmax(0,1fr)_7.5rem] lg:gap-8 lg:pb-16">
+    <div className="relative mx-auto grid max-w-5xl grid-cols-1 px-5 pb-10 sm:px-8 lg:grid-cols-[minmax(0,1fr)_10rem] lg:gap-10 lg:pb-16">
       {events.length > 0 ? (
         <div
           id="years"
@@ -146,6 +151,7 @@ export function ChronologyExplorer({
       <div className="min-w-0 lg:col-start-1 lg:row-start-1">
         <TimelineFeed
           groups={groups}
+          search={search}
           activeKeyword={activeKeyword}
           activeCategory={activeCategory}
           activeOrganization={activeOrganization}

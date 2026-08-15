@@ -38,14 +38,30 @@ describe('filterEvents', () => {
       detail: 'Attack in Rolpa',
       keywords: ['violence'],
       organizations: ['Maoist'],
+      dateLabel: '8 June 2001',
       year: 2001,
     }),
   ]
 
-  it('filters the Detail column by case-insensitive search', () => {
+  it('filters the narrative by case-insensitive search', () => {
     expect(
       filterEvents(events, { ...EMPTY_FILTERS, search: 'kathmandu' }).map((item) => item.id),
     ).toEqual(['1'])
+  })
+
+  it('matches year and keyword fields, not only the narrative', () => {
+    expect(
+      filterEvents(events, { ...EMPTY_FILTERS, search: '2000' }).map((item) => item.id),
+    ).toEqual(['1'])
+    expect(
+      filterEvents(events, { ...EMPTY_FILTERS, search: 'dialogue' }).map((item) => item.id),
+    ).toEqual(['1'])
+  })
+
+  it('matches the display date label', () => {
+    expect(
+      filterEvents(events, { ...EMPTY_FILTERS, search: '8 June' }).map((item) => item.id),
+    ).toEqual(['2'])
   })
 
   it('filters by keyword, category, and organization', () => {

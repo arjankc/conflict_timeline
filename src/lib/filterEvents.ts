@@ -19,7 +19,18 @@ function hasTag(tags: string[], selected: string): boolean {
   return tags.some((tag) => tag.toLowerCase() === needle)
 }
 
-/** Case-insensitive `Detail` search plus exact tag matches (empty fields mean “no filter”). */
+function eventMatchesSearch(event: ConflictEvent, needle: string): boolean {
+  if (event.detail.toLowerCase().includes(needle)) return true
+  if (event.dateLabel.toLowerCase().includes(needle)) return true
+  if (event.year != null && String(event.year).includes(needle)) return true
+  return (
+    event.keywords.some((tag) => tag.toLowerCase().includes(needle)) ||
+    event.categories.some((tag) => tag.toLowerCase().includes(needle)) ||
+    event.organizations.some((tag) => tag.toLowerCase().includes(needle))
+  )
+}
+
+/** Case-insensitive search of narrative, date, year, and tags; empty fields mean “no filter”. */
 export function filterEvents(
   events: ConflictEvent[],
   filters: TimelineFilters,
@@ -27,7 +38,7 @@ export function filterEvents(
   const needle = filters.search.trim().toLowerCase()
 
   return events.filter((event) => {
-    if (needle && !event.detail.toLowerCase().includes(needle)) return false
+    if (needle && !eventMatchesSearch(event, needle)) return false
     if (filters.category && !hasTag(event.categories, filters.category)) {
       return false
     }

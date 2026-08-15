@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { countTags, parseTags, uniqueTags } from './parseTags'
+import { KEYWORD_CLOUD_LIMIT, countTags, parseTags, uniqueTags } from './parseTags'
 
 describe('parseTags', () => {
   it('splits, trims, and drops empty fragments', () => {
@@ -46,5 +46,9 @@ describe('countTags', () => {
       { label: 'Maoist', count: 2 },
       { label: 'state', count: 2 },
     ])
+  })
+
+  it('caps the filter-bar cloud at KEYWORD_CLOUD_LIMIT', () => {
+    expect(KEYWORD_CLOUD_LIMIT).toBe(16)
   })
 })

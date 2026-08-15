@@ -3,13 +3,71 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
+  Source Sans 3 + Source Serif 4 (Google Fonts / Adobe Source, OFL).
+  Self-hosted via Fontsource so there is no fonts.googleapis.com request.
+  Latin + latin-ext only; unicode-range keeps unused files from downloading.
+*/
+@font-face {
+  font-family: "Source Sans 3 Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 900;
+  src: url("@fontsource-variable/source-sans-3/files/source-sans-3-latin-wght-normal.woff2")
+    format("woff2-variations");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Source Sans 3 Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 900;
+  src: url("@fontsource-variable/source-sans-3/files/source-sans-3-latin-ext-wght-normal.woff2")
+    format("woff2-variations");
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+    U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB,
+    U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Source Serif 4 Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 900;
+  src: url("@fontsource-variable/source-serif-4/files/source-serif-4-latin-standard-normal.woff2")
+    format("woff2-variations");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Source Serif 4 Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 900;
+  src: url("@fontsource-variable/source-serif-4/files/source-serif-4-latin-ext-standard-normal.woff2")
+    format("woff2-variations");
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+    U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB,
+    U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/*
   Semantic palette. Light values live on :root; `.dark` (applied to <html>) swaps them.
   Tailwind utilities (bg-paper, text-ink, …) read these through @theme inline, so opacity
   modifiers such as bg-paper/90 keep working via color-mix.
 
   Layout measurements (set from JS):
-    --filter-h  sticky filter bar height
+    --filter-h  sticky search-row height (theme chips are not included)
     --dock-h    mobile year dock height, including safe-area padding
+    --year-h    sticky year heading height (measured in TimelineFeed)
 */
 
 :root {
@@ -42,6 +100,26 @@
   color-scheme: dark;
 }
 
+html.text-size-large {
+  font-size: 112.5%;
+}
+
+html.text-size-larger {
+  font-size: 125%;
+}
+
+html.contrast-more {
+  --muted: #1c1917;
+  --line: #44403c;
+  --control: #1c1917;
+}
+
+html.dark.contrast-more {
+  --muted: #f5f5f4;
+  --line: #d6d3d1;
+  --control: #f5f5f4;
+}
+
 @media (prefers-contrast: more) {
   :root {
     --muted: #1c1917;
@@ -57,9 +135,10 @@
 }
 
 @theme inline {
-  --font-sans: ui-sans-serif, system-ui, sans-serif;
-  --font-serif: ui-serif, "Iowan Old Style", Palatino, Georgia, "Times New Roman",
-    serif;
+  --font-sans: "Source Sans 3 Variable", "Source Sans 3", ui-sans-serif,
+    system-ui, sans-serif;
+  --font-serif: "Source Serif 4 Variable", "Source Serif 4", ui-serif, Georgia,
+    "Times New Roman", serif;
   --color-paper: var(--paper);
   --color-surface: var(--surface);
   --color-ink: var(--ink);
@@ -75,10 +154,13 @@
 
 @layer base {
   html {
-    -webkit-text-size-adjust: 100%;
+    -webkit-text-size-adjust: auto;
+    text-size-adjust: auto;
+    font-optical-sizing: auto;
     scroll-behavior: smooth;
-    --filter-h: 7.5rem;
+    --filter-h: 5.5rem;
     --dock-h: 5.5rem;
+    --year-h: 3.5rem;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -95,8 +177,29 @@
     }
   }
 
+  @media (prefers-reduced-transparency: reduce) {
+    *,
+    *::before,
+    *::after {
+      backdrop-filter: none !important;
+    }
+  }
+
   body {
-    @apply overflow-x-clip bg-paper font-sans text-ink antialiased;
+    @apply overflow-x-clip bg-paper font-sans text-ink;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background-color: var(--crimson-soft);
+    color: var(--ink);
+  }
+
+  mark {
+    background-color: var(--crimson-soft);
+    color: var(--ink);
+    font-weight: 600;
+    padding-inline: 0.1em;
   }
 
   button,
@@ -120,9 +223,9 @@
 
   #timeline,
   #years,
-  article:target,
+  article,
   :focus-visible {
-    scroll-margin-top: calc(var(--filter-h) + 0.5rem);
+    scroll-margin-top: calc(var(--filter-h) + var(--year-h) + 0.35rem);
   }
 
   @media (max-width: 1023px) {

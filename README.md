@@ -7,11 +7,11 @@ This is an open-source project. Event data currently ships as a static CSV expor
 ## Features
 
 - Chronological card explorer grouped by year and month, with sticky year headings
-- Event cards with a calendar date stack, narrative detail, and metadata pills
-- Per-card permalink (link icon copies `#event-…` to the clipboard)
+- Event cards with a calendar date stack, a clamped narrative teaser (expand in place), and metadata pills
+- Per-card permalink (link icon copies `#event-…`; a toast confirms; the feed does not jump)
 - Side year navigator with a month-density heatmap; click or drag to scrub
-- Theme chips and search, with shareable URL filters (`?q=&tag=&year=`)
-- Light, dark, and system appearance, remembered in the browser
+- Theme chips (most frequent 16) and search with typeahead, shareable URL filters (`?q=&tag=&year=`), and highlighted matches
+- Light, dark, system appearance, text size, and high contrast, remembered in the browser
 - Share control (Web Share on supported devices, copy-link fallback)
 - Open Graph / Twitter preview cards, JSON-LD, robots.txt, and sitemap
 - Mobile-first layout with a bottom year dock on small screens
@@ -33,7 +33,7 @@ npm run dev
 The app is served by Vite. Open the printed local URL. Because the production `base` path is `/conflict_timeline/`, Vite still resolves it correctly in development.
 
 ```bash
-npm test        # parsers, filters, URL/SEO/appearance helpers
+npm test        # parsers, filters, search, permalinks, reading prefs, teasers
 npm run build   # typecheck + production bundle
 npm run preview # serve the production build locally
 npm run lint    # oxlint
@@ -45,7 +45,7 @@ Copy [`.env.example`](.env.example) to `.env` only if you need `VITE_DATA_URL` o
 
 The runtime dataset is [`public/data/mastersheet.csv`](public/data/mastersheet.csv). See [DATA.md](DATA.md) for the column schema, date formats, event IDs (used in permalinks), and how to refresh the file from Google Sheets.
 
-The current sheet has **53 events**. Category and Organizations columns are present but empty; Keywords are populated. Search, keyword pills, and the year navigator all work against this data today. Category and organization filters appear once those columns have values.
+The current sheet has **53 events**. Category and Organizations columns are present but empty; Keywords are populated. Search, keyword pills, typeahead, and the year navigator all work against this data today. Category and organization filters appear once those columns have values. The filter bar shows the 16 most frequent keywords; the rest remain on event cards.
 
 ## Architecture
 
@@ -67,18 +67,29 @@ List virtualization is not used yet. Add it if the sheet grows into the thousand
 | [`src/lib/loadEvents.ts`](src/lib/loadEvents.ts) | Fetch and parse CSV into `ConflictEvent` rows |
 | [`src/lib/parseDate.ts`](src/lib/parseDate.ts) | Normalize mixed date strings; `M/D/YY` in, `2 March 1996` out |
 | [`src/lib/parseTags.ts`](src/lib/parseTags.ts) | Split comma-separated metadata |
-| [`src/lib/filterEvents.ts`](src/lib/filterEvents.ts) | Search, tag filters, year/month grouping |
+| [`src/lib/filterEvents.ts`](src/lib/filterEvents.ts) | Search (narrative, date, year, tags), filters, year/month grouping |
+| [`src/lib/searchSuggest.ts`](src/lib/searchSuggest.ts) | In-memory typeahead index (no search server) |
+| [`src/lib/eventCardTeaser.ts`](src/lib/eventCardTeaser.ts) | Collapsed card: line/tag limits |
 | [`src/lib/urlState.ts`](src/lib/urlState.ts) | `?q=&tag=&year=` (filters) plus preserved `#hash` |
 | [`src/lib/eventAnchor.ts`](src/lib/eventAnchor.ts) | Card element ids and filter-free permalinks |
+| [`src/lib/highlight.ts`](src/lib/highlight.ts) | Split search hits for `<mark>` (plain text only) |
 | [`src/lib/appearance.ts`](src/lib/appearance.ts) | Light / dark / system preference |
+| [`src/lib/reading.ts`](src/lib/reading.ts) | Text size and high-contrast preference |
+| [`src/lib/toast.ts`](src/lib/toast.ts) | Copy/share status messages |
 | [`src/lib/seo.ts`](src/lib/seo.ts) | Document title, share text, filtered share URL |
 | [`src/lib/site.ts`](src/lib/site.ts) | Site name, description, `%SITE_URL%` substitution |
 | [`src/components/ChronologyExplorer.tsx`](src/components/ChronologyExplorer.tsx) | Year-grouped feed + dock/rail |
 | [`src/components/TimelineFeed.tsx`](src/components/TimelineFeed.tsx) | Cards on a year spine |
-| [`src/components/EventCard.tsx`](src/components/EventCard.tsx) | One event, pills, permalink control |
+| [`src/components/EventCard.tsx`](src/components/EventCard.tsx) | Teaser card, expand, permalink |
 | [`src/components/YearNavigator.tsx`](src/components/YearNavigator.tsx) | Jump-to-year density rail or mobile dock |
-| [`src/components/FilterBar.tsx`](src/components/FilterBar.tsx) | Sticky search, chips; publishes `--filter-h` |
-| [`src/index.css`](src/index.css) | Colour tokens, dark class, layout CSS variables |
+| [`src/components/FilterBar.tsx`](src/components/FilterBar.tsx) | Sticky search row; publishes `--filter-h` |
+| [`src/components/KeywordCloud.tsx`](src/components/KeywordCloud.tsx) | Theme chips under search (scroll away with the page) |
+| [`src/components/SearchSuggest.tsx`](src/components/SearchSuggest.tsx) | Combobox typeahead for search |
+| [`src/components/ReadingControls.tsx`](src/components/ReadingControls.tsx) | Text size and high contrast |
+| [`src/components/ShareButton.tsx`](src/components/ShareButton.tsx) | Share current view |
+| [`src/components/ThemeToggle.tsx`](src/components/ThemeToggle.tsx) | System / light / dark |
+| [`src/components/Toast.tsx`](src/components/Toast.tsx) | Viewport copy confirmation |
+| [`src/index.css`](src/index.css) | Colour tokens, self-hosted type, dark class, layout CSS variables |
 | [`vite.site-url.ts`](vite.site-url.ts) | Replaces `%SITE_URL%` in HTML, robots.txt, sitemap |
 | [`index.html`](index.html) | Static meta, Open Graph, JSON-LD, appearance boot script |
 
@@ -86,7 +97,9 @@ List virtualization is not used yet. Add it if the sheet grows into the thousand
 
 On viewports **narrower than `lg` (1024px)** the year navigator is a fixed bottom **dock**. Cards and the footer use `--dock-h` (measured from the dock) so content can scroll above it. On **`lg` and up** the navigator is a sticky **rail** on the right; the dock is not shown.
 
-The filter bar is sticky under the header. It writes `--filter-h` so year headings, skip-link targets, and card permalinks sit below it rather than under it.
+The search row is sticky under the header. It writes `--filter-h` so year headings, skip-link targets, and card permalinks sit below it. Theme chips sit under that row and scroll away with the page. Event cards start as a teaser (three lines and three tags on narrow screens; four lines and five tags from `sm` / 640px) and expand in place.
+
+The year dock/rail still switches at **`lg` (1024px)** — that breakpoint is independent of the card teaser.
 
 ## URL state
 
@@ -94,7 +107,7 @@ The address bar is the only “route”. Query parameters describe the **current
 
 | Piece | Example | Purpose |
 | --- | --- | --- |
-| `q` | `?q=Rolpa` | Search in event `Detail` |
+| `q` | `?q=Rolpa` | Search in narrative, date label, year, and tags. Typeahead fills `q`; it does not set `tag` or `year`. |
 | `tag` | `?tag=Maoist` | Keyword / theme filter |
 | `category` | `?category=…` | Category filter (hidden while the column is empty) |
 | `org` | `?org=…` | Organization filter (hidden while the column is empty) |
@@ -110,15 +123,13 @@ Two different copy actions:
 
 Card ids include the CSV row index. Inserting or reordering rows changes those hashes. See [DATA.md](DATA.md#event-identifiers).
 
-Opening `#event-…` waits until events are on the page, then scrolls the card into view and outlines it (`:target`). A `?year=` jump is skipped when a card hash is present, so the two do not fight.
+Opening `#event-…` (including a pasted permalink) waits until events are on the page, then scrolls the card into view below the sticky search and year heading, and outlines it (`:target`). Clicking the card’s link icon copies that permalink and does **not** scroll. A `?year=` jump is skipped when a card hash is present, so the two do not fight.
 
 ## Appearance
 
-The header control cycles **System → Light → Dark**. The choice is stored as `localStorage.appearance` (`system` | `light` | `dark`).
+The header **Reading and display** toolbar cycles **System → Light → Dark**, **Default → Large → Larger** text, and a high-contrast palette. Choices are stored as `localStorage.appearance`, `text-size`, and `contrast`. A blocking script in [`index.html`](index.html) applies the classes **before React loads**, so a system-dark or larger-text visitor does not flash the default palette. `color-scheme` and `theme-color` follow the resolved colours so scrollbars and the browser chrome match.
 
-`html.dark` switches the CSS colour tokens. A blocking script in [`index.html`](index.html) applies the class **before React loads**, so a system-dark visitor does not flash the light palette. `color-scheme` and `theme-color` follow the resolved palette so scrollbars and the browser chrome match.
-
-Native form controls pick up `color-scheme`. Tokens live in [`src/index.css`](src/index.css) (`--paper`, `--ink`, `--muted`, `--crimson`, `--surface`, and chip colours). Light crimson is `#7f1d1d`; dark mode uses a lighter crimson so date text still meets contrast on the dark paper.
+Native form controls pick up `color-scheme`. Tokens live in [`src/index.css`](src/index.css) (`--paper`, `--ink`, `--muted`, `--crimson`, `--surface`, and chip colours). Light crimson is `#7f1d1d`; dark mode uses a lighter crimson so date text still meets contrast on the dark paper. Titles, years, and date stacks use **Source Serif 4**; UI and event narratives use **Source Sans 3**. Both are self-hosted from the Google Fonts catalog (Fontsource, OFL, Latin and Latin-extended) so the page never calls `fonts.googleapis.com`. Devanagari falls back to the system UI font. Event narratives sit in a ~65-character measure with 1.75 line-height. Search hits are wrapped in `<mark>` as React text nodes, not as HTML from the CSV. Permalink and view-share confirmations use a short toast.
 
 ## Sharing and SEO
 
@@ -141,13 +152,15 @@ JSON-LD describes a `WebSite` and a `Dataset` with `temporalCoverage` `1995/2006
 
 The target is WCAG 2.2 Level AA. Practical choices in this codebase:
 
-- Colour tokens chosen for body and UI contrast; `prefers-contrast: more` darkens (or, in dark mode, lightens) muted line/control colours
-- Skip links to `#years` then `#timeline`
+- Colour tokens chosen for body and UI contrast; `prefers-contrast: more` or the high-contrast control darkens (or, in dark mode, lightens) muted line/control colours. If the operating system already requests more contrast, the in-page toggle will look unchanged.
+- Text size control (112.5% / 125% root font-size); browser zoom still works independently
+- Skip links to search, year navigation, and events
 - Heading order: `h1` site title → `h2` year → `h3` month (when several months) → `h3`/`h4` event date
 - Year navigator is **first in the grid DOM** on large screens (`lg:col-start-2`) so “skip to years” and tab order reach it before the long feed
-- `aria-pressed` / `aria-current` on filters and the active year; live `role="status"` for result counts and copy confirmation
+- `aria-pressed` / `aria-current` on filters and the active year; live `role="status"` for result counts and copy/share toasts
 - Controls are at least 44×44px; `viewport-fit=cover` and safe-area insets on the sticky chrome
-- `prefers-reduced-motion` disables smooth scrolling and CSS animation
+- `prefers-reduced-motion` disables smooth scrolling and CSS animation; `prefers-reduced-transparency` removes backdrop blur
+- `-webkit-text-size-adjust: auto` so iOS accessibility text sizes are not locked
 
 ## GitHub Pages
 
@@ -169,7 +182,7 @@ Keep these constraints when adding a native shell:
 
 - Continue loading data with relative URLs or `VITE_DATA_URL`
 - Do not introduce a required backend
-- Prefer system fonts (already in use) so the WebView does not depend on Google Fonts
+- Fonts are bundled (Source Sans 3 / Source Serif 4); the WebView does not need `fonts.google.com`
 - Clipboard permalinks and `navigator.share` need a secure context (HTTPS or localhost)
 
 ## Contributing
@@ -178,6 +191,6 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md). This archive describes political
 
 ## License
 
-Application code is licensed under the [MIT License](LICENSE).
+Application code is licensed under the [MIT License](LICENSE). Source Sans 3 and Source Serif 4 are © Google Inc. / Adobe, licensed under the [SIL Open Font License 1.1](https://scripts.sil.org/OFL).
 
 **Event narratives in the CSV are not automatically covered by that license.** Their provenance sits with the researchers and organizations who compiled the sheet. Do not republish the text under MIT until maintainers confirm the data license. See [DATA.md](DATA.md).

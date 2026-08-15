@@ -1,14 +1,28 @@
-import { useEffect, useRef, useState } from 'react'
-import { eventCardId, eventPermalink } from '../lib/eventAnchor'
+import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent } from 'react'
+import {
+  eventCardId,
+  eventPermalink,
+  pageUrlWithEventHash,
+} from '../lib/eventAnchor'
+import {
+  DESKTOP_TAG_LIMIT,
+  DESKTOP_TEASER_MIN_WIDTH_PX,
+  MOBILE_TAG_LIMIT,
+  metadataPills,
+  pickVisiblePills,
+  type MetaPill,
+  type MetaPillKind,
+} from '../lib/eventCardTeaser'
+import { splitHighlight } from '../lib/highlight'
 import { MONTH_SHORT } from '../lib/parseDate'
+import { showToast } from '../lib/toast'
 import type { ConflictEvent } from '../types/event'
 
-/** One chronology card: date stack, narrative, tag pills, permalink (copies `#event-…`). */
-
-type PillKind = 'keyword' | 'category' | 'organization'
+/** One chronology card: teaser (clamped text and tags), expand in place, permalink. */
 
 type EventCardProps = {
   event: ConflictEvent
+  search?: string
   activeKeyword: string
   activeCategory: string
   activeOrganization: string
@@ -18,7 +32,7 @@ type EventCardProps = {
   onOrganizationClick: (organization: string) => void
 }
 
-const PILL_STYLES: Record<PillKind, string> = {
+const PILL_STYLES: Record<MetaPillKind, string> = {
   keyword: 'border-control bg-chip text-ink',
   category: 'border-control bg-chip-strong text-ink',
   organization: 'border-control bg-chip-rose text-ink',
@@ -31,12 +45,12 @@ function Pill({
   onClick,
 }: {
   label: string
-  kind: PillKind
+  kind: MetaPillKind
   pressed?: boolean
   onClick?: () => void
 }) {
   const className = [
-    'inline-flex min-h-9 items-center rounded-full border px-3 py-1.5 text-xs leading-none tracking-wide',
+    'inline-flex min-h-11 items-center rounded-full border px-3.5 py-2 text-xs leading-snug tracking-wide',
     pressed
       ? 'border-crimson bg-crimson-soft font-medium text-crimson'
       : PILL_STYLES[kind],
@@ -93,25 +107,50 @@ function PermalinkControl({
     )
     try {
       await navigator.clipboard.writeText(url)
+      // Keep filters in the address bar; do not use the hash href (it would scroll).
+      window.history.replaceState(
+        null,
+        '',
+        pageUrlWithEventHash(
+          window.location.pathname,
+          window.location.search,
+          cardId,
+        ),
+      )
+      showToast('Link to this event copied to the clipboard')
       setCopied(true)
       window.clearTimeout(copiedTimer.current)
       copiedTimer.current = window.setTimeout(() => setCopied(false), 2000)
     } catch {
       setCopied(false)
+      showToast('Could not copy the link')
     }
+  }
+
+  function onPermalinkClick(event: MouseEvent<HTMLAnchorElement>) {
+    if (
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return
+    }
+    event.preventDefault()
+    void copyPermalink()
   }
 
   return (
     <a
-      href={`#${cardId}`}
-      onClick={() => void copyPermalink()}
-      aria-live="polite"
+      href={`${import.meta.env.BASE_URL}#${cardId}`}
+      onClick={onPermalinkClick}
       aria-label={
         copied
           ? `Link to event on ${dateLabel} copied`
           : `Copy link to event on ${dateLabel}`
       }
-      className="absolute top-1.5 end-1.5 z-10 inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-muted hover:text-crimson"
+      className="absolute top-2 end-2 z-10 inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-muted hover:text-crimson"
     >
       {copied ? <CheckIcon /> : <LinkIcon />}
     </a>
@@ -158,7 +197,7 @@ function CheckIcon() {
 function DateStack({ event }: { event: ConflictEvent }) {
   if (event.precision === 'unknown') {
     return (
-      <span className="w-16 shrink-0 text-center font-serif text-sm leading-snug text-crimson">
+      <span className="w-[4.75rem] shrink-0 px-1.5 text-center font-serif text-sm leading-snug text-crimson">
         {event.dateLabel}
       </span>
     )
@@ -169,27 +208,48 @@ function DateStack({ event }: { event: ConflictEvent }) {
   const day = badgeDay(event)
 
   return (
-    <span className="flex w-16 shrink-0 flex-col items-center rounded-md bg-crimson-soft px-1 py-2 text-crimson">
-      <span className="text-xs font-semibold tracking-[0.12em] uppercase">
+    <span className="flex w-[4.75rem] shrink-0 flex-col items-center rounded-md bg-crimson-soft px-1.5 py-2.5 text-crimson">
+      <span className="text-xs font-semibold tracking-[0.08em] uppercase">
         {monthLabel}
       </span>
       {day ? (
         <span
           className={[
-            'mt-1 font-serif leading-none',
-            day.length > 2 ? 'text-lg' : 'text-2xl',
+            'mt-1.5 font-serif leading-none tabular-nums',
+            day.length > 2 ? 'text-lg tracking-tight' : 'text-2xl',
           ].join(' ')}
         >
           {day}
         </span>
       ) : null}
-      <span className="mt-1 text-xs text-crimson">{event.year}</span>
+      <span className="mt-1.5 text-xs tabular-nums text-crimson">{event.year}</span>
     </span>
   )
 }
 
+function useWideTeaser(): boolean {
+  const [wide, setWide] = useState(() =>
+    typeof window !== 'undefined'
+      ? window.matchMedia(`(min-width: ${DESKTOP_TEASER_MIN_WIDTH_PX}px)`).matches
+      : false,
+  )
+
+  useEffect(() => {
+    const media = window.matchMedia(`(min-width: ${DESKTOP_TEASER_MIN_WIDTH_PX}px)`)
+    function sync() {
+      setWide(media.matches)
+    }
+    sync()
+    media.addEventListener('change', sync)
+    return () => media.removeEventListener('change', sync)
+  }, [])
+
+  return wide
+}
+
 export function EventCard({
   event,
+  search = '',
   activeKeyword,
   activeCategory,
   activeOrganization,
@@ -198,24 +258,85 @@ export function EventCard({
   onCategoryClick,
   onOrganizationClick,
 }: EventCardProps) {
-  const hasPills =
-    event.keywords.length > 0 ||
-    event.categories.length > 0 ||
-    event.organizations.length > 0
   const dateHeadingId = `${event.id}-date`
   const cardId = eventCardId(event.id)
-
   const DateHeading = dateHeadingLevel
+  const highlightChunks = splitHighlight(event.detail, search)
+  const pills = metadataPills(event)
+  const wide = useWideTeaser()
+  const tagLimit = wide ? DESKTOP_TAG_LIMIT : MOBILE_TAG_LIMIT
+  const searching = search.trim() !== ''
+  const [expanded, setExpanded] = useState(false)
+  const [textOverflows, setTextOverflows] = useState(false)
+  const textRef = useRef<HTMLParagraphElement>(null)
+  const isExpanded = expanded || searching
+  const { visible, hiddenCount } = pickVisiblePills(
+    pills,
+    tagLimit,
+    isExpanded,
+    (pill) => pillIsSelected(pill, activeKeyword, activeCategory, activeOrganization),
+  )
+  const canExpand = !searching && (textOverflows || pills.length > tagLimit)
+
+  useEffect(() => {
+    setExpanded(false)
+  }, [event.id])
+
+  useLayoutEffect(() => {
+    const node = textRef.current
+    if (!node || isExpanded) return
+
+    function measure() {
+      if (!node) return
+      setTextOverflows(node.scrollHeight > node.clientHeight + 2)
+    }
+
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(node)
+    let cancelled = false
+    const fonts = document.fonts
+    if (fonts?.ready) {
+      void fonts.ready.then(() => {
+        if (!cancelled) measure()
+      })
+    }
+    return () => {
+      cancelled = true
+      observer.disconnect()
+    }
+  }, [isExpanded, event.detail, search, wide])
+
+  function onToggleExpand() {
+    setExpanded((current) => !current)
+  }
+
+  function onArticleClick(click: MouseEvent<HTMLElement>) {
+    if (!canExpand) return
+    if (window.getSelection()?.toString()) return
+    if ((click.target as HTMLElement | null)?.closest('a, button')) return
+    onToggleExpand()
+  }
+
+  function onPillClick(pill: MetaPill) {
+    if (pill.kind === 'keyword') onKeywordClick(pill.label)
+    else if (pill.kind === 'category') onCategoryClick(pill.label)
+    else onOrganizationClick(pill.label)
+  }
 
   return (
     <article
       id={cardId}
-      className="relative scroll-mt-[calc(var(--filter-h)+0.5rem)] rounded-lg border border-line bg-surface p-3.5 pe-12 sm:p-5 sm:pe-14"
+      className={[
+        'relative scroll-mt-[calc(var(--filter-h)+var(--year-h)+0.35rem)] rounded-lg border border-line bg-surface p-4 pe-14 sm:p-6 sm:pe-16',
+        canExpand ? 'cursor-pointer' : '',
+      ].join(' ')}
       aria-labelledby={dateHeadingId}
+      onClick={onArticleClick}
     >
       <PermalinkControl cardId={cardId} dateLabel={event.dateLabel} />
-      <div className="sm:flex sm:gap-4">
-        <DateHeading id={dateHeadingId} className="mb-2 sm:mb-0">
+      <div className="sm:flex sm:gap-5">
+        <DateHeading id={dateHeadingId} className="mb-3 sm:mb-0">
           <time
             dateTime={event.dateTime}
             className="block font-serif text-lg leading-tight text-crimson sm:sr-only"
@@ -227,45 +348,74 @@ export function EventCard({
           </span>
         </DateHeading>
         <div className="min-w-0 flex-1">
-          <p className="text-base leading-relaxed text-ink">{event.detail}</p>
-          {hasPills ? (
-            <ul className="mt-4 flex flex-wrap gap-1.5" aria-label="Event metadata">
-              {event.keywords.map((keyword) => (
-                <li key={`keyword-${keyword}`}>
+          <p
+            ref={textRef}
+            className={[
+              'max-w-[65ch] break-words text-pretty text-base leading-[1.75] text-ink',
+              isExpanded ? '' : 'line-clamp-3 sm:line-clamp-4',
+            ].join(' ')}
+          >
+            {highlightChunks.map((chunk, index) =>
+              chunk.match ? (
+                <mark key={`${chunk.text}-${index}`}>{chunk.text}</mark>
+              ) : (
+                <span key={`${chunk.text}-${index}`}>{chunk.text}</span>
+              ),
+            )}
+          </p>
+          {visible.length > 0 ? (
+            <ul className="mt-4 flex flex-wrap gap-2 sm:mt-5" aria-label="Event metadata">
+              {visible.map((pill) => (
+                <li key={`${pill.kind}-${pill.label}`}>
                   <Pill
-                    kind="keyword"
-                    label={keyword}
-                    pressed={keyword.toLowerCase() === activeKeyword.toLowerCase()}
-                    onClick={() => onKeywordClick(keyword)}
-                  />
-                </li>
-              ))}
-              {event.categories.map((category) => (
-                <li key={`category-${category}`}>
-                  <Pill
-                    kind="category"
-                    label={category}
-                    pressed={category.toLowerCase() === activeCategory.toLowerCase()}
-                    onClick={() => onCategoryClick(category)}
-                  />
-                </li>
-              ))}
-              {event.organizations.map((organization) => (
-                <li key={`organization-${organization}`}>
-                  <Pill
-                    kind="organization"
-                    label={organization}
-                    pressed={
-                      organization.toLowerCase() === activeOrganization.toLowerCase()
-                    }
-                    onClick={() => onOrganizationClick(organization)}
+                    kind={pill.kind}
+                    label={pill.label}
+                    pressed={pillIsSelected(
+                      pill,
+                      activeKeyword,
+                      activeCategory,
+                      activeOrganization,
+                    )}
+                    onClick={() => onPillClick(pill)}
                   />
                 </li>
               ))}
             </ul>
           ) : null}
+          {canExpand ? (
+            <button
+              type="button"
+              aria-expanded={isExpanded}
+              aria-label={
+                isExpanded
+                  ? `Show less, event on ${event.dateLabel}`
+                  : hiddenCount > 0
+                    ? `Show more, event on ${event.dateLabel}, ${hiddenCount} more themes`
+                    : `Show more, event on ${event.dateLabel}`
+              }
+              className="mt-3 min-h-11 text-sm font-medium text-crimson underline underline-offset-2"
+              onClick={onToggleExpand}
+            >
+              {isExpanded ? 'Show less' : 'Show more'}
+            </button>
+          ) : null}
         </div>
       </div>
     </article>
   )
+}
+
+function pillIsSelected(
+  pill: MetaPill,
+  activeKeyword: string,
+  activeCategory: string,
+  activeOrganization: string,
+): boolean {
+  if (pill.kind === 'keyword') {
+    return pill.label.toLowerCase() === activeKeyword.toLowerCase()
+  }
+  if (pill.kind === 'category') {
+    return pill.label.toLowerCase() === activeCategory.toLowerCase()
+  }
+  return pill.label.toLowerCase() === activeOrganization.toLowerCase()
 }

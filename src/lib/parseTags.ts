@@ -34,6 +34,9 @@ export function uniqueTags(values: string[][]): string[] {
   return tags.sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' }))
 }
 
+/** Frequency-ranked chips in the filter bar; remaining keywords stay on cards. */
+export const KEYWORD_CLOUD_LIMIT = 16
+
 export type TagCount = {
   label: string
   count: number

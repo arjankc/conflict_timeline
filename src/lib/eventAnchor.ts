@@ -11,7 +11,11 @@ export function eventCardId(eventId: string): string {
 export function readEventHash(hash: string): string | undefined {
   const id = hash.startsWith('#') ? hash.slice(1) : hash
   if (!id.startsWith('event-')) return undefined
-  return decodeURIComponent(id)
+  try {
+    return decodeURIComponent(id)
+  } catch {
+    return undefined
+  }
 }
 
 export function eventPermalink(
@@ -20,4 +24,13 @@ export function eventPermalink(
   pathname: string,
 ): string {
   return `${origin}${pathname}#${cardId}`
+}
+
+/** Current page with an event hash, keeping `?q=` filters. Does not scroll. */
+export function pageUrlWithEventHash(
+  pathname: string,
+  search: string,
+  cardId: string,
+): string {
+  return `${pathname}${search}#${cardId}`
 }

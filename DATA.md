@@ -1,0 +1,71 @@
+# Data guide
+
+The Nepal Conflict Timeline reads a CSV at runtime. There is no database server. Google Sheets remains the editorial workspace; the committed CSV is what the website actually loads.
+
+## File location
+
+| Environment | Source |
+| --- | --- |
+| Default | [`public/data/mastersheet.csv`](public/data/mastersheet.csv) |
+| Override | `VITE_DATA_URL` (see `.env.example`) |
+
+`VITE_DATA_URL` is a documented hook for a later published Google Sheets CSV endpoint. This version does not fetch Sheets unless you set that variable at build time.
+
+The fetch path is:
+
+```ts
+`${import.meta.env.BASE_URL}data/mastersheet.csv`
+```
+
+That form works in local Vite, GitHub Pages (`/conflict_timeline/`), and a future Capacitor WebView.
+
+## Column schema
+
+Google Sheets exports often include a leading empty column. The parser ignores unnamed columns and reads these headers:
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| Date | string | Mixed human formats; see below |
+| Detail | string | Plain text event narrative. Rendered as text, never as HTML |
+| Keywords | comma-separated string | Primary taxonomy in the current sheet |
+| Category | comma-separated string | **Currently empty** on every row |
+| Organizations | comma-separated string | **Currently empty** on every row |
+
+Rows without both a Date and a Detail are dropped.
+
+## Date contract
+
+The sheet does not use one date format. `parseDate` accepts:
+
+| Example | Precision | Sort key |
+| --- | --- | --- |
+| `11/1/95` | day | 1 November 1995 (`M/D/YY`, two-digit years) |
+| `4/2/96` | day | 2 April 1996 |
+| `March 1996` | month | first of the month |
+| `March 2, 1996` | day | 2 March 1996 |
+| `June 04, 2001` | day | 4 June 2001 |
+| `October 4 2001` | day | 4 October 2001 (no comma) |
+| `September 13-14, 2001` | range | start day `13` |
+
+Two-digit years: `00`–`49` → `2000`–`2049`; `50`–`99` → `1950`–`1999`. That maps this archive’s `95` → `1995` and `00`/`01` → `2000`/`2001`.
+
+Unrecognised dates keep the original label and sort last. The parser does not rewrite the CSV. Known editorial issues (a date that disagrees with the narrative, typos in keywords) stay in the sheet until editors fix them.
+
+Display labels use day-month-year (`2 March 1996`), which is the usual form in Nepali and British English archives.
+
+## Metadata
+
+Tags are split on commas, trimmed, and de-duplicated case-insensitively. Filter dropdowns hide themselves when a column has no values, so empty Category / Organizations fields do not produce broken controls. Keyword pills remain the working interactive taxonomy until those columns are filled.
+
+## Refreshing the CSV from Google Sheets
+
+1. Open the master spreadsheet.
+2. **File → Download → Comma Separated Values (.csv)**.
+3. Replace `public/data/mastersheet.csv`.
+4. Run `npm test` and `npm run dev`, then commit the CSV if the parse still looks right.
+
+If Sheets later adds an official published-CSV link, set `VITE_DATA_URL` to that URL. Keep a committed CSV fallback until the live URL is treated as reliable.
+
+## License and provenance
+
+The application code is MIT licensed. The event texts are compiled research. Do not assume they are MIT. Record the sheet’s source, editors, and any agreed data license here when maintainers confirm it.

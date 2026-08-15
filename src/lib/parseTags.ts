@@ -33,3 +33,32 @@ export function uniqueTags(values: string[][]): string[] {
 
   return tags.sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' }))
 }
+
+export type TagCount = {
+  label: string
+  count: number
+}
+
+/** Count tags across events, keeping first-seen casing, ordered by frequency. */
+export function countTags(values: string[][], limit?: number): TagCount[] {
+  const counts = new Map<string, TagCount>()
+
+  for (const group of values) {
+    const seenInEvent = new Set<string>()
+    for (const tag of group) {
+      const key = tag.toLowerCase()
+      if (seenInEvent.has(key)) continue
+      seenInEvent.add(key)
+      const existing = counts.get(key)
+      if (existing) existing.count += 1
+      else counts.set(key, { label: tag, count: 1 })
+    }
+  }
+
+  const ranked = [...counts.values()].sort((a, b) => {
+    if (b.count !== a.count) return b.count - a.count
+    return a.label.localeCompare(b.label, 'en', { sensitivity: 'base' })
+  })
+
+  return limit == null ? ranked : ranked.slice(0, limit)
+}

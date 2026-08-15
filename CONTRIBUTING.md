@@ -14,7 +14,7 @@ Useful commands:
 | Command | Purpose |
 | --- | --- |
 | `npm run dev` | Local Vite server |
-| `npm test` | Unit tests (date parsing is required) |
+| `npm test` | Unit tests (parsers, filters, URL/SEO/appearance helpers) |
 | `npm run build` | Production typecheck and bundle |
 | `npm run lint` | oxlint |
 
@@ -26,17 +26,24 @@ Please do not commit `node_modules/`, `dist/`, or `.env` files.
 | --- | --- |
 | Event text, dates, tags | `public/data/mastersheet.csv` (or the Google Sheet, then re-export — see DATA.md) |
 | Date formats the app should accept | `src/lib/parseDate.ts` **and** `src/lib/parseDate.test.ts` |
-| Fetch / CSV mapping | `src/lib/loadEvents.ts` |
+| Fetch / CSV mapping / event ids | `src/lib/loadEvents.ts` (ids feed permalinks; see DATA.md) |
+| Search, filters, year grouping | `src/lib/filterEvents.ts` |
+| Query-string view state | `src/lib/urlState.ts` |
+| Card permalinks | `src/lib/eventAnchor.ts`, `src/components/EventCard.tsx` |
+| Light / dark appearance | `src/lib/appearance.ts`, `src/index.css`, boot script in `index.html` |
+| Site name, OG substitution | `src/lib/site.ts`, `index.html`, `vite.site-url.ts` |
 | Layout and theming | `src/components/*`, `src/index.css` |
 | Docs | `README.md`, `DATA.md`, this file |
 
 ## Pull requests
 
 - Keep PRs focused. Data edits and UI edits are easier to review separately.
-- Add or update tests when you change `parseDate`, tag parsing, or filtering.
+- Add or update tests when you change `parseDate`, tag parsing, filtering, URL state, permalinks, or appearance.
 - Do not introduce a backend, analytics, or third-party font CDN without discussion.
 - Do not render `Detail` as HTML.
-- Leave sensational styling out. The palette is paper, ink, and muted crimson on purpose.
+- Leave sensational styling out. The palette is paper, ink, and muted crimson on purpose (with a matching dark set in `src/index.css`).
+- Do not insert rows in the middle of the CSV without calling out permalink breakage (ids include the row index).
+- Keep `%SITE_URL%` in `index.html` / `robots.txt` / `sitemap.xml` if you add new absolute URLs; the Vite plugin replaces that token at build time.
 
 If you edit the CSV, mention how many rows changed and whether Category / Organizations gained values (those filters appear automatically).
 

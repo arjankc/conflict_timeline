@@ -3,12 +3,14 @@ import type { ConflictEvent, RawCsvRow } from '../types/event'
 import { parseDate } from './parseDate'
 import { parseTags } from './parseTags'
 
+/** Relative URL so GitHub Pages (`/conflict_timeline/`) and a later Capacitor shell both resolve. */
 const DEFAULT_DATA_PATH = `${import.meta.env.BASE_URL}data/mastersheet.csv`
 
 function cell(row: RawCsvRow, key: string): string {
   const direct = row[key]
   if (typeof direct === 'string') return direct.trim()
 
+  // Sheets exports often add a leading empty column or pad header names with spaces.
   const match = Object.entries(row).find(
     ([header]) => header.trim().toLowerCase() === key.toLowerCase(),
   )
@@ -24,6 +26,7 @@ export function rowToEvent(row: RawCsvRow, sourceIndex: number): ConflictEvent |
   const parsed = parseDate(rawDate)
 
   return {
+    // csvIndex + sortKey: stable for a given file, but breaks if rows are inserted. See DATA.md.
     id: `row-${sourceIndex}-${parsed.sortKey}`,
     rawDate,
     sortKey: parsed.sortKey,
@@ -53,6 +56,7 @@ export function parseCsvEvents(csvText: string): ConflictEvent[] {
   })
 
   events.sort((a, b) => {
+    // Chronological feed. Id is the deterministic tie-break when two rows share a date.
     if (a.sortKey !== b.sortKey) return a.sortKey - b.sortKey
     return a.id.localeCompare(b.id)
   })

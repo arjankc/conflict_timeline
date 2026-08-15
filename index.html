@@ -3,13 +3,110 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- %SITE_URL% is replaced at build time from VITE_SITE_URL (no trailing slash). -->
+    <link rel="canonical" href="%SITE_URL%/" />
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="%SITE_URL%/sitemap.xml" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
     <meta
       name="description"
-      content="An interactive digital archive of Nepal's internal armed conflict, 1996 to 2006."
+      content="An interactive, chronological archive of Nepal's internal armed conflict (1996–2006), compiled for transitional justice civil society. Browse events by year, theme, and search."
     />
+    <meta name="robots" content="index, follow" />
     <meta name="theme-color" content="#fafaf9" />
+    <!-- Paint the canvas before CSS/JS so a system-dark visitor does not flash paper-white. -->
+    <style>
+      html { background-color: #fafaf9; }
+      html.dark { background-color: #1c1917; }
+    </style>
+    <!-- Mirrors src/lib/appearance.ts. Key name `appearance` must stay in sync. -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('appearance')
+          var dark =
+            stored === 'dark' ||
+            (stored !== 'light' &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches)
+          document.documentElement.classList.toggle('dark', dark)
+          document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
+          var meta = document.querySelector('meta[name="theme-color"]')
+          if (meta) meta.setAttribute('content', dark ? '#1c1917' : '#fafaf9')
+        } catch (e) {}
+      })()
+    </script>
+    <meta name="author" content="Nepal Conflict Timeline contributors" />
+    <meta name="application-name" content="Nepal Conflict Timeline" />
+    <meta name="apple-mobile-web-app-title" content="Nepal Conflict Timeline" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_GB" />
+    <meta property="og:site_name" content="Nepal Conflict Timeline" />
+    <meta property="og:title" content="Nepal Conflict Timeline" />
+    <meta
+      property="og:description"
+      content="A digital archive of Nepal's internal armed conflict, 1996–2006. Browse events by year, theme, and search."
+    />
+    <meta property="og:url" content="%SITE_URL%/" />
+    <meta property="og:image" content="%SITE_URL%/og-image.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Nepal Conflict Timeline: a digital archive of the 1996 to 2006 conflict"
+    />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Nepal Conflict Timeline" />
+    <meta
+      name="twitter:description"
+      content="A digital archive of Nepal's internal armed conflict, 1996–2006. Browse events by year, theme, and search."
+    />
+    <meta name="twitter:image" content="%SITE_URL%/og-image.png" />
+    <meta
+      name="twitter:image:alt"
+      content="Nepal Conflict Timeline: a digital archive of the 1996 to 2006 conflict"
+    />
+    <!-- Optional: <meta name="twitter:site" content="@YOUR_TWITTER_HANDLE" /> -->
+
     <title>Nepal Conflict Timeline</title>
+
+    <!-- Static structured data. Crawlers do not run the React app. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "name": "Nepal Conflict Timeline",
+            "url": "%SITE_URL%/",
+            "description": "An interactive, chronological archive of Nepal's internal armed conflict (1996–2006), compiled for transitional justice civil society.",
+            "inLanguage": "en",
+            "image": "%SITE_URL%/og-image.png"
+          },
+          {
+            "@type": "Dataset",
+            "name": "Nepal Conflict Timeline",
+            "description": "A chronological event archive of Nepal's internal armed conflict, compiled for transitional justice civil society.",
+            "url": "%SITE_URL%/",
+            "temporalCoverage": "1995/2006",
+            "spatialCoverage": {
+              "@type": "Place",
+              "name": "Nepal"
+            },
+            "creator": {
+              "@type": "Organization",
+              "name": "Nepal Conflict Timeline contributors"
+            },
+            "isAccessibleForFree": true,
+            "inLanguage": "en"
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

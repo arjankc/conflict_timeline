@@ -1,18 +1,21 @@
 import { useEffect, useMemo, useState } from 'react'
+import { ChronologyExplorer } from './components/ChronologyExplorer'
 import { FilterBar } from './components/FilterBar'
-import { TimelineFeed } from './components/TimelineFeed'
-import { YearOverview } from './components/YearOverview'
-import {
-  collectYears,
-  countEventsByYear,
-  EMPTY_FILTERS,
-  filterEvents,
-  type TimelineFilters,
-} from './lib/filterEvents'
+import { ShareButton } from './components/ShareButton'
+import { ThemeToggle } from './components/ThemeToggle'
+import { EMPTY_FILTERS, filterEvents, type TimelineFilters } from './lib/filterEvents'
 import { loadEvents } from './lib/loadEvents'
-import { uniqueTags } from './lib/parseTags'
+import { countTags, uniqueTags } from './lib/parseTags'
+import { pageDescription, pageTitle } from './lib/seo'
+import { SITE_NAME } from './lib/site'
+import { readExplorerQuery, writeExplorerQuery } from './lib/urlState'
 import { useDebouncedValue } from './lib/useDebouncedValue'
 import type { ConflictEvent } from './types/event'
+
+/**
+ * Root shell: skip links, header (appearance + share), sticky filters, explorer, footer.
+ * View state is the query string; there is no React Router.
+ */
 
 type LoadState =
   | { status: 'loading' }
@@ -21,7 +24,12 @@ type LoadState =
 
 export default function App() {
   const [loadState, setLoadState] = useState<LoadState>({ status: 'loading' })
-  const [filters, setFilters] = useState<TimelineFilters>(EMPTY_FILTERS)
+  const [filters, setFilters] = useState<TimelineFilters>(
+    () => readExplorerQuery().filters,
+  )
+  const [focusYear, setFocusYear] = useState<number | undefined>(
+    () => readExplorerQuery().year,
+  )
   const debouncedSearch = useDebouncedValue(filters.search, 150)
 
   useEffect(() => {
@@ -47,6 +55,11 @@ export default function App() {
     [filters, debouncedSearch],
   )
 
+  // Debounced filters so the address bar and the list stay in sync without a write on every keystroke.
+  useEffect(() => {
+    writeExplorerQuery(appliedFilters, focusYear)
+  }, [appliedFilters, focusYear])
+
   const categories = useMemo(
     () =>
       loadState.status === 'ready'
@@ -63,8 +76,11 @@ export default function App() {
     [loadState],
   )
 
-  const years = useMemo(
-    () => (loadState.status === 'ready' ? collectYears(loadState.events) : []),
+  const keywordCounts = useMemo(
+    () =>
+      loadState.status === 'ready'
+        ? countTags(loadState.events.map((event) => event.keywords), 16)
+        : [],
     [loadState],
   )
 
@@ -76,10 +92,18 @@ export default function App() {
     [loadState, appliedFilters],
   )
 
-  const yearSeries = useMemo(
-    () => countEventsByYear(filteredEvents, years),
-    [filteredEvents, years],
-  )
+  // Browser tab title only. Open Graph / Twitter tags in index.html stay on the homepage copy.
+  useEffect(() => {
+    document.title = pageTitle(appliedFilters, focusYear)
+    const description = pageDescription(
+      appliedFilters,
+      focusYear,
+      loadState.status === 'ready' ? filteredEvents.length : undefined,
+    )
+    document
+      .querySelector('meta[name="description"]')
+      ?.setAttribute('content', description)
+  }, [appliedFilters, focusYear, filteredEvents.length, loadState.status])
 
   function updateFilter<K extends keyof TimelineFilters>(
     key: K,
@@ -90,22 +114,38 @@ export default function App() {
 
   return (
     <div className="min-h-dvh bg-paper text-ink">
-      <a
-        href="#timeline"
-        className="absolute left-4 top-0 z-50 -translate-y-full rounded-md bg-crimson px-3 py-2 text-white focus:translate-y-4"
-      >
-        Skip to timeline
-      </a>
+      <nav aria-label="Skip links" className="contents">
+        <a
+          href="#years"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-[max(0.75rem,env(safe-area-inset-top))] focus:z-50 focus:rounded-md focus:bg-ink focus:px-3 focus:py-2 focus:text-paper"
+        >
+          Skip to year navigation
+        </a>
+        <a
+          href="#timeline"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-[max(3.25rem,calc(env(safe-area-inset-top)+2.5rem))] focus:z-50 focus:rounded-md focus:bg-ink focus:px-3 focus:py-2 focus:text-paper"
+        >
+          Skip to events
+        </a>
+      </nav>
 
       <header className="border-b border-line">
-        <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
-          <p className="text-sm font-medium tracking-wide text-crimson uppercase">
-            Digital archive
-          </p>
-          <h1 className="mt-2 font-serif text-3xl leading-tight text-ink sm:text-4xl">
-            Nepal Conflict Timeline
-          </h1>
-          <p className="mt-4 max-w-prose text-base leading-relaxed text-muted">
+        <div className="mx-auto max-w-5xl px-4 py-5 sm:px-6 sm:py-10">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-xs font-medium tracking-wide text-crimson uppercase sm:text-sm">
+                Digital archive
+              </p>
+              <h1 className="mt-1.5 font-serif text-2xl leading-tight text-ink sm:mt-2 sm:text-4xl">
+                {SITE_NAME}
+              </h1>
+            </div>
+            <div className="flex shrink-0 items-start gap-2">
+              <ThemeToggle />
+              <ShareButton filters={appliedFilters} year={focusYear} />
+            </div>
+          </div>
+          <p className="mt-3 max-w-prose text-sm leading-relaxed text-muted sm:mt-4 sm:text-base">
             A chronological record of Nepal&apos;s internal armed conflict
             (1996–2006), compiled for transitional justice civil society. The
             archive currently opens with pre-conflict events from 1995.
@@ -118,29 +158,37 @@ export default function App() {
           filters={filters}
           categories={categories}
           organizations={organizations}
+          keywords={keywordCounts}
           resultCount={filteredEvents.length}
           totalCount={loadState.events.length}
           onSearchChange={(value) => updateFilter('search', value)}
           onCategoryChange={(value) => updateFilter('category', value)}
           onOrganizationChange={(value) => updateFilter('organization', value)}
-          onKeywordClear={() => updateFilter('keyword', '')}
+          onKeywordClick={(keyword) =>
+            updateFilter(
+              'keyword',
+              filters.keyword.toLowerCase() === keyword.toLowerCase()
+                ? ''
+                : keyword,
+            )
+          }
           onReset={() => setFilters(EMPTY_FILTERS)}
         />
       ) : null}
 
-      <main id="timeline" className="pb-16">
+      <main id="timeline" tabIndex={-1} className="pt-4 outline-none sm:pt-8">
         {loadState.status === 'loading' ? (
-          <p className="mx-auto max-w-3xl px-4 py-12 text-muted sm:px-6" aria-live="polite">
+          <p className="mx-auto max-w-5xl px-4 py-12 text-muted sm:px-6" role="status">
             Loading the archive…
           </p>
         ) : null}
 
         {loadState.status === 'error' ? (
-          <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6" role="alert">
+          <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6" role="alert">
             <p className="text-ink">{loadState.message}</p>
             <button
               type="button"
-              className="mt-4 font-medium text-crimson underline-offset-2 hover:underline"
+              className="mt-4 min-h-11 font-medium text-crimson underline underline-offset-2"
               onClick={() => window.location.reload()}
             >
               Try again
@@ -149,46 +197,51 @@ export default function App() {
         ) : null}
 
         {loadState.status === 'ready' ? (
-          <>
-            <div className="py-8">
-              <YearOverview series={yearSeries} />
-            </div>
-            <TimelineFeed
-              events={filteredEvents}
-              activeKeyword={filters.keyword}
-              activeCategory={filters.category}
-              activeOrganization={filters.organization}
-              onKeywordClick={(keyword) =>
-                updateFilter(
-                  'keyword',
-                  filters.keyword.toLowerCase() === keyword.toLowerCase()
-                    ? ''
-                    : keyword,
-                )
-              }
-              onCategoryClick={(category) =>
-                updateFilter(
-                  'category',
-                  filters.category.toLowerCase() === category.toLowerCase()
-                    ? ''
-                    : category,
-                )
-              }
-              onOrganizationClick={(organization) =>
-                updateFilter(
-                  'organization',
-                  filters.organization.toLowerCase() === organization.toLowerCase()
-                    ? ''
-                    : organization,
-                )
-              }
-            />
-          </>
+          <ChronologyExplorer
+            events={filteredEvents}
+            focusYear={focusYear}
+            activeKeyword={filters.keyword}
+            activeCategory={filters.category}
+            activeOrganization={filters.organization}
+            onYearChange={(year) => setFocusYear(year ?? undefined)}
+            onKeywordClick={(keyword) =>
+              updateFilter(
+                'keyword',
+                filters.keyword.toLowerCase() === keyword.toLowerCase()
+                  ? ''
+                  : keyword,
+              )
+            }
+            onCategoryClick={(category) =>
+              updateFilter(
+                'category',
+                filters.category.toLowerCase() === category.toLowerCase()
+                  ? ''
+                  : category,
+              )
+            }
+            onOrganizationClick={(organization) =>
+              updateFilter(
+                'organization',
+                filters.organization.toLowerCase() === organization.toLowerCase()
+                  ? ''
+                  : organization,
+              )
+            }
+          />
         ) : null}
       </main>
 
-      <footer className="border-t border-line">
-        <div className="mx-auto max-w-3xl px-4 py-6 text-sm text-muted sm:px-6">
+      <footer
+        className={[
+          'border-t border-line',
+          // Extra space so the license line sits above the fixed mobile year dock.
+          loadState.status === 'ready'
+            ? 'pb-[calc(var(--dock-h)+1.25rem)] lg:pb-0'
+            : '',
+        ].join(' ')}
+      >
+        <div className="mx-auto max-w-5xl px-4 py-6 text-sm text-muted sm:px-6">
           <p>
             Open-source public archive. Application code is MIT licensed. Event
             texts retain the provenance of the source sheet, documented in

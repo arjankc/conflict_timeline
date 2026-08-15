@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import {
-  collectYears,
-  countEventsByYear,
   EMPTY_FILTERS,
   filterEvents,
+  groupEventsByYear,
+  monthCountsForYear,
+  groupEventsByMonth,
+  yearSectionId,
 } from './filterEvents'
 import type { ConflictEvent } from '../types/event'
 
@@ -59,18 +61,54 @@ describe('filterEvents', () => {
   })
 })
 
-describe('countEventsByYear', () => {
-  it('keeps the archive year axis and counts the filtered set', () => {
+describe('groupEventsByYear', () => {
+  it('keeps chronological year groups and names section ids', () => {
     const events = [
-      event({ id: '1', detail: 'a', year: 2000 }),
-      event({ id: '2', detail: 'b', year: 2000 }),
-      event({ id: '3', detail: 'c', year: 2001 }),
+      event({ id: '1', detail: 'a', year: 2000, sortKey: 20000301 }),
+      event({ id: '2', detail: 'b', year: 2000, sortKey: 20001101 }),
+      event({ id: '3', detail: 'c', year: 2001, sortKey: 20010601 }),
+      event({
+        id: '4',
+        detail: 'undated',
+        year: null,
+        precision: 'unknown',
+        sortKey: 99991231,
+      }),
     ]
 
-    expect(collectYears(events)).toEqual([2000, 2001])
-    expect(countEventsByYear([events[0]!], [2000, 2001])).toEqual([
-      { year: 2000, count: 1 },
-      { year: 2001, count: 0 },
+    const groups = groupEventsByYear(events)
+    expect(groups.map((group) => group.year)).toEqual([2000, 2001, null])
+    expect(groups[0]?.events.map((item) => item.id)).toEqual(['1', '2'])
+    expect(yearSectionId(2000)).toBe('year-2000')
+    expect(yearSectionId(null)).toBe('year-undated')
+  })
+})
+
+describe('monthCountsForYear', () => {
+  it('counts events into a 12-month heatmap', () => {
+    const events = [
+      event({ id: '1', detail: 'a', year: 2001, sortKey: 20010608, precision: 'day' }),
+      event({ id: '2', detail: 'b', year: 2001, sortKey: 20010616, precision: 'day' }),
+      event({ id: '3', detail: 'c', year: 2001, sortKey: 20011101, precision: 'month' }),
+    ]
+
+    expect(monthCountsForYear(events)).toEqual([
+      0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 1, 0,
+    ])
+  })
+})
+
+describe('groupEventsByMonth', () => {
+  it('clusters a year into chronological months', () => {
+    const events = [
+      event({ id: '1', detail: 'a', year: 2001, sortKey: 20010301, precision: 'month' }),
+      event({ id: '2', detail: 'b', year: 2001, sortKey: 20010608, precision: 'day' }),
+      event({ id: '3', detail: 'c', year: 2001, sortKey: 20010616, precision: 'day' }),
+    ]
+
+    expect(groupEventsByMonth(events).map((group) => [group.month, group.events.length])).toEqual([
+      [3, 1],
+      [6, 2],
     ])
   })
 })

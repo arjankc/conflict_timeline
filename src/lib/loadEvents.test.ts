@@ -27,7 +27,7 @@ describe('parseCsvEvents', () => {
     const csv = readFileSync('public/data/mastersheet.csv', 'utf8')
     const events = parseCsvEvents(csv)
 
-    expect(events.length).toBeGreaterThan(40)
+    expect(events).toHaveLength(53)
     const sortKeys = events.map((event) => event.sortKey)
     expect(sortKeys).toEqual([...sortKeys].sort((a, b) => a - b))
     expect(events[0]?.rawDate).toBe('11/1/95')

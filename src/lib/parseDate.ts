@@ -15,7 +15,22 @@ const MONTHS: Record<string, number> = {
   december: 12,
 }
 
-const MONTH_NAMES = [
+export const MONTH_SHORT = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+] as const
+
+export const MONTH_NAMES = [
   'January',
   'February',
   'March',
@@ -80,6 +95,10 @@ function rangeLabel(
   return `${startDay}–${endDay} ${MONTH_NAMES[month - 1]} ${year}`
 }
 
+/**
+ * Interpret the mixed Date column. Numeric cells are US `M/D/YY`;
+ * display labels are day-month-year. Unrecognised strings stay as-is and sort last.
+ */
 export function parseDate(raw: string): ParsedDate {
   const value = normalizeDateString(raw)
 

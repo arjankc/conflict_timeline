@@ -1,12 +1,20 @@
 import { defineConfig } from 'vitest/config'
+import { loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import { siteUrlPlugin } from './vite.site-url.ts'
 
-export default defineConfig({
-  base: '/conflict_timeline/',
-  plugins: [react(), tailwindcss()],
-  test: {
-    environment: 'node',
-    include: ['src/**/*.test.ts'],
-  },
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '')
+  if (env.VITE_SITE_URL) process.env.VITE_SITE_URL = env.VITE_SITE_URL
+
+  return {
+    // Project Pages URL: https://<user>.github.io/conflict_timeline/
+    base: '/conflict_timeline/',
+    plugins: [react(), tailwindcss(), siteUrlPlugin()],
+    test: {
+      environment: 'node',
+      include: ['src/**/*.test.ts'],
+    },
+  }
 })

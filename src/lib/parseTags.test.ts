@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseTags, uniqueTags } from './parseTags'
+import { countTags, parseTags, uniqueTags } from './parseTags'
 
 describe('parseTags', () => {
   it('splits, trims, and drops empty fragments', () => {
@@ -28,5 +28,23 @@ describe('uniqueTags', () => {
         ['State', 'Rolpa'],
       ]),
     ).toEqual(['Maoist', 'Rolpa', 'state'])
+  })
+})
+
+describe('countTags', () => {
+  it('ranks tags by frequency and keeps a limit', () => {
+    expect(
+      countTags(
+        [
+          ['Maoist', 'state'],
+          ['State', 'Rolpa'],
+          ['Maoist'],
+        ],
+        2,
+      ),
+    ).toEqual([
+      { label: 'Maoist', count: 2 },
+      { label: 'state', count: 2 },
+    ])
   })
 })

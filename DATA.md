@@ -57,6 +57,28 @@ Display labels use day-month-year (`2 March 1996`), which is the usual form in N
 
 Tags are split on commas, trimmed, and de-duplicated case-insensitively. Filter dropdowns hide themselves when a column has no values, so empty Category / Organizations fields do not produce broken controls. Keyword pills remain the working interactive taxonomy until those columns are filled.
 
+## Event identifiers
+
+Each loaded row gets an id:
+
+```
+row-<csvIndex>-<sortKey>
+```
+
+`csvIndex` is the 0-based index in PapaParse’s `data` array (invalid rows still occupy an index). `sortKey` is `YYYYMMDD` from `parseDate` (unknown dates use `99991231`).
+
+The permalink on each card is:
+
+```
+https://<origin><pathname>#event-row-<csvIndex>-<sortKey>
+```
+
+That URL **does not include** `?q=` / `?tag=` filters, so the event remains visible when the link is opened.
+
+**Ids move if the CSV is edited.** Inserting, deleting, or reordering rows changes `csvIndex` for everything after the change. Correcting a Date cell changes `sortKey`. Either change breaks previously copied card links. Prefer appending new events and fixing dates only when the displayed date was wrong; if you must insert rows, say so in the pull request so maintainers know permalinks will shift.
+
+HTML ids are prefixed with `event-` so they cannot collide with year section ids (`year-2001`, `year-undated`).
+
 ## Refreshing the CSV from Google Sheets
 
 1. Open the master spreadsheet.

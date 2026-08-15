@@ -1,21 +1,84 @@
 @import "tailwindcss";
 
-@theme {
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+  Semantic palette. Light values live on :root; `.dark` (applied to <html>) swaps them.
+  Tailwind utilities (bg-paper, text-ink, …) read these through @theme inline, so opacity
+  modifiers such as bg-paper/90 keep working via color-mix.
+
+  Layout measurements (set from JS):
+    --filter-h  sticky filter bar height
+    --dock-h    mobile year dock height, including safe-area padding
+*/
+
+:root {
+  --paper: #fafaf9;
+  --surface: #ffffff;
+  --ink: #1c1917;
+  --muted: #44403c;
+  --line: #a8a29e;
+  --control: #57534e;
+  --crimson: #7f1d1d;
+  --crimson-soft: #fff1f2;
+  --chip: #f5f5f4;
+  --chip-strong: #e7e5e4;
+  --chip-rose: #fff1f2;
+  color-scheme: light;
+}
+
+.dark {
+  --paper: #1c1917;
+  --surface: #292524;
+  --ink: #f5f5f4;
+  --muted: #d6d3d1;
+  --line: #78716c;
+  --control: #a8a29e;
+  --crimson: #f0b4b4;
+  --crimson-soft: #3f1a1a;
+  --chip: #35302c;
+  --chip-strong: #44403c;
+  --chip-rose: #4a2424;
+  color-scheme: dark;
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --muted: #1c1917;
+    --line: #44403c;
+    --control: #1c1917;
+  }
+
+  .dark {
+    --muted: #f5f5f4;
+    --line: #d6d3d1;
+    --control: #f5f5f4;
+  }
+}
+
+@theme inline {
   --font-sans: ui-sans-serif, system-ui, sans-serif;
   --font-serif: ui-serif, "Iowan Old Style", Palatino, Georgia, "Times New Roman",
     serif;
-  --color-paper: #fafaf9;
-  --color-ink: #1c1917;
-  --color-muted: #57534e;
-  --color-line: #d6d3d1;
-  --color-crimson: #7f1d1d;
-  --color-crimson-soft: #fff1f2;
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-control: var(--control);
+  --color-crimson: var(--crimson);
+  --color-crimson-soft: var(--crimson-soft);
+  --color-chip: var(--chip);
+  --color-chip-strong: var(--chip-strong);
+  --color-chip-rose: var(--chip-rose);
 }
 
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
     scroll-behavior: smooth;
+    --filter-h: 7.5rem;
+    --dock-h: 5.5rem;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -33,10 +96,59 @@
   }
 
   body {
-    @apply bg-paper font-sans text-ink antialiased;
+    @apply overflow-x-clip bg-paper font-sans text-ink antialiased;
+  }
+
+  button,
+  a,
+  [type="search"],
+  [type="button"],
+  select {
+    touch-action: manipulation;
   }
 
   :focus-visible {
-    @apply outline-2 outline-offset-2 outline-crimson;
+    outline: 3px solid var(--color-crimson);
+    outline-offset: 2px;
+  }
+
+  /* Highlight the card after `#event-…` navigation (and after a permalink click). */
+  article:target {
+    outline: 3px solid var(--color-crimson);
+    outline-offset: 2px;
+  }
+
+  #timeline,
+  #years,
+  article:target,
+  :focus-visible {
+    scroll-margin-top: calc(var(--filter-h) + 0.5rem);
+  }
+
+  @media (max-width: 1023px) {
+    html {
+      scroll-padding-bottom: calc(var(--dock-h) + 0.5rem);
+    }
+
+    :focus-visible {
+      scroll-margin-bottom: calc(var(--dock-h) + 0.5rem);
+    }
+  }
+
+  @media (forced-colors: active) {
+    .bg-crimson-soft,
+    .bg-paper,
+    .bg-surface,
+    .bg-chip,
+    .bg-chip-strong,
+    .bg-chip-rose {
+      forced-color-adjust: auto;
+    }
+
+    button,
+    input,
+    select {
+      border: 1px solid ButtonText;
+    }
   }
 }

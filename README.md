@@ -1,16 +1,21 @@
 # Nepal Conflict Timeline
 
-An interactive, mobile-first digital archive of Nepal's internal armed conflict (1996–2006). The timeline is intended for transitional justice civil society: a chronological newsfeed of events, filterable metadata, and a simple yearly overview.
+An interactive, mobile-first digital archive of Nepal's internal armed conflict (1996–2006). The timeline is intended for transitional justice civil society: a chronological card explorer of events, filterable metadata, and a year-density navigator.
 
 This is an open-source project. Event data currently ships as a static CSV exported from a Google Sheet.
 
 ## Features
 
-- Chronological, vertically scrolling event feed
-- Event cards with a prominent date, narrative detail, and metadata pills
-- Sticky search across event descriptions
-- Filters for category, organization, and keyword (pill click)
-- Accessible yearly bar chart of event counts
+- Chronological card explorer grouped by year and month, with sticky year headings
+- Event cards with a calendar date stack, narrative detail, and metadata pills
+- Per-card permalink (link icon copies `#event-…` to the clipboard)
+- Side year navigator with a month-density heatmap; click or drag to scrub
+- Theme chips and search, with shareable URL filters (`?q=&tag=&year=`)
+- Light, dark, and system appearance, remembered in the browser
+- Share control (Web Share on supported devices, copy-link fallback)
+- Open Graph / Twitter preview cards, JSON-LD, robots.txt, and sitemap
+- Mobile-first layout with a bottom year dock on small screens
+- Accessibility target: [WCAG 2.2](https://www.w3.org/TR/WCAG22/) Level AA
 - GitHub Pages deployment with Vite `base` set to `/conflict_timeline/`
 
 ## Requirements
@@ -28,38 +33,121 @@ npm run dev
 The app is served by Vite. Open the printed local URL. Because the production `base` path is `/conflict_timeline/`, Vite still resolves it correctly in development.
 
 ```bash
-npm test        # date parsing, CSV mapping, and filters
+npm test        # parsers, filters, URL/SEO/appearance helpers
 npm run build   # typecheck + production bundle
 npm run preview # serve the production build locally
 npm run lint    # oxlint
 ```
 
+Copy [`.env.example`](.env.example) to `.env` only if you need `VITE_DATA_URL` or a local `VITE_SITE_URL`. Neither is required for `npm run dev`.
+
 ## Data
 
-The runtime dataset is [`public/data/mastersheet.csv`](public/data/mastersheet.csv). See [DATA.md](DATA.md) for the column schema, date formats, and how to refresh the file from Google Sheets.
+The runtime dataset is [`public/data/mastersheet.csv`](public/data/mastersheet.csv). See [DATA.md](DATA.md) for the column schema, date formats, event IDs (used in permalinks), and how to refresh the file from Google Sheets.
 
-The current sheet has **52 events**. Category and Organizations columns are present but empty; Keywords are populated. Search, keyword pills, and the year chart all work against this data today. Category and organization filters appear once those columns have values.
+The current sheet has **53 events**. Category and Organizations columns are present but empty; Keywords are populated. Search, keyword pills, and the year navigator all work against this data today. Category and organization filters appear once those columns have values.
 
 ## Architecture
 
 ```
 public/data/mastersheet.csv  →  PapaParse  →  parseDate / parseTags
                                            →  chronological ConflictEvent[]
-                                           →  FilterBar + YearOverview + TimelineFeed
+                                           →  FilterBar + ChronologyExplorer
+                                                (year groups, cards, year navigator)
 ```
+
+There is no backend and no React Router. The product is a single page so it can later be wrapped with Capacitor without a routing rewrite. Fetch URLs are relative (`import.meta.env.BASE_URL`) on purpose.
+
+List virtualization is not used yet. Add it if the sheet grows into the thousands of rows.
+
+### Source map
 
 | Path | Role |
 | --- | --- |
-| [`src/lib/loadEvents.ts`](src/lib/loadEvents.ts) | Fetch and parse CSV |
-| [`src/lib/parseDate.ts`](src/lib/parseDate.ts) | Normalize mixed date strings |
+| [`src/lib/loadEvents.ts`](src/lib/loadEvents.ts) | Fetch and parse CSV into `ConflictEvent` rows |
+| [`src/lib/parseDate.ts`](src/lib/parseDate.ts) | Normalize mixed date strings; `M/D/YY` in, `2 March 1996` out |
 | [`src/lib/parseTags.ts`](src/lib/parseTags.ts) | Split comma-separated metadata |
-| [`src/lib/filterEvents.ts`](src/lib/filterEvents.ts) | Search and filter |
-| [`src/components/TimelineFeed.tsx`](src/components/TimelineFeed.tsx) | Chronological card list |
-| [`src/components/YearOverview.tsx`](src/components/YearOverview.tsx) | Events-per-year chart |
+| [`src/lib/filterEvents.ts`](src/lib/filterEvents.ts) | Search, tag filters, year/month grouping |
+| [`src/lib/urlState.ts`](src/lib/urlState.ts) | `?q=&tag=&year=` (filters) plus preserved `#hash` |
+| [`src/lib/eventAnchor.ts`](src/lib/eventAnchor.ts) | Card element ids and filter-free permalinks |
+| [`src/lib/appearance.ts`](src/lib/appearance.ts) | Light / dark / system preference |
+| [`src/lib/seo.ts`](src/lib/seo.ts) | Document title, share text, filtered share URL |
+| [`src/lib/site.ts`](src/lib/site.ts) | Site name, description, `%SITE_URL%` substitution |
+| [`src/components/ChronologyExplorer.tsx`](src/components/ChronologyExplorer.tsx) | Year-grouped feed + dock/rail |
+| [`src/components/TimelineFeed.tsx`](src/components/TimelineFeed.tsx) | Cards on a year spine |
+| [`src/components/EventCard.tsx`](src/components/EventCard.tsx) | One event, pills, permalink control |
+| [`src/components/YearNavigator.tsx`](src/components/YearNavigator.tsx) | Jump-to-year density rail or mobile dock |
+| [`src/components/FilterBar.tsx`](src/components/FilterBar.tsx) | Sticky search, chips; publishes `--filter-h` |
+| [`src/index.css`](src/index.css) | Colour tokens, dark class, layout CSS variables |
+| [`vite.site-url.ts`](vite.site-url.ts) | Replaces `%SITE_URL%` in HTML, robots.txt, sitemap |
+| [`index.html`](index.html) | Static meta, Open Graph, JSON-LD, appearance boot script |
 
-There is no backend and no React Router in this version. The product is a single page so it can later be wrapped with Capacitor without a routing rewrite. Fetch URLs are relative (`import.meta.env.BASE_URL`) on purpose.
+### Layout
 
-List virtualization is not used yet. Add it if the sheet grows into the thousands of rows.
+On viewports **narrower than `lg` (1024px)** the year navigator is a fixed bottom **dock**. Cards and the footer use `--dock-h` (measured from the dock) so content can scroll above it. On **`lg` and up** the navigator is a sticky **rail** on the right; the dock is not shown.
+
+The filter bar is sticky under the header. It writes `--filter-h` so year headings, skip-link targets, and card permalinks sit below it rather than under it.
+
+## URL state
+
+The address bar is the only “route”. Query parameters describe the **current view**. The fragment describes a **single card**.
+
+| Piece | Example | Purpose |
+| --- | --- | --- |
+| `q` | `?q=Rolpa` | Search in event `Detail` |
+| `tag` | `?tag=Maoist` | Keyword / theme filter |
+| `category` | `?category=…` | Category filter (hidden while the column is empty) |
+| `org` | `?org=…` | Organization filter (hidden while the column is empty) |
+| `year` | `?year=2001` | Scroll the feed to that year on load |
+| hash | `#event-row-12-20010608` | Scroll to one card after the CSV loads |
+
+Filter changes use `history.replaceState` and **keep** an existing hash. Search is debounced (150ms) before it is written to the URL and applied to the list.
+
+Two different copy actions:
+
+- **Share** (header) copies or native-shares the **current view**, including `?q=&tag=&year=`.
+- **Card link icon** copies a **permalink** of `origin + pathname + #event-…` with **no query string**, so filters cannot hide the event when someone opens the link later.
+
+Card ids include the CSV row index. Inserting or reordering rows changes those hashes. See [DATA.md](DATA.md#event-identifiers).
+
+Opening `#event-…` waits until events are on the page, then scrolls the card into view and outlines it (`:target`). A `?year=` jump is skipped when a card hash is present, so the two do not fight.
+
+## Appearance
+
+The header control cycles **System → Light → Dark**. The choice is stored as `localStorage.appearance` (`system` | `light` | `dark`).
+
+`html.dark` switches the CSS colour tokens. A blocking script in [`index.html`](index.html) applies the class **before React loads**, so a system-dark visitor does not flash the light palette. `color-scheme` and `theme-color` follow the resolved palette so scrollbars and the browser chrome match.
+
+Native form controls pick up `color-scheme`. Tokens live in [`src/index.css`](src/index.css) (`--paper`, `--ink`, `--muted`, `--crimson`, `--surface`, and chip colours). Light crimson is `#7f1d1d`; dark mode uses a lighter crimson so date text still meets contrast on the dark paper.
+
+## Sharing and SEO
+
+Social crawlers read the **static** tags in `index.html`; they do not execute the React app. A filtered URL such as `?year=2001&tag=Maoist` therefore still unfurls the homepage card ([`public/og-image.png`](public/og-image.png), 1200×630). The in-page **Share** button is what passes the filtered URL to a person. `document.title` does update with filters, which helps bookmarks and the share sheet.
+
+`%SITE_URL%` in `index.html`, [`public/robots.txt`](public/robots.txt), and [`public/sitemap.xml`](public/sitemap.xml) is replaced at build time (see `VITE_SITE_URL`). Until that is set, the placeholder is `https://YOUR-GITHUB-USERNAME.github.io/conflict_timeline`.
+
+Because this is a GitHub Pages *project* site, `robots.txt` lives at `/conflict_timeline/robots.txt`, not at the domain root. The sitemap is also linked from the page head.
+
+To preview tags locally:
+
+```bash
+VITE_SITE_URL=https://YOUR-GITHUB-USERNAME.github.io/conflict_timeline npm run build
+npm run preview
+```
+
+JSON-LD describes a `WebSite` and a `Dataset` with `temporalCoverage` `1995/2006` and `spatialCoverage` Nepal. Event texts are **not** marked MIT in that markup. Uncomment `twitter:site` in `index.html` when the project has an official account.
+
+## Accessibility
+
+The target is WCAG 2.2 Level AA. Practical choices in this codebase:
+
+- Colour tokens chosen for body and UI contrast; `prefers-contrast: more` darkens (or, in dark mode, lightens) muted line/control colours
+- Skip links to `#years` then `#timeline`
+- Heading order: `h1` site title → `h2` year → `h3` month (when several months) → `h3`/`h4` event date
+- Year navigator is **first in the grid DOM** on large screens (`lg:col-start-2`) so “skip to years” and tab order reach it before the long feed
+- `aria-pressed` / `aria-current` on filters and the active year; live `role="status"` for result counts and copy confirmation
+- Controls are at least 44×44px; `viewport-fit=cover` and safe-area insets on the sticky chrome
+- `prefers-reduced-motion` disables smooth scrolling and CSS animation
 
 ## GitHub Pages
 
@@ -73,6 +161,8 @@ List virtualization is not used yet. Add it if the sheet grows into the thousand
 
 If the GitHub repository name is not `conflict_timeline`, change `base` in `vite.config.ts` to `/<repo-name>/`.
 
+The deploy workflow sets `VITE_SITE_URL` to `https://<user>.github.io/<repo>` so sitemap, robots.txt, and social preview tags use the real origin. Override it with a repository variable named `SITE_URL` if you later attach a custom domain.
+
 ## Capacitor later
 
 Keep these constraints when adding a native shell:
@@ -80,6 +170,7 @@ Keep these constraints when adding a native shell:
 - Continue loading data with relative URLs or `VITE_DATA_URL`
 - Do not introduce a required backend
 - Prefer system fonts (already in use) so the WebView does not depend on Google Fonts
+- Clipboard permalinks and `navigator.share` need a secure context (HTTPS or localhost)
 
 ## Contributing
 

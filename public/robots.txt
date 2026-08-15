@@ -1,0 +1,7 @@
+# %SITE_URL% is replaced at build time from VITE_SITE_URL.
+# On a GitHub Pages *project* site this file is served at /<repo>/robots.txt, not domain root.
+
+User-agent: *
+Allow: /
+
+Sitemap: %SITE_URL%/sitemap.xml

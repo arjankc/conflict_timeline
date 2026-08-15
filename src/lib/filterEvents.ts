@@ -19,6 +19,7 @@ function hasTag(tags: string[], selected: string): boolean {
   return tags.some((tag) => tag.toLowerCase() === needle)
 }
 
+/** Case-insensitive `Detail` search plus exact tag matches (empty fields mean “no filter”). */
 export function filterEvents(
   events: ConflictEvent[],
   filters: TimelineFilters,
@@ -43,23 +44,75 @@ export function filterEvents(
   })
 }
 
-export function countEventsByYear(
-  events: ConflictEvent[],
-  years: number[],
-): Array<{ year: number; count: number }> {
-  const counts = new Map<number, number>()
-  for (const event of events) {
-    if (event.year == null) continue
-    counts.set(event.year, (counts.get(event.year) ?? 0) + 1)
-  }
-
-  return years.map((year) => ({ year, count: counts.get(year) ?? 0 }))
+export type YearGroup = {
+  year: number | null
+  events: ConflictEvent[]
 }
 
-export function collectYears(events: ConflictEvent[]): number[] {
-  const years = new Set<number>()
+/** DOM id for a year block. Distinct from card permalinks (`event-…`). */
+export function yearSectionId(year: number | null): string {
+  return year == null ? 'year-undated' : `year-${year}`
+}
+
+/** Groups in first-seen year order. Callers pass events already sorted chronologically. */
+export function groupEventsByYear(events: ConflictEvent[]): YearGroup[] {
+  const groups: YearGroup[] = []
+  const indexByYear = new Map<number | null, YearGroup>()
+
   for (const event of events) {
-    if (event.year != null) years.add(event.year)
+    const year = event.year
+    const existing = indexByYear.get(year)
+    if (existing) {
+      existing.events.push(event)
+      continue
+    }
+
+    const group: YearGroup = { year, events: [event] }
+    indexByYear.set(year, group)
+    groups.push(group)
   }
-  return [...years].sort((a, b) => a - b)
+
+  return groups
+}
+
+function monthFromEvent(event: ConflictEvent): number | null {
+  if (event.precision === 'unknown' || event.year == null) return null
+  const month = Math.floor((event.sortKey % 10000) / 100)
+  if (month < 1 || month > 12) return null
+  return month
+}
+
+export type MonthGroup = {
+  month: number | null
+  events: ConflictEvent[]
+}
+
+export function groupEventsByMonth(events: ConflictEvent[]): MonthGroup[] {
+  const groups: MonthGroup[] = []
+  const indexByMonth = new Map<number | null, MonthGroup>()
+
+  for (const event of events) {
+    const month = monthFromEvent(event)
+    const existing = indexByMonth.get(month)
+    if (existing) {
+      existing.events.push(event)
+      continue
+    }
+
+    const group: MonthGroup = { month, events: [event] }
+    indexByMonth.set(month, group)
+    groups.push(group)
+  }
+
+  return groups
+}
+
+/** Twelve month buckets for the year-rail heatmap (index 0 = January). */
+export function monthCountsForYear(events: ConflictEvent[]): number[] {
+  const counts = Array.from({ length: 12 }, () => 0)
+  for (const event of events) {
+    const month = monthFromEvent(event)
+    if (month) counts[month - 1] += 1
+  }
+  return counts
 }

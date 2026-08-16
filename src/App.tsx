@@ -145,8 +145,8 @@ export default function App() {
       </nav>
 
       <header className="border-b border-line">
-        <div className="mx-auto max-w-5xl px-5 py-5 sm:px-8 sm:py-10">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+        <div className="mx-auto max-w-5xl px-5 py-4 sm:px-8 sm:py-10">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
             <div className="min-w-0 flex-1">
               <p className="text-xs font-medium tracking-wide text-crimson uppercase sm:text-sm">
                 Digital archive
@@ -167,7 +167,7 @@ export default function App() {
               <ShareButton filters={appliedFilters} year={focusYear} />
             </div>
           </div>
-          <p className="mt-4 max-w-prose text-sm leading-[1.7] text-muted sm:mt-5 sm:text-base">
+          <p className="mt-3 max-w-prose text-sm leading-[1.7] text-muted sm:mt-5 sm:text-base">
             A chronological record of Nepal&apos;s internal armed conflict
             (1996–2006), compiled for transitional justice civil society. The
             archive currently opens with pre-conflict events from 1995.

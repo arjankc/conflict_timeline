@@ -130,7 +130,7 @@ export function FilterBar({
               </div>
             ) : null}
 
-            <div className="flex min-h-11 shrink-0 items-center gap-3">
+            <div className="flex min-h-11 w-full min-w-0 shrink-0 items-center gap-3 sm:w-auto">
               <p role="status" aria-atomic="true" className="sr-only">
                 Showing {resultCount} of {totalCount} events
                 {filters.keyword ? ` tagged ${filters.keyword}` : ''}
@@ -138,20 +138,29 @@ export function FilterBar({
               <p className="min-w-0 truncate text-sm text-muted" aria-hidden="true">
                 <span className="sm:hidden">
                   {resultCount}/{totalCount}
-                  {filters.keyword ? ` · ${filters.keyword}` : ''}
                 </span>
                 <span className="hidden sm:inline">
                   Showing {resultCount} of {totalCount} events
-                  {filters.keyword ? ` tagged ${filters.keyword}` : ''}
                 </span>
               </p>
+              {filters.keyword ? (
+                <button
+                  type="button"
+                  aria-pressed="true"
+                  aria-label={`${filters.keyword}, selected. Activate to remove filter.`}
+                  onClick={() => onKeywordClick(filters.keyword)}
+                  className="inline-flex min-h-11 max-w-[10rem] shrink-0 items-center truncate rounded-full border border-crimson bg-crimson-soft px-3 text-sm font-medium text-crimson"
+                >
+                  {filters.keyword}
+                </button>
+              ) : null}
               {hasActiveFilters ? (
                 <button
                   type="button"
                   onClick={onReset}
-                  className="min-h-11 shrink-0 px-2 text-sm font-medium text-crimson underline underline-offset-2"
+                  className="ms-auto min-h-11 shrink-0 px-2 text-sm font-medium text-crimson underline underline-offset-2 sm:ms-0"
                 >
-                  Reset filters
+                  Reset<span className="hidden sm:inline"> filters</span>
                 </button>
               ) : null}
             </div>

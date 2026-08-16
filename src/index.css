@@ -255,3 +255,48 @@ html.dark.contrast-more {
     }
   }
 }
+
+/*
+  Horizontal overflow cue. Paper-coloured so it matches sticky chrome and the
+  year dock in both appearance modes. Reduced-transparency keeps a solid sliver.
+*/
+.scroll-fade-start,
+.scroll-fade-end {
+  pointer-events: none;
+  position: absolute;
+  inset-block: 0;
+  z-index: 10;
+  width: 1.75rem;
+}
+
+.scroll-fade-start {
+  inset-inline-start: 0;
+  background: linear-gradient(to right, var(--paper), transparent);
+}
+
+.scroll-fade-end {
+  inset-inline-end: 0;
+  background: linear-gradient(to left, var(--paper), transparent);
+}
+
+.event-teaser-fade {
+  pointer-events: none;
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 2.25rem;
+  background: linear-gradient(to top, var(--surface), transparent);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .scroll-fade-start,
+  .scroll-fade-end {
+    width: 0.4rem;
+    background: var(--paper);
+  }
+
+  .event-teaser-fade {
+    height: 0.35rem;
+    background: var(--surface);
+  }
+}

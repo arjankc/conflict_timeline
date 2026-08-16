@@ -14,7 +14,7 @@ This is an open-source project. Event data currently ships as a static CSV expor
 - Light, dark, system appearance, text size, and high contrast, remembered in the browser
 - Share control (Web Share on supported devices, copy-link fallback)
 - Open Graph / Twitter preview cards, JSON-LD, robots.txt, and sitemap
-- Mobile-first layout with a bottom year dock on small screens
+- Mobile-first layout with a bottom year dock (density strip + year chips) on small screens
 - Accessibility target: [WCAG 2.2](https://www.w3.org/TR/WCAG22/) Level AA
 - GitHub Pages deployment with Vite `base` set to `/conflict_timeline/`
 
@@ -81,7 +81,9 @@ List virtualization is not used yet. Add it if the sheet grows into the thousand
 | [`src/components/ChronologyExplorer.tsx`](src/components/ChronologyExplorer.tsx) | Year-grouped feed + dock/rail |
 | [`src/components/TimelineFeed.tsx`](src/components/TimelineFeed.tsx) | Cards on a year spine |
 | [`src/components/EventCard.tsx`](src/components/EventCard.tsx) | Teaser card, expand, permalink |
-| [`src/components/YearNavigator.tsx`](src/components/YearNavigator.tsx) | Jump-to-year density rail or mobile dock |
+| [`src/components/YearNavigator.tsx`](src/components/YearNavigator.tsx) | Jump-to-year density rail or mobile dock (scrub strip + year chips) |
+| [`src/components/ScrollFade.tsx`](src/components/ScrollFade.tsx) | Edge fade when a horizontal scroller can still move |
+| [`src/lib/scrollOverflow.ts`](src/lib/scrollOverflow.ts) | Start/end overflow flags for those fades |
 | [`src/components/FilterBar.tsx`](src/components/FilterBar.tsx) | Sticky search row; publishes `--filter-h` |
 | [`src/components/KeywordCloud.tsx`](src/components/KeywordCloud.tsx) | Theme chips under search (scroll away with the page) |
 | [`src/components/SearchSuggest.tsx`](src/components/SearchSuggest.tsx) | Combobox typeahead for search |
@@ -95,9 +97,9 @@ List virtualization is not used yet. Add it if the sheet grows into the thousand
 
 ### Layout
 
-On viewports **narrower than `lg` (1024px)** the year navigator is a fixed bottom **dock**. Cards and the footer use `--dock-h` (measured from the dock) so content can scroll above it. On **`lg` and up** the navigator is a sticky **rail** on the right; the dock is not shown.
+On viewports **narrower than `lg` (1024px)** the year navigator is a fixed bottom **dock**: a full-span density strip (tap or drag to jump) plus a horizontal year list. The list and the theme chips fade at the edges when there is more to scroll. Cards and the footer use `--dock-h` (measured from the dock) so content can scroll above it. On **`lg` and up** the navigator is a sticky **rail** on the right; the dock is not shown.
 
-The search row is sticky under the header. It writes `--filter-h` so year headings, skip-link targets, and card permalinks sit below it. Theme chips sit under that row and scroll away with the page. Event cards start as a teaser (three lines and three tags on narrow screens; four lines and five tags from `sm` / 640px) and expand in place.
+The search row is sticky under the header. It writes `--filter-h` so year headings, skip-link targets, and card permalinks sit below it. An active theme stays as a chip on that row (activate it again to clear). Theme chips sit under that row and scroll away with the page. Event cards start as a teaser (compact date badge, three lines with a fade, and three tags on narrow screens; date stack, four lines, and five tags from `sm` / 640px) and expand in place.
 
 The year dock/rail still switches at **`lg` (1024px)** — that breakpoint is independent of the card teaser.
 

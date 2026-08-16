@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import { monthCountsForYear, type YearGroup } from '../lib/filterEvents'
 import { MONTH_SHORT } from '../lib/parseDate'
+import { useScrollOverflow } from '../lib/useScrollOverflow'
+import { ScrollFade } from './ScrollFade'
 
 /** `dock` is a fixed bottom scroller on small screens; `rail` is the desktop sidebar (drag optional). */
 
@@ -9,6 +11,55 @@ type YearNavigatorProps = {
   activeYear: number | null
   onYearSelect: (year: number | null) => void
   variant: 'dock' | 'rail'
+}
+
+type DatedGroup = YearGroup & { year: number }
+
+function yearKey(year: number | null): string {
+  return year == null ? 'undated' : String(year)
+}
+
+function parseYearKey(value: string | undefined): number | null | undefined {
+  if (value == null) return undefined
+  return value === 'undated' ? null : Number(value)
+}
+
+function selectYearFromClient(
+  container: HTMLElement,
+  client: number,
+  axis: 'x' | 'y',
+): number | null | undefined {
+  const buttons = Array.from(container.querySelectorAll('[data-year]'))
+  let next: number | null | undefined
+
+  for (const button of buttons) {
+    const rect = button.getBoundingClientRect()
+    const start = axis === 'x' ? rect.left : rect.top
+    const end = axis === 'x' ? rect.right : rect.bottom
+    if (client >= start && client <= end) {
+      next = parseYearKey((button as HTMLElement).dataset.year)
+      break
+    }
+  }
+
+  if (next === undefined) {
+    const first = buttons[0]?.getBoundingClientRect()
+    const last = buttons.at(-1)?.getBoundingClientRect()
+    if (axis === 'x') {
+      if (first && client < first.left) {
+        next = parseYearKey((buttons[0] as HTMLElement | undefined)?.dataset.year)
+      } else if (last && client > last.right) {
+        next = parseYearKey((buttons.at(-1) as HTMLElement | undefined)?.dataset.year)
+      }
+    } else if (first && client < first.top) {
+      next = parseYearKey((buttons[0] as HTMLElement | undefined)?.dataset.year)
+    } else if (last && client > last.bottom) {
+      next = parseYearKey((buttons.at(-1) as HTMLElement | undefined)?.dataset.year)
+    }
+  }
+
+  if (typeof next === 'number' && Number.isNaN(next)) return undefined
+  return next
 }
 
 function YearHeat({ events }: { events: YearGroup['events'] }) {
@@ -32,6 +83,101 @@ function YearHeat({ events }: { events: YearGroup['events'] }) {
   )
 }
 
+function YearDockScrub({
+  datedGroups,
+  undated,
+  activeYear,
+  maxCount,
+  onYearSelect,
+  onScrubYear,
+}: {
+  datedGroups: DatedGroup[]
+  undated: YearGroup | undefined
+  activeYear: number | null
+  maxCount: number
+  onYearSelect: (year: number | null) => void
+  onScrubYear: (year: number | null | undefined) => void
+}) {
+  const scrubRef = useRef<HTMLDivElement>(null)
+  const draggingRef = useRef(false)
+  const lastYearRef = useRef<number | null | undefined>(undefined)
+
+  function pickFromPoint(clientX: number) {
+    const scrub = scrubRef.current
+    if (!scrub) return
+    const next = selectYearFromClient(scrub, clientX, 'x')
+    if (next === undefined || next === lastYearRef.current) return
+    lastYearRef.current = next
+    onScrubYear(next)
+    onYearSelect(next)
+  }
+
+  function onPointerDown(event: ReactPointerEvent<HTMLDivElement>) {
+    if (event.button !== 0) return
+    draggingRef.current = true
+    event.currentTarget.setPointerCapture(event.pointerId)
+    pickFromPoint(event.clientX)
+  }
+
+  function onPointerMove(event: ReactPointerEvent<HTMLDivElement>) {
+    if (!draggingRef.current) return
+    pickFromPoint(event.clientX)
+  }
+
+  function endDrag() {
+    draggingRef.current = false
+    lastYearRef.current = undefined
+    onScrubYear(undefined)
+  }
+
+  return (
+    <div
+      ref={scrubRef}
+      role="presentation"
+      aria-hidden="true"
+      className="mx-4 flex h-11 cursor-ew-resize touch-none items-stretch gap-px rounded-md bg-chip px-1 pt-1 select-none"
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={endDrag}
+      onPointerCancel={endDrag}
+    >
+      {datedGroups.map((group) => {
+        const current = activeYear === group.year
+        const height = 28 + (group.events.length / maxCount) * 72
+        return (
+          <div
+            key={group.year}
+            data-year={group.year}
+            className="flex min-h-11 min-w-0 flex-1 flex-col justify-end"
+          >
+            <span
+              className={[
+                'w-full rounded-sm bg-crimson',
+                current ? 'opacity-100' : 'opacity-40',
+              ].join(' ')}
+              style={{ height: `${height}%` }}
+            />
+          </div>
+        )
+      })}
+      {undated ? (
+        <div
+          data-year="undated"
+          className="flex min-h-11 w-4 shrink-0 flex-col justify-end"
+        >
+          <span
+            className={[
+              'w-full rounded-sm bg-control',
+              activeYear == null ? 'opacity-100' : 'opacity-40',
+            ].join(' ')}
+            style={{ height: '40%' }}
+          />
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
 export function YearNavigator({
   groups,
   activeYear,
@@ -39,15 +185,17 @@ export function YearNavigator({
   variant,
 }: YearNavigatorProps) {
   const datedGroups = groups.filter(
-    (group): group is YearGroup & { year: number } => group.year != null,
+    (group): group is DatedGroup => group.year != null,
   )
   const undated = groups.find((group) => group.year == null)
   const maxCount = Math.max(...datedGroups.map((group) => group.events.length), 1)
   const dockRef = useRef<HTMLElement>(null)
   const railRef = useRef<HTMLDivElement>(null)
+  const chipRowRef = useRef<HTMLDivElement>(null)
   const draggingRef = useRef(false)
   const lastYearRef = useRef<number | null | undefined>(undefined)
   const [scrubYear, setScrubYear] = useState<number | null | undefined>(undefined)
+  const chipOverflow = useScrollOverflow(chipRowRef)
 
   useEffect(() => {
     if (variant !== 'dock') return
@@ -82,8 +230,9 @@ export function YearNavigator({
 
   useEffect(() => {
     if (variant !== 'dock') return
-    const key = activeYear == null ? 'undated' : String(activeYear)
-    const button = railRef.current?.querySelector(`[data-year="${key}"]`)
+    const button = chipRowRef.current?.querySelector(
+      `[data-year="${yearKey(activeYear)}"]`,
+    )
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     button?.scrollIntoView({
       inline: 'center',
@@ -97,40 +246,14 @@ export function YearNavigator({
   function selectFromPoint(clientY: number) {
     const rail = railRef.current
     if (!rail) return
-    const buttons = Array.from(rail.querySelectorAll('[data-year]'))
-    let next: number | null | undefined
-    for (const button of buttons) {
-      const rect = button.getBoundingClientRect()
-      if (clientY >= rect.top && clientY <= rect.bottom) {
-        const value = (button as HTMLElement).dataset.year
-        next = value === 'undated' ? null : Number(value)
-        break
-      }
-    }
-    if (next === undefined) {
-      const first = buttons[0]?.getBoundingClientRect()
-      const last = buttons.at(-1)?.getBoundingClientRect()
-      if (first && clientY < first.top) {
-        const value = (buttons[0] as HTMLElement | undefined)?.dataset.year
-        next = value === 'undated' ? null : Number(value)
-      } else if (last && clientY > last.bottom) {
-        const value = (buttons.at(-1) as HTMLElement | undefined)?.dataset.year
-        next = value === 'undated' ? null : Number(value)
-      }
-    }
-    if (
-      next === undefined ||
-      (typeof next === 'number' && Number.isNaN(next)) ||
-      next === lastYearRef.current
-    ) {
-      return
-    }
+    const next = selectYearFromClient(rail, clientY, 'y')
+    if (next === undefined || next === lastYearRef.current) return
     lastYearRef.current = next
     setScrubYear(next)
     onYearSelect(next)
   }
 
-  // Drag-to-scrub is desktop-rail only; the dock is a horizontal button row (click / swipe scroll).
+  // Drag-to-scrub is desktop-rail only; the dock uses the density strip above the chips.
   function onPointerDown(event: ReactPointerEvent<HTMLDivElement>) {
     if (variant !== 'rail' || event.button !== 0) return
     draggingRef.current = true
@@ -153,55 +276,82 @@ export function YearNavigator({
     return (
       <nav
         ref={dockRef}
-        aria-label="Jump to a year"
+        aria-label="Jump to a year. Drag the density strip or swipe the year list."
         className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-paper/95 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur-sm"
       >
-        <div
-          ref={railRef}
-          className="flex gap-2.5 overflow-x-auto overscroll-x-contain px-4 py-2 [scrollbar-width:thin]"
-        >
-          {datedGroups.map((group) => {
-            const current = activeYear === group.year
-            return (
+        <p className="px-4 pt-2 text-xs font-medium tracking-wide text-muted uppercase">
+          Years
+        </p>
+        <YearDockScrub
+          datedGroups={datedGroups}
+          undated={undated}
+          activeYear={activeYear}
+          maxCount={maxCount}
+          onYearSelect={onYearSelect}
+          onScrubYear={setScrubYear}
+        />
+        <div className="relative">
+          <div
+            ref={chipRowRef}
+            className="flex snap-x snap-proximity gap-2.5 overflow-x-auto overscroll-x-contain px-4 py-2 [scrollbar-width:thin]"
+          >
+            {datedGroups.map((group) => {
+              const current = activeYear === group.year
+              return (
+                <button
+                  key={group.year}
+                  type="button"
+                  data-year={group.year}
+                  aria-current={current ? 'true' : undefined}
+                  aria-label={`${group.year}, ${group.events.length} events${current ? ', current year in view' : ''}`}
+                  onClick={() => onYearSelect(group.year)}
+                  className={[
+                    'inline-flex min-h-11 shrink-0 snap-start flex-col justify-center rounded-full px-4 py-2 text-left',
+                    current
+                      ? 'bg-crimson-soft font-medium text-crimson ring-2 ring-crimson'
+                      : 'bg-surface text-ink ring-1 ring-control',
+                  ].join(' ')}
+                >
+                  <span className="flex items-baseline gap-2">
+                    <span className="font-serif text-base leading-tight">{group.year}</span>
+                    <span className="font-sans text-xs tabular-nums leading-tight text-muted">
+                      {group.events.length}
+                    </span>
+                  </span>
+                  <YearHeat events={group.events} />
+                </button>
+              )
+            })}
+            {undated ? (
               <button
-                key={group.year}
                 type="button"
-                data-year={group.year}
-                aria-current={current ? 'true' : undefined}
-                aria-label={`${group.year}, ${group.events.length} events${current ? ', current year in view' : ''}`}
-                onClick={() => onYearSelect(group.year)}
+                data-year="undated"
+                aria-current={activeYear == null ? 'true' : undefined}
+                aria-label={`Undated, ${undated.events.length} events${activeYear == null ? ', current section in view' : ''}`}
+                onClick={() => onYearSelect(null)}
                 className={[
-                  'inline-flex min-h-11 shrink-0 flex-col justify-center rounded-full px-4 py-2 text-left',
-                  current
+                  'inline-flex min-h-11 shrink-0 snap-start items-center rounded-full px-4 py-2 text-sm',
+                  activeYear == null
                     ? 'bg-crimson-soft font-medium text-crimson ring-2 ring-crimson'
                     : 'bg-surface text-ink ring-1 ring-control',
                 ].join(' ')}
               >
-                <span className="font-serif text-base leading-tight">{group.year}</span>
-                <span className="mt-1 text-xs leading-tight whitespace-nowrap text-muted">
-                  {group.events.length} {group.events.length === 1 ? 'event' : 'events'}
-                </span>
+                Undated
               </button>
-            )
-          })}
-          {undated ? (
-            <button
-              type="button"
-              data-year="undated"
-              aria-current={activeYear == null ? 'true' : undefined}
-              aria-label={`Undated, ${undated.events.length} events${activeYear == null ? ', current section in view' : ''}`}
-              onClick={() => onYearSelect(null)}
-              className={[
-                'inline-flex min-h-11 shrink-0 items-center rounded-full px-4 py-2 text-sm',
-                activeYear == null
-                  ? 'bg-crimson-soft font-medium text-crimson ring-2 ring-crimson'
-                  : 'bg-surface text-ink ring-1 ring-control',
-              ].join(' ')}
-            >
-              Undated
-            </button>
-          ) : null}
+            ) : null}
+          </div>
+          <ScrollFade start={chipOverflow.start} end={chipOverflow.end} />
         </div>
+        {scrubYear !== undefined ? (
+          <div
+            className="pointer-events-none absolute inset-x-0 -top-14 flex justify-center"
+            aria-hidden="true"
+          >
+            <p className="rounded-md bg-ink px-3 py-2 font-serif text-2xl leading-none text-paper">
+              {scrubYear == null ? 'Undated' : scrubYear}
+            </p>
+          </div>
+        ) : null}
       </nav>
     )
   }

@@ -85,7 +85,7 @@ export function SearchSuggest({ value, index, onChange }: SearchSuggestProps) {
   }
 
   return (
-    <div ref={rootRef} className="relative min-w-0 flex-1 basis-48">
+    <div ref={rootRef} className="relative min-w-0 w-full flex-1 basis-full sm:basis-48">
       <label htmlFor="timeline-search" className="sr-only">
         Search events. Suggestions appear after two characters. Arrow keys choose
         a suggestion; Enter on the typed query keeps it.
@@ -118,7 +118,7 @@ export function SearchSuggest({ value, index, onChange }: SearchSuggestProps) {
           id={LIST_ID}
           role="listbox"
           aria-label="Search suggestions"
-          className="absolute z-40 mt-1 max-h-64 w-full overflow-y-auto rounded-md border border-line bg-surface py-1 [scrollbar-width:thin]"
+          className="absolute z-40 mt-1 max-h-[min(16rem,40dvh)] w-full overflow-y-auto rounded-md border border-line bg-surface py-1 [scrollbar-width:thin]"
         >
           {suggestions.map((suggestion, index) => {
             const selected = index === activeIndex

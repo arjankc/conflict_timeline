@@ -52,8 +52,9 @@ function YearHeading({
       ref={headingRef}
       id={headingId}
       tabIndex={-1}
-      className="sticky top-[var(--filter-h)] z-10 -mx-1 mb-4 flex flex-wrap items-baseline gap-x-3 gap-y-1 bg-paper/90 px-1 py-2.5 font-serif text-xl leading-snug text-ink outline-none backdrop-blur-sm sm:mb-5 sm:text-3xl"
+      className="sticky top-[var(--filter-h)] z-10 -mx-1 mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 bg-paper/90 px-1 py-2.5 font-serif text-xl leading-snug text-ink outline-none backdrop-blur-sm sm:mb-5 sm:text-3xl"
     >
+      <span aria-hidden="true" className="size-2 shrink-0 rounded-full bg-crimson sm:size-2.5" />
       <span>{label}</span>
       <span className="font-sans text-sm font-normal text-muted">
         {count} {count === 1 ? 'event' : 'events'}

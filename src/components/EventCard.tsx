@@ -194,6 +194,36 @@ function CheckIcon() {
   )
 }
 
+function MobileDateBadge({ event }: { event: ConflictEvent }) {
+  if (event.precision === 'unknown') {
+    return (
+      <span className="font-serif text-lg leading-tight text-crimson">
+        {event.dateLabel}
+      </span>
+    )
+  }
+
+  const month = Math.floor((event.sortKey % 10000) / 100)
+  const monthLabel = MONTH_SHORT[month - 1] ?? ''
+  const day = badgeDay(event)
+
+  return (
+    <span className="inline-flex items-baseline gap-2 rounded-md bg-crimson-soft px-2.5 py-1 text-crimson">
+      {monthLabel ? (
+        <span className="text-xs font-semibold tracking-[0.08em] uppercase">
+          {monthLabel}
+        </span>
+      ) : null}
+      {day ? (
+        <span className="font-serif text-xl leading-none tabular-nums">{day}</span>
+      ) : null}
+      {event.year != null ? (
+        <span className="text-xs tabular-nums">{event.year}</span>
+      ) : null}
+    </span>
+  )
+}
+
 function DateStack({ event }: { event: ConflictEvent }) {
   if (event.precision === 'unknown') {
     return (
@@ -337,32 +367,37 @@ export function EventCard({
       <PermalinkControl cardId={cardId} dateLabel={event.dateLabel} />
       <div className="sm:flex sm:gap-5">
         <DateHeading id={dateHeadingId} className="mb-3 sm:mb-0">
-          <time
-            dateTime={event.dateTime}
-            className="block font-serif text-lg leading-tight text-crimson sm:sr-only"
-          >
-            {event.dateLabel}
+          <time dateTime={event.dateTime} className="block sm:sr-only">
+            <span className="sr-only">{event.dateLabel}</span>
+            <span aria-hidden="true">
+              <MobileDateBadge event={event} />
+            </span>
           </time>
           <span className="hidden sm:block" aria-hidden="true">
             <DateStack event={event} />
           </span>
         </DateHeading>
         <div className="min-w-0 flex-1">
-          <p
-            ref={textRef}
-            className={[
-              'max-w-[65ch] break-words text-pretty text-base leading-[1.75] text-ink',
-              isExpanded ? '' : 'line-clamp-3 sm:line-clamp-4',
-            ].join(' ')}
-          >
-            {highlightChunks.map((chunk, index) =>
-              chunk.match ? (
-                <mark key={`${chunk.text}-${index}`}>{chunk.text}</mark>
-              ) : (
-                <span key={`${chunk.text}-${index}`}>{chunk.text}</span>
-              ),
-            )}
-          </p>
+          <div className="relative">
+            <p
+              ref={textRef}
+              className={[
+                'max-w-[65ch] break-words text-pretty text-base leading-[1.75] text-ink',
+                isExpanded ? '' : 'line-clamp-3 sm:line-clamp-4',
+              ].join(' ')}
+            >
+              {highlightChunks.map((chunk, index) =>
+                chunk.match ? (
+                  <mark key={`${chunk.text}-${index}`}>{chunk.text}</mark>
+                ) : (
+                  <span key={`${chunk.text}-${index}`}>{chunk.text}</span>
+                ),
+              )}
+            </p>
+            {!isExpanded && textOverflows ? (
+              <span aria-hidden="true" className="event-teaser-fade" />
+            ) : null}
+          </div>
           {visible.length > 0 ? (
             <ul className="mt-4 flex flex-wrap gap-2 sm:mt-5" aria-label="Event metadata">
               {visible.map((pill) => (
@@ -396,7 +431,11 @@ export function EventCard({
               className="mt-3 min-h-11 text-sm font-medium text-crimson underline underline-offset-2"
               onClick={onToggleExpand}
             >
-              {isExpanded ? 'Show less' : 'Show more'}
+              {isExpanded
+                ? 'Show less'
+                : hiddenCount > 0
+                  ? `Show more · ${hiddenCount}`
+                  : 'Show more'}
             </button>
           ) : null}
         </div>

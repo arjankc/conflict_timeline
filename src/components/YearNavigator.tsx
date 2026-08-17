@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import { useEffect, useRef, type PointerEvent as ReactPointerEvent } from 'react'
 import { monthCountsForYear, type YearGroup } from '../lib/filterEvents'
 import { MONTH_SHORT } from '../lib/parseDate'
 import { useScrollOverflow } from '../lib/useScrollOverflow'
@@ -10,6 +10,8 @@ type YearNavigatorProps = {
   groups: YearGroup[]
   activeYear: number | null
   onYearSelect: (year: number | null) => void
+  /** `undefined` means the pointer left the scrubber; keep the overlay up while a year is passed. */
+  onYearCue?: (year: number | null | undefined) => void
   variant: 'dock' | 'rail'
 }
 
@@ -89,14 +91,14 @@ function YearDockScrub({
   activeYear,
   maxCount,
   onYearSelect,
-  onScrubYear,
+  onYearCue,
 }: {
   datedGroups: DatedGroup[]
   undated: YearGroup | undefined
   activeYear: number | null
   maxCount: number
   onYearSelect: (year: number | null) => void
-  onScrubYear: (year: number | null | undefined) => void
+  onYearCue?: (year: number | null | undefined) => void
 }) {
   const scrubRef = useRef<HTMLDivElement>(null)
   const draggingRef = useRef(false)
@@ -108,7 +110,7 @@ function YearDockScrub({
     const next = selectYearFromClient(scrub, clientX, 'x')
     if (next === undefined || next === lastYearRef.current) return
     lastYearRef.current = next
-    onScrubYear(next)
+    onYearCue?.(next)
     onYearSelect(next)
   }
 
@@ -127,7 +129,7 @@ function YearDockScrub({
   function endDrag() {
     draggingRef.current = false
     lastYearRef.current = undefined
-    onScrubYear(undefined)
+    onYearCue?.(undefined)
   }
 
   return (
@@ -182,6 +184,7 @@ export function YearNavigator({
   groups,
   activeYear,
   onYearSelect,
+  onYearCue,
   variant,
 }: YearNavigatorProps) {
   const datedGroups = groups.filter(
@@ -194,7 +197,9 @@ export function YearNavigator({
   const chipRowRef = useRef<HTMLDivElement>(null)
   const draggingRef = useRef(false)
   const lastYearRef = useRef<number | null | undefined>(undefined)
-  const [scrubYear, setScrubYear] = useState<number | null | undefined>(undefined)
+  const ignoreChipScroll = useRef(false)
+  const chipCueYear = useRef<number | null | undefined>(undefined)
+  const chipIdleTimer = useRef(0)
   const chipOverflow = useScrollOverflow(chipRowRef)
 
   useEffect(() => {
@@ -234,12 +239,21 @@ export function YearNavigator({
       `[data-year="${yearKey(activeYear)}"]`,
     )
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ignoreChipScroll.current = true
     button?.scrollIntoView({
       inline: 'center',
       block: 'nearest',
       behavior: reduce ? 'auto' : 'smooth',
     })
+    const release = window.setTimeout(() => {
+      ignoreChipScroll.current = false
+    }, reduce ? 50 : 450)
+    return () => window.clearTimeout(release)
   }, [activeYear, variant])
+
+  useEffect(() => {
+    return () => window.clearTimeout(chipIdleTimer.current)
+  }, [])
 
   if (groups.length === 0) return null
 
@@ -249,7 +263,7 @@ export function YearNavigator({
     const next = selectYearFromClient(rail, clientY, 'y')
     if (next === undefined || next === lastYearRef.current) return
     lastYearRef.current = next
-    setScrubYear(next)
+    onYearCue?.(next)
     onYearSelect(next)
   }
 
@@ -269,7 +283,25 @@ export function YearNavigator({
   function endDrag() {
     draggingRef.current = false
     lastYearRef.current = undefined
-    setScrubYear(undefined)
+    onYearCue?.(undefined)
+  }
+
+  function onChipRowScroll() {
+    if (ignoreChipScroll.current) return
+    const row = chipRowRef.current
+    if (!row) return
+    const mid = row.getBoundingClientRect().left + row.clientWidth / 2
+    const next = selectYearFromClient(row, mid, 'x')
+    if (next === undefined) return
+    if (next !== chipCueYear.current) {
+      chipCueYear.current = next
+      onYearCue?.(next)
+    }
+    window.clearTimeout(chipIdleTimer.current)
+    chipIdleTimer.current = window.setTimeout(() => {
+      chipCueYear.current = undefined
+      onYearCue?.(undefined)
+    }, 180)
   }
 
   if (variant === 'dock') {
@@ -288,12 +320,13 @@ export function YearNavigator({
           activeYear={activeYear}
           maxCount={maxCount}
           onYearSelect={onYearSelect}
-          onScrubYear={setScrubYear}
+          onYearCue={onYearCue}
         />
         <div className="relative">
           <div
             ref={chipRowRef}
             className="flex snap-x snap-proximity gap-2.5 overflow-x-auto overscroll-x-contain px-4 py-2 [scrollbar-width:thin]"
+            onScroll={onChipRowScroll}
           >
             {datedGroups.map((group) => {
               const current = activeYear === group.year
@@ -342,16 +375,6 @@ export function YearNavigator({
           </div>
           <ScrollFade start={chipOverflow.start} end={chipOverflow.end} />
         </div>
-        {scrubYear !== undefined ? (
-          <div
-            className="pointer-events-none absolute inset-x-0 -top-14 flex justify-center"
-            aria-hidden="true"
-          >
-            <p className="rounded-md bg-ink px-3 py-2 font-serif text-2xl leading-none text-paper">
-              {scrubYear == null ? 'Undated' : scrubYear}
-            </p>
-          </div>
-        ) : null}
       </nav>
     )
   }
@@ -420,16 +443,6 @@ export function YearNavigator({
           </button>
         ) : null}
       </div>
-      {scrubYear !== undefined ? (
-        <div
-          className="pointer-events-none absolute top-1/2 -left-2 -translate-x-full -translate-y-1/2 rounded-md bg-ink px-3 py-2 text-paper"
-          aria-hidden="true"
-        >
-          <p className="font-serif text-2xl leading-none">
-            {scrubYear == null ? 'Undated' : scrubYear}
-          </p>
-        </div>
-      ) : null}
     </nav>
   )
 }

@@ -3,9 +3,13 @@ import { readEventHash } from '../lib/eventAnchor'
 import { groupEventsByYear, yearSectionId } from '../lib/filterEvents'
 import type { ConflictEvent } from '../types/event'
 import { TimelineFeed } from './TimelineFeed'
+import { YearCue } from './YearCue'
 import { YearNavigator } from './YearNavigator'
 
 /** Year-grouped feed plus the dock (small screens) or rail (large screens). */
+
+const YEAR_CUE_HOLD_MS = 1100
+const YEAR_CUE_ARM_MS = 450
 
 type ChronologyExplorerProps = {
   events: ConflictEvent[]
@@ -40,8 +44,30 @@ export function ChronologyExplorer({
   const [activeYear, setActiveYear] = useState<number | null>(
     focusYear ?? groups[0]?.year ?? null,
   )
+  const [cueYear, setCueYear] = useState<number | null>(
+    focusYear ?? groups[0]?.year ?? null,
+  )
+  const [cueOpen, setCueOpen] = useState(false)
   const didFocus = useRef(false)
   const didHashFocus = useRef(false)
+  const cueArmed = useRef(false)
+  const cueHideTimer = useRef(0)
+  const cueHold = useRef(false)
+  const activeYearRef = useRef(activeYear)
+
+  activeYearRef.current = activeYear
+
+  function revealYear(year: number | null, hold = false) {
+    if (!cueArmed.current) return
+    cueHold.current = hold
+    setCueYear(year)
+    setCueOpen(true)
+    window.clearTimeout(cueHideTimer.current)
+    if (hold) return
+    cueHideTimer.current = window.setTimeout(() => {
+      setCueOpen(false)
+    }, YEAR_CUE_HOLD_MS)
+  }
 
   function updateActiveYear(year: number | null, persist = false) {
     setActiveYear(year)
@@ -49,11 +75,45 @@ export function ChronologyExplorer({
   }
 
   useEffect(() => {
+    cueArmed.current = false
+    setCueOpen(false)
+    const arm = window.setTimeout(() => {
+      cueArmed.current = true
+    }, YEAR_CUE_ARM_MS)
+    return () => window.clearTimeout(arm)
+  }, [groups])
+
+  useEffect(() => {
+    return () => window.clearTimeout(cueHideTimer.current)
+  }, [])
+
+  useEffect(() => {
     setActiveYear((current) => {
       if (groups.some((group) => group.year === current)) return current
       return groups[0]?.year ?? null
     })
   }, [groups])
+
+  useEffect(() => {
+    if (cueHold.current) {
+      setCueYear(activeYear)
+      return
+    }
+    revealYear(activeYear)
+  }, [activeYear])
+
+  useEffect(() => {
+    function onScroll() {
+      if (cueHold.current) {
+        setCueYear(activeYearRef.current)
+        setCueOpen(true)
+        return
+      }
+      revealYear(activeYearRef.current)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   useEffect(() => {
     const id = readEventHash(window.location.hash)
@@ -120,6 +180,14 @@ export function ChronologyExplorer({
     updateActiveYear(year, true)
   }
 
+  function onNavigatorCue(year: number | null | undefined) {
+    if (year === undefined) {
+      revealYear(activeYearRef.current)
+      return
+    }
+    revealYear(year, true)
+  }
+
   // Year nav is DOM-first (skip link / tab) but visually column 2 on large screens.
   return (
     <div className="relative mx-auto grid max-w-5xl grid-cols-1 px-5 pb-10 sm:px-8 lg:grid-cols-[minmax(0,1fr)_10rem] lg:gap-10 lg:pb-16">
@@ -135,6 +203,7 @@ export function ChronologyExplorer({
               groups={groups}
               activeYear={activeYear}
               onYearSelect={scrollToYear}
+              onYearCue={onNavigatorCue}
             />
           </div>
           <div className="hidden h-full lg:block">
@@ -143,6 +212,7 @@ export function ChronologyExplorer({
               groups={groups}
               activeYear={activeYear}
               onYearSelect={scrollToYear}
+              onYearCue={onNavigatorCue}
             />
           </div>
         </div>
@@ -160,6 +230,7 @@ export function ChronologyExplorer({
           onOrganizationClick={onOrganizationClick}
         />
       </div>
+      <YearCue year={cueYear} open={cueOpen} />
     </div>
   )
 }

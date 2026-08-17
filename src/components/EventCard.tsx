@@ -358,7 +358,7 @@ export function EventCard({
     <article
       id={cardId}
       className={[
-        'relative scroll-mt-[calc(var(--filter-h)+var(--year-h)+0.35rem)] rounded-lg border border-line bg-surface p-4 pe-14 sm:p-6 sm:pe-16',
+        'relative scroll-mt-[calc(var(--filter-h)+0.35rem)] rounded-lg border border-line bg-surface p-4 pe-14 sm:p-6 sm:pe-16',
         canExpand ? 'cursor-pointer' : '',
       ].join(' ')}
       aria-labelledby={dateHeadingId}

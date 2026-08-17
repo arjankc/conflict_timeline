@@ -6,7 +6,7 @@ This is an open-source project. Event data currently ships as a static CSV expor
 
 ## Features
 
-- Chronological card explorer grouped by year and month, with sticky year headings
+- Chronological card explorer grouped by year and month
 - Event cards with a calendar date stack, a clamped narrative teaser (expand in place), and metadata pills
 - Per-card permalink (link icon copies `#event-…`; a toast confirms; the feed does not jump)
 - Side year navigator with a month-density heatmap; click or drag to scrub
@@ -82,6 +82,7 @@ List virtualization is not used yet. Add it if the sheet grows into the thousand
 | [`src/components/TimelineFeed.tsx`](src/components/TimelineFeed.tsx) | Cards on a year spine |
 | [`src/components/EventCard.tsx`](src/components/EventCard.tsx) | Teaser card, expand, permalink |
 | [`src/components/YearNavigator.tsx`](src/components/YearNavigator.tsx) | Jump-to-year density rail or mobile dock (scrub strip + year chips) |
+| [`src/components/YearCue.tsx`](src/components/YearCue.tsx) | Brief year overlay while scrolling or scrubbing |
 | [`src/components/ScrollFade.tsx`](src/components/ScrollFade.tsx) | Edge fade when a horizontal scroller can still move |
 | [`src/lib/scrollOverflow.ts`](src/lib/scrollOverflow.ts) | Start/end overflow flags for those fades |
 | [`src/components/FilterBar.tsx`](src/components/FilterBar.tsx) | Sticky search row; publishes `--filter-h` |
@@ -99,7 +100,7 @@ List virtualization is not used yet. Add it if the sheet grows into the thousand
 
 On viewports **narrower than `lg` (1024px)** the year navigator is a fixed bottom **dock**: a full-span density strip (tap or drag to jump) plus a horizontal year list. The list and the theme chips fade at the edges when there is more to scroll. Cards and the footer use `--dock-h` (measured from the dock) so content can scroll above it. On **`lg` and up** the navigator is a sticky **rail** on the right; the dock is not shown.
 
-The search row is sticky under the header. It writes `--filter-h` so year headings, skip-link targets, and card permalinks sit below it. An active theme stays as a chip on that row (activate it again to clear). Theme chips sit under that row and scroll away with the page. Event cards start as a teaser (compact date badge, three lines with a fade, and three tags on narrow screens; date stack, four lines, and five tags from `sm` / 640px) and expand in place.
+The search row is sticky. It writes `--filter-h` so skip-link targets and card permalinks sit below it. Year headings stay with their section and scroll away with the feed. While you scroll the timeline or swipe the year dock, a large year overlay appears for a moment and then fades (similar to a photos year scrubber). The dock or rail keeps marking the year in view. An active theme stays as a chip on that row (activate it again to clear). Theme chips sit under that row and scroll away with the page. Event cards start as a teaser (compact date badge, three lines with a fade, and three tags on narrow screens; date stack, four lines, and five tags from `sm` / 640px) and expand in place.
 
 The year dock/rail still switches at **`lg` (1024px)** — that breakpoint is independent of the card teaser.
 
@@ -125,7 +126,7 @@ Two different copy actions:
 
 Card ids include the CSV row index. Inserting or reordering rows changes those hashes. See [DATA.md](DATA.md#event-identifiers).
 
-Opening `#event-…` (including a pasted permalink) waits until events are on the page, then scrolls the card into view below the sticky search and year heading, and outlines it (`:target`). Clicking the card’s link icon copies that permalink and does **not** scroll. A `?year=` jump is skipped when a card hash is present, so the two do not fight.
+Opening `#event-…` (including a pasted permalink) waits until events are on the page, then scrolls the card into view below the sticky search, and outlines it (`:target`). Clicking the card’s link icon copies that permalink and does **not** scroll. A `?year=` jump is skipped when a card hash is present, so the two do not fight.
 
 ## Appearance
 

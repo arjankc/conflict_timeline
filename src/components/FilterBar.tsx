@@ -50,7 +50,7 @@ export function FilterBar({
 
     function syncHeight() {
       if (!nav) return
-      // Sticky year headings and skip-link scroll-margin sit below this measured bar.
+      // Skip-link targets and card permalinks sit below this measured bar.
       document.documentElement.style.setProperty(
         '--filter-h',
         `${Math.round(nav.getBoundingClientRect().height)}px`,

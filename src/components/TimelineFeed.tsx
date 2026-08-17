@@ -1,4 +1,3 @@
-import { useEffect, useRef } from 'react'
 import { groupEventsByMonth, yearSectionId, type YearGroup } from '../lib/filterEvents'
 import { MONTH_NAMES } from '../lib/parseDate'
 import type { ConflictEvent } from '../types/event'
@@ -27,32 +26,12 @@ function YearHeading({
   headingId: string
 }) {
   const label = year == null ? 'Undated' : String(year)
-  const headingRef = useRef<HTMLHeadingElement>(null)
-
-  useEffect(() => {
-    const heading = headingRef.current
-    if (!heading) return
-
-    function syncHeight() {
-      if (!heading) return
-      document.documentElement.style.setProperty(
-        '--year-h',
-        `${Math.round(heading.getBoundingClientRect().height)}px`,
-      )
-    }
-
-    syncHeight()
-    const observer = new ResizeObserver(syncHeight)
-    observer.observe(heading)
-    return () => observer.disconnect()
-  }, [])
 
   return (
     <h2
-      ref={headingRef}
       id={headingId}
       tabIndex={-1}
-      className="sticky top-[var(--filter-h)] z-10 -mx-1 mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 bg-paper/90 px-1 py-2.5 font-serif text-xl leading-snug text-ink outline-none backdrop-blur-sm sm:mb-5 sm:text-3xl"
+      className="-mx-1 mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 px-1 py-1 font-serif text-xl leading-snug text-ink outline-none sm:mb-5 sm:text-3xl"
     >
       <span aria-hidden="true" className="size-2 shrink-0 rounded-full bg-crimson sm:size-2.5" />
       <span>{label}</span>
@@ -137,7 +116,7 @@ export function TimelineFeed({
             key={sectionId}
             id={sectionId}
             aria-labelledby={headingId}
-            className="scroll-mt-[calc(var(--filter-h)+var(--year-h)+0.35rem)]"
+            className="scroll-mt-[calc(var(--filter-h)+0.35rem)]"
           >
             <YearHeading year={group.year} count={group.events.length} headingId={headingId} />
             {months.map((monthGroup) => (

@@ -67,7 +67,6 @@
   Layout measurements (set from JS):
     --filter-h  sticky search-row height (theme chips are not included)
     --dock-h    mobile year dock height, including safe-area padding
-    --year-h    sticky year heading height (measured in TimelineFeed)
 */
 
 :root {
@@ -160,7 +159,6 @@ html.dark.contrast-more {
     scroll-behavior: smooth;
     --filter-h: 5.5rem;
     --dock-h: 5.5rem;
-    --year-h: 3.5rem;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -225,7 +223,7 @@ html.dark.contrast-more {
   #years,
   article,
   :focus-visible {
-    scroll-margin-top: calc(var(--filter-h) + var(--year-h) + 0.35rem);
+    scroll-margin-top: calc(var(--filter-h) + 0.35rem);
   }
 
   @media (max-width: 1023px) {
@@ -298,5 +296,52 @@ html.dark.contrast-more {
   .event-teaser-fade {
     height: 0.35rem;
     background: var(--surface);
+  }
+
+  .year-cue-label {
+    background: var(--paper);
+  }
+}
+
+/*
+  Google Photos-style year HUD. Visible only while scrolling or scrubbing, then
+  fades. Sits in the feed band; on large screens it sits beside the year rail.
+*/
+.year-cue {
+  pointer-events: none;
+  position: fixed;
+  inset-inline: 0;
+  top: calc(var(--filter-h) + 0.75rem);
+  bottom: calc(var(--dock-h, 0px) + 0.75rem);
+  z-index: 35;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.year-cue[data-open='true'] {
+  opacity: 1;
+}
+
+.year-cue-label {
+  margin: 0;
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--paper) 92%, transparent);
+  padding: 0.6rem 1.15rem;
+  font-family: var(--font-serif);
+  font-size: clamp(2.25rem, 8vw, 3.75rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--crimson);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (min-width: 1024px) {
+  .year-cue {
+    bottom: 1.5rem;
+    justify-content: flex-end;
+    padding-inline-end: 12.5rem;
   }
 }

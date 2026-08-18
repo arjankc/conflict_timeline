@@ -15,6 +15,11 @@ export const SITE_DESCRIPTION =
 export const PLACEHOLDER_SITE_URL =
   'https://YOUR-GITHUB-USERNAME.github.io/conflict_timeline'
 
+/** Canonical GitHub repository for source and documentation links. */
+export const REPO_URL = 'https://github.com/arjankc/conflict_timeline'
+
+export const DATA_DOC_URL = `${REPO_URL}/blob/main/DATA.md`
+
 export function normalizeSiteUrl(url: string): string {
   return url.replace(/\/+$/, '')
 }

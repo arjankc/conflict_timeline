@@ -299,49 +299,53 @@ html.dark.contrast-more {
   }
 
   .year-cue-label {
-    background: var(--paper);
+    background: color-mix(in srgb, var(--paper) 88%, transparent);
+    backdrop-filter: none;
   }
 }
 
 /*
   Google Photos-style year HUD. Visible only while scrolling or scrubbing, then
-  fades. Sits in the feed band; on large screens it sits beside the year rail.
+  fades. Sits on the inline end so it does not cover the feed centre.
 */
 .year-cue {
   pointer-events: none;
   position: fixed;
-  inset-inline: 0;
+  inset-inline-end: 0.75rem;
+  inset-inline-start: auto;
   top: calc(var(--filter-h) + 0.75rem);
   bottom: calc(var(--dock-h, 0px) + 0.75rem);
   z-index: 35;
   display: flex;
+  width: auto;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
   opacity: 0;
   transition: opacity 180ms ease;
 }
 
 .year-cue[data-open='true'] {
-  opacity: 1;
+  opacity: 0.65;
 }
 
 .year-cue-label {
   margin: 0;
   border-radius: 0.5rem;
-  background: color-mix(in srgb, var(--paper) 92%, transparent);
-  padding: 0.6rem 1.15rem;
+  border: 1px solid color-mix(in srgb, var(--line) 45%, transparent);
+  background: color-mix(in srgb, var(--paper) 52%, transparent);
+  backdrop-filter: blur(10px);
+  padding: 0.45rem 0.8rem;
   font-family: var(--font-serif);
-  font-size: clamp(2.25rem, 8vw, 3.75rem);
+  font-size: clamp(1.65rem, 4.5vw, 2.5rem);
   line-height: 1;
   letter-spacing: -0.02em;
-  color: var(--crimson);
+  color: color-mix(in srgb, var(--crimson) 78%, transparent);
   font-variant-numeric: tabular-nums;
 }
 
 @media (min-width: 1024px) {
   .year-cue {
+    inset-inline-end: 11.5rem;
     bottom: 1.5rem;
-    justify-content: flex-end;
-    padding-inline-end: 12.5rem;
   }
 }

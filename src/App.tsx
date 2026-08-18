@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { BackToTop } from './components/BackToTop'
 import { ChronologyExplorer } from './components/ChronologyExplorer'
 import { FilterBar } from './components/FilterBar'
 import { ShareButton } from './components/ShareButton'
@@ -10,7 +11,7 @@ import { loadEvents } from './lib/loadEvents'
 import { countTags, KEYWORD_CLOUD_LIMIT, uniqueTags } from './lib/parseTags'
 import { buildSearchIndex } from './lib/searchSuggest'
 import { pageDescription, pageTitle } from './lib/seo'
-import { SITE_NAME } from './lib/site'
+import { DATA_DOC_URL, SITE_NAME } from './lib/site'
 import { readExplorerQuery, writeExplorerQuery } from './lib/urlState'
 import { useDebouncedValue } from './lib/useDebouncedValue'
 import type { ConflictEvent } from './types/event'
@@ -269,11 +270,18 @@ export default function App() {
         <div className="mx-auto max-w-5xl px-5 py-8 text-sm leading-[1.7] text-muted sm:px-8">
           <p>
             Open-source public archive. Application code is MIT licensed. Event
-            texts retain the provenance of the source sheet, documented in
-            DATA.md.
+            texts retain the provenance of the source sheet, documented in{' '}
+            <a
+              href={DATA_DOC_URL}
+              className="font-medium text-crimson underline underline-offset-2"
+            >
+              DATA.md
+            </a>
+            .
           </p>
         </div>
       </footer>
+      {loadState.status === 'ready' ? <BackToTop /> : null}
       <Toast />
     </div>
   )

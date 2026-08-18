@@ -45,7 +45,8 @@ export function ReadingControls() {
         onClick={onCycleSize}
         aria-label={textSizeLabel(size)}
         title={textSizeLabel(size)}
-        className="inline-flex min-h-11 min-w-11 items-center justify-center gap-0.5 rounded-md border border-control bg-surface px-2 text-ink"
+        data-active={size !== 'default' ? 'true' : undefined}
+        className="icon-btn gap-0.5 px-2"
       >
         <span className="text-[0.7rem] leading-none" aria-hidden="true">
           A
@@ -60,7 +61,7 @@ export function ReadingControls() {
         aria-pressed={contrast === 'more'}
         aria-label={contrastLabel(contrast)}
         title={contrastLabel(contrast)}
-        className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-control bg-surface text-ink"
+        className="icon-btn"
       >
         <ContrastIcon />
       </button>

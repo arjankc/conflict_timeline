@@ -14,6 +14,7 @@ type TimelineFeedProps = {
   onKeywordClick: (keyword: string) => void
   onCategoryClick: (category: string) => void
   onOrganizationClick: (organization: string) => void
+  onReset?: () => void
 }
 
 function YearHeading({
@@ -31,13 +32,14 @@ function YearHeading({
     <h2
       id={headingId}
       tabIndex={-1}
-      className="-mx-1 mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 px-1 py-1 font-serif text-xl leading-snug text-ink outline-none sm:mb-5 sm:text-3xl"
+      className="-mx-1 mb-5 flex flex-wrap items-center gap-x-3 gap-y-1 px-1 py-1 font-serif text-2xl leading-none tracking-tight text-ink outline-none sm:mb-6 sm:text-4xl"
     >
       <span aria-hidden="true" className="size-2 shrink-0 rounded-full bg-crimson sm:size-2.5" />
       <span>{label}</span>
-      <span className="font-sans text-sm font-normal text-muted">
+      <span className="font-sans text-sm font-normal tracking-normal text-muted">
         {count} {count === 1 ? 'event' : 'events'}
       </span>
+      <span aria-hidden="true" className="ms-1 h-px min-w-8 flex-1 bg-line" />
     </h2>
   )
 }
@@ -64,10 +66,10 @@ function EventEntry({
   onOrganizationClick: (organization: string) => void
 }) {
   return (
-    <li className="relative pb-5 last:pb-0">
+    <li className="relative pb-6 last:pb-0">
       <span
         aria-hidden="true"
-        className="absolute -start-[1.3rem] top-6 size-2.5 rounded-full border-2 border-paper bg-crimson sm:-start-[1.85rem] sm:top-7"
+        className="absolute -start-[1.35rem] top-6 size-2.5 rounded-full border-2 border-paper bg-crimson sm:-start-[1.9rem] sm:top-7"
       />
       <EventCard
         event={event}
@@ -93,17 +95,28 @@ export function TimelineFeed({
   onKeywordClick,
   onCategoryClick,
   onOrganizationClick,
+  onReset,
 }: TimelineFeedProps) {
   if (groups.length === 0) {
     return (
-      <p className="px-1 py-12 text-center text-muted" role="status">
-        No events match the current search and filters.
-      </p>
+      <div className="mx-auto max-w-md px-1 py-16 text-center" role="status">
+        <p className="font-serif text-2xl tracking-tight text-ink">
+          No matching events
+        </p>
+        <p className="mt-3 text-pretty text-muted">
+          Nothing in the archive matches the current search and filters.
+        </p>
+        {onReset ? (
+          <button type="button" className="btn-text-accent mt-5" onClick={onReset}>
+            Clear filters
+          </button>
+        ) : null}
+      </div>
     )
   }
 
   return (
-    <div className="flex flex-col gap-12">
+    <div className="flex flex-col gap-14">
       {groups.map((group) => {
         const months = groupEventsByMonth(group.events)
         // Month labels only when a year contains more than one month; then the date heading drops to h4.
@@ -122,13 +135,13 @@ export function TimelineFeed({
             {months.map((monthGroup) => (
               <div key={monthGroup.month ?? 'undated'} className="mb-2 last:mb-0">
                 {showMonths ? (
-                  <h3 className="ms-1 pb-2.5 pt-1.5 text-xs font-medium tracking-[0.14em] text-muted uppercase">
+                  <h3 className="ms-1 pb-3 pt-2 text-xs font-medium tracking-[0.16em] text-muted uppercase">
                     {monthGroup.month
                       ? MONTH_NAMES[monthGroup.month - 1]
                       : 'Date unknown'}
                   </h3>
                 ) : null}
-                <ol className="relative ms-1.5 border-s-2 border-control ps-5 sm:ms-3 sm:ps-8">
+                <ol className="relative ms-1.5 border-s-2 border-crimson/25 ps-5 sm:ms-3 sm:ps-8">
                   {monthGroup.events.map((event) => (
                     <EventEntry
                       key={event.id}

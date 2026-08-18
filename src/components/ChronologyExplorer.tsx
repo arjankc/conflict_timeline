@@ -22,6 +22,7 @@ type ChronologyExplorerProps = {
   onCategoryClick: (category: string) => void
   onOrganizationClick: (organization: string) => void
   onYearChange?: (year: number | null) => void
+  onReset?: () => void
 }
 
 function prefersReducedMotion(): boolean {
@@ -39,6 +40,7 @@ export function ChronologyExplorer({
   onCategoryClick,
   onOrganizationClick,
   onYearChange,
+  onReset,
 }: ChronologyExplorerProps) {
   const groups = useMemo(() => groupEventsByYear(events), [events])
   const [activeYear, setActiveYear] = useState<number | null>(
@@ -228,6 +230,7 @@ export function ChronologyExplorer({
           onKeywordClick={onKeywordClick}
           onCategoryClick={onCategoryClick}
           onOrganizationClick={onOrganizationClick}
+          onReset={onReset}
         />
       </div>
       <YearCue year={cueYear} open={cueOpen} />

@@ -78,9 +78,9 @@ export function FilterBar({
     <nav aria-label="Filter the timeline">
       <div
         ref={stickyRef}
-        className="sticky top-0 z-30 border-b border-line bg-paper/95 pt-[env(safe-area-inset-top)] backdrop-blur-sm"
+        className="sticky top-0 z-30 border-b border-line/80 bg-paper/90 pt-[env(safe-area-inset-top)] shadow-[0_1px_0_var(--line)] backdrop-blur-md"
       >
-        <div className="mx-auto flex max-w-5xl flex-col gap-2 px-5 py-2.5 sm:px-8">
+        <div className="mx-auto flex max-w-5xl flex-col gap-2 px-5 py-3 sm:px-8">
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <SearchSuggest
               value={filters.search}
@@ -97,7 +97,7 @@ export function FilterBar({
                   id="timeline-category"
                   value={filters.category}
                   onChange={(event) => onCategoryChange(event.target.value)}
-                  className="min-h-11 w-full rounded-md border border-control bg-surface px-3 py-2.5 text-base text-ink"
+                  className="input-field"
                 >
                   <option value="">All categories</option>
                   {categories.map((category) => (
@@ -118,7 +118,7 @@ export function FilterBar({
                   id="timeline-organization"
                   value={filters.organization}
                   onChange={(event) => onOrganizationChange(event.target.value)}
-                  className="min-h-11 w-full rounded-md border border-control bg-surface px-3 py-2.5 text-base text-ink"
+                  className="input-field"
                 >
                   <option value="">All organizations</option>
                   {organizations.map((organization) => (
@@ -130,17 +130,20 @@ export function FilterBar({
               </div>
             ) : null}
 
-            <div className="flex min-h-11 w-full min-w-0 shrink-0 items-center gap-3 sm:w-auto">
+            <div className="flex min-h-11 w-full min-w-0 shrink-0 items-center gap-2.5 sm:w-auto">
               <p role="status" aria-atomic="true" className="sr-only">
                 Showing {resultCount} of {totalCount} events
                 {filters.keyword ? ` tagged ${filters.keyword}` : ''}
               </p>
-              <p className="min-w-0 truncate text-sm text-muted" aria-hidden="true">
+              <p
+                className="inline-flex min-h-8 min-w-0 items-center truncate rounded-full bg-chip px-2.5 text-sm text-muted"
+                aria-hidden="true"
+              >
                 <span className="sm:hidden">
                   {resultCount}/{totalCount}
                 </span>
                 <span className="hidden sm:inline">
-                  Showing {resultCount} of {totalCount} events
+                  {resultCount} of {totalCount} events
                 </span>
               </p>
               {filters.keyword ? (
@@ -158,7 +161,7 @@ export function FilterBar({
                 <button
                   type="button"
                   onClick={onReset}
-                  className="ms-auto min-h-11 shrink-0 px-2 text-sm font-medium text-crimson underline underline-offset-2 sm:ms-0"
+                  className="btn-text-accent ms-auto shrink-0 px-2 sm:ms-0"
                 >
                   Reset<span className="hidden sm:inline"> filters</span>
                 </button>
@@ -173,7 +176,7 @@ export function FilterBar({
                   aria-label="Category"
                   value={filters.category}
                   onChange={(event) => onCategoryChange(event.target.value)}
-                  className="min-h-11 min-w-0 flex-1 rounded-md border border-control bg-surface px-3 text-base text-ink"
+                  className="input-field min-w-0 flex-1"
                 >
                   <option value="">All categories</option>
                   {categories.map((category) => (
@@ -188,7 +191,7 @@ export function FilterBar({
                   aria-label="Organization"
                   value={filters.organization}
                   onChange={(event) => onOrganizationChange(event.target.value)}
-                  className="min-h-11 min-w-0 flex-1 rounded-md border border-control bg-surface px-3 text-base text-ink"
+                  className="input-field min-w-0 flex-1"
                 >
                   <option value="">All organizations</option>
                   {organizations.map((organization) => (
@@ -204,8 +207,11 @@ export function FilterBar({
       </div>
 
       {hasKeywords ? (
-        <div className="border-b border-line bg-paper">
-          <div className="mx-auto max-w-5xl px-5 py-2 sm:px-8">
+        <div className="border-b border-line/80 bg-paper/60">
+          <div className="mx-auto max-w-5xl px-5 py-2.5 sm:px-8">
+            <p className="mb-2 text-[0.7rem] font-medium tracking-[0.16em] text-muted uppercase">
+              Themes
+            </p>
             <KeywordCloud
               tags={keywords}
               activeKeyword={filters.keyword}

@@ -50,10 +50,10 @@ function Pill({
   onClick?: () => void
 }) {
   const className = [
-    'inline-flex min-h-11 items-center rounded-full border px-3.5 py-2 text-xs leading-snug tracking-wide',
+    'inline-flex min-h-11 items-center rounded-full border px-3.5 py-2 text-xs leading-snug tracking-wide transition-colors',
     pressed
       ? 'border-crimson bg-crimson-soft font-medium text-crimson'
-      : PILL_STYLES[kind],
+      : `${PILL_STYLES[kind]} hover:border-control`,
   ].join(' ')
 
   if (!onClick) {
@@ -150,7 +150,7 @@ function PermalinkControl({
           ? `Link to event on ${dateLabel} copied`
           : `Copy link to event on ${dateLabel}`
       }
-      className="absolute top-2 end-2 z-10 inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-muted hover:text-crimson"
+      className="absolute top-2.5 end-2.5 z-10 inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl text-muted transition-colors hover:bg-chip hover:text-crimson"
     >
       {copied ? <CheckIcon /> : <LinkIcon />}
     </a>
@@ -194,6 +194,26 @@ function CheckIcon() {
   )
 }
 
+function ChevronIcon({ expanded }: { expanded: boolean }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={['size-3.5 transition-transform', expanded ? 'rotate-180' : ''].join(
+        ' ',
+      )}
+      aria-hidden="true"
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  )
+}
+
 function MobileDateBadge({ event }: { event: ConflictEvent }) {
   if (event.precision === 'unknown') {
     return (
@@ -208,7 +228,7 @@ function MobileDateBadge({ event }: { event: ConflictEvent }) {
   const day = badgeDay(event)
 
   return (
-    <span className="inline-flex items-baseline gap-2 rounded-md bg-crimson-soft px-2.5 py-1 text-crimson">
+    <span className="inline-flex items-baseline gap-2 rounded-lg border border-crimson/15 bg-crimson-soft px-2.5 py-1 text-crimson">
       {monthLabel ? (
         <span className="text-xs font-semibold tracking-[0.08em] uppercase">
           {monthLabel}
@@ -238,7 +258,7 @@ function DateStack({ event }: { event: ConflictEvent }) {
   const day = badgeDay(event)
 
   return (
-    <span className="flex w-[4.75rem] shrink-0 flex-col items-center rounded-md bg-crimson-soft px-1.5 py-2.5 text-crimson">
+    <span className="flex w-[4.75rem] shrink-0 flex-col items-center rounded-xl border border-crimson/15 bg-crimson-soft px-1.5 py-2.5 text-crimson">
       <span className="text-xs font-semibold tracking-[0.08em] uppercase">
         {monthLabel}
       </span>
@@ -358,7 +378,7 @@ export function EventCard({
     <article
       id={cardId}
       className={[
-        'relative scroll-mt-[calc(var(--filter-h)+0.35rem)] rounded-lg border border-line bg-surface p-4 pe-14 sm:p-6 sm:pe-16',
+        'event-card relative scroll-mt-[calc(var(--filter-h)+0.35rem)] rounded-2xl p-4 pe-14 sm:p-6 sm:pe-16',
         canExpand ? 'cursor-pointer' : '',
       ].join(' ')}
       aria-labelledby={dateHeadingId}
@@ -428,7 +448,7 @@ export function EventCard({
                     ? `Show more, event on ${event.dateLabel}, ${hiddenCount} more themes`
                     : `Show more, event on ${event.dateLabel}`
               }
-              className="mt-3 min-h-11 text-sm font-medium text-crimson underline underline-offset-2"
+              className="btn-text-accent mt-3 inline-flex items-center gap-1.5"
               onClick={onToggleExpand}
             >
               {isExpanded
@@ -436,6 +456,7 @@ export function EventCard({
                 : hiddenCount > 0
                   ? `Show more · ${hiddenCount}`
                   : 'Show more'}
+              <ChevronIcon expanded={isExpanded} />
             </button>
           ) : null}
         </div>

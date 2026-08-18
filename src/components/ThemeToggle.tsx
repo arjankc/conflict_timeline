@@ -47,7 +47,8 @@ export function ThemeToggle() {
       onClick={onCycle}
       aria-label={appearanceLabel(preference, resolved)}
       title={appearanceLabel(preference, resolved)}
-      className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-control bg-surface text-ink"
+      data-active={preference !== 'system' ? 'true' : undefined}
+      className="icon-btn"
     >
       {preference === 'dark' ? (
         <MoonIcon />

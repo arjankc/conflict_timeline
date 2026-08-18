@@ -70,32 +70,38 @@
 */
 
 :root {
-  --paper: #fafaf9;
-  --surface: #ffffff;
+  --paper: #f4f0e8;
+  --surface: #fcfaf6;
   --ink: #1c1917;
   --muted: #44403c;
-  --line: #a8a29e;
-  --control: #57534e;
+  --line: #d6d0c7;
+  --control: #6b645c;
   --crimson: #7f1d1d;
-  --crimson-soft: #fff1f2;
-  --chip: #f5f5f4;
-  --chip-strong: #e7e5e4;
-  --chip-rose: #fff1f2;
+  --crimson-soft: #f4e8e4;
+  --chip: #ece7de;
+  --chip-strong: #e3dcd2;
+  --chip-rose: #f1e5e2;
+  --elev-card: 0 1px 2px rgb(28 25 23 / 0.04), 0 8px 24px rgb(28 25 23 / 0.05);
+  --elev-card-hover: 0 2px 8px rgb(28 25 23 / 0.06), 0 14px 36px rgb(28 25 23 / 0.08);
+  --elev-float: 0 10px 40px rgb(28 25 23 / 0.14);
   color-scheme: light;
 }
 
 .dark {
-  --paper: #1c1917;
-  --surface: #292524;
+  --paper: #1a1714;
+  --surface: #26211c;
   --ink: #f5f5f4;
   --muted: #d6d3d1;
-  --line: #78716c;
+  --line: #5c564c;
   --control: #a8a29e;
   --crimson: #f0b4b4;
-  --crimson-soft: #3f1a1a;
-  --chip: #35302c;
-  --chip-strong: #44403c;
-  --chip-rose: #4a2424;
+  --crimson-soft: #3d2420;
+  --chip: #322c26;
+  --chip-strong: #3f3831;
+  --chip-rose: #4a2c2a;
+  --elev-card: 0 1px 2px rgb(0 0 0 / 0.28), 0 10px 28px rgb(0 0 0 / 0.32);
+  --elev-card-hover: 0 4px 16px rgb(0 0 0 / 0.4);
+  --elev-float: 0 14px 44px rgb(0 0 0 / 0.5);
   color-scheme: dark;
 }
 
@@ -149,6 +155,9 @@ html.dark.contrast-more {
   --color-chip: var(--chip);
   --color-chip-strong: var(--chip-strong);
   --color-chip-rose: var(--chip-rose);
+  --shadow-card: var(--elev-card);
+  --shadow-card-hover: var(--elev-card-hover);
+  --shadow-float: var(--elev-float);
 }
 
 @layer base {
@@ -185,6 +194,11 @@ html.dark.contrast-more {
 
   body {
     @apply overflow-x-clip bg-paper font-sans text-ink;
+    background-image: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--crimson) 7%, var(--paper)),
+      var(--paper) 18rem
+    );
     text-rendering: optimizeLegibility;
   }
 
@@ -208,6 +222,10 @@ html.dark.contrast-more {
     touch-action: manipulation;
   }
 
+  input[type="search"]::-webkit-search-decoration {
+    -webkit-appearance: none;
+  }
+
   :focus-visible {
     outline: 3px solid var(--color-crimson);
     outline-offset: 2px;
@@ -216,7 +234,8 @@ html.dark.contrast-more {
   /* Highlight the card after `#event-…` navigation (and after a permalink click). */
   article:target {
     outline: 3px solid var(--color-crimson);
-    outline-offset: 2px;
+    outline-offset: 3px;
+    border-color: var(--crimson);
   }
 
   #timeline,
@@ -330,17 +349,87 @@ html.dark.contrast-more {
 
 .year-cue-label {
   margin: 0;
-  border-radius: 0.5rem;
+  border-radius: 0.85rem;
   border: 1px solid color-mix(in srgb, var(--line) 45%, transparent);
-  background: color-mix(in srgb, var(--paper) 52%, transparent);
-  backdrop-filter: blur(10px);
-  padding: 0.45rem 0.8rem;
+  background: color-mix(in srgb, var(--paper) 58%, transparent);
+  backdrop-filter: blur(14px);
+  padding: 0.5rem 0.9rem;
   font-family: var(--font-serif);
   font-size: clamp(1.65rem, 4.5vw, 2.5rem);
   line-height: 1;
-  letter-spacing: -0.02em;
-  color: color-mix(in srgb, var(--crimson) 78%, transparent);
+  letter-spacing: -0.03em;
+  color: color-mix(in srgb, var(--crimson) 82%, transparent);
   font-variant-numeric: tabular-nums;
+}
+
+@layer components {
+  .icon-btn {
+    @apply inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-line bg-surface text-ink transition-colors;
+  }
+
+  .icon-btn:hover {
+    background: var(--chip);
+    border-color: var(--control);
+  }
+
+  .icon-btn[aria-pressed="true"],
+  .icon-btn[data-active="true"] {
+    border-color: var(--crimson);
+    background: var(--crimson-soft);
+    color: var(--crimson);
+  }
+
+  .input-field {
+    @apply min-h-11 w-full rounded-xl border border-line bg-surface px-3 py-2.5 text-base text-ink placeholder:text-muted transition-colors;
+  }
+
+  .input-field:hover {
+    border-color: var(--control);
+  }
+
+  .btn-text-accent {
+    @apply min-h-11 font-medium text-crimson underline decoration-crimson/35 underline-offset-4 transition-colors hover:decoration-crimson;
+  }
+
+  .link-accent {
+    @apply font-medium text-crimson underline decoration-crimson/35 underline-offset-4 transition-colors hover:decoration-crimson;
+  }
+
+  .event-card {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    box-shadow: var(--elev-card);
+    transition:
+      box-shadow 180ms ease,
+      border-color 180ms ease;
+  }
+
+  .event-card:hover {
+    border-color: color-mix(in srgb, var(--control) 65%, var(--line));
+    box-shadow: var(--elev-card-hover);
+  }
+
+  .masthead-rule {
+    height: 3px;
+    width: 100%;
+    background: var(--crimson);
+  }
+
+  .skeleton {
+    background: var(--chip-strong);
+    animation: skeleton-pulse 1.6s ease-in-out infinite;
+  }
+}
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.48;
+  }
 }
 
 @media (min-width: 1024px) {

@@ -137,7 +137,7 @@ function YearDockScrub({
       ref={scrubRef}
       role="presentation"
       aria-hidden="true"
-      className="mx-4 flex h-11 cursor-ew-resize touch-none items-stretch gap-px rounded-md bg-chip px-1 pt-1 select-none"
+      className="mx-4 flex h-11 cursor-ew-resize touch-none items-stretch gap-px rounded-xl bg-chip px-1.5 pt-1.5 select-none"
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={endDrag}
@@ -309,9 +309,9 @@ export function YearNavigator({
       <nav
         ref={dockRef}
         aria-label="Jump to a year. Drag the density strip or swipe the year list."
-        className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-paper/95 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur-sm"
+        className="fixed inset-x-0 bottom-0 z-30 border-t border-line/80 bg-paper/90 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-[0_-8px_30px_rgb(28_25_23/0.08)] backdrop-blur-md"
       >
-        <p className="px-4 pt-2 text-xs font-medium tracking-wide text-muted uppercase">
+        <p className="px-4 pt-2.5 text-[0.7rem] font-medium tracking-[0.16em] text-muted uppercase">
           Years
         </p>
         <YearDockScrub
@@ -339,10 +339,10 @@ export function YearNavigator({
                   aria-label={`${group.year}, ${group.events.length} events${current ? ', current year in view' : ''}`}
                   onClick={() => onYearSelect(group.year)}
                   className={[
-                    'inline-flex min-h-11 shrink-0 snap-start flex-col justify-center rounded-full px-4 py-2 text-left',
+                    'inline-flex min-h-11 shrink-0 snap-start flex-col justify-center rounded-full px-4 py-2 text-left transition-colors',
                     current
                       ? 'bg-crimson-soft font-medium text-crimson ring-2 ring-crimson'
-                      : 'bg-surface text-ink ring-1 ring-control',
+                      : 'bg-surface text-ink ring-1 ring-line hover:bg-chip hover:ring-control',
                   ].join(' ')}
                 >
                   <span className="flex items-baseline gap-2">
@@ -363,10 +363,10 @@ export function YearNavigator({
                 aria-label={`Undated, ${undated.events.length} events${activeYear == null ? ', current section in view' : ''}`}
                 onClick={() => onYearSelect(null)}
                 className={[
-                  'inline-flex min-h-11 shrink-0 snap-start items-center rounded-full px-4 py-2 text-sm',
+                  'inline-flex min-h-11 shrink-0 snap-start items-center rounded-full px-4 py-2 text-sm transition-colors',
                   activeYear == null
                     ? 'bg-crimson-soft font-medium text-crimson ring-2 ring-crimson'
-                    : 'bg-surface text-ink ring-1 ring-control',
+                    : 'bg-surface text-ink ring-1 ring-line hover:bg-chip hover:ring-control',
                 ].join(' ')}
               >
                 Undated
@@ -382,9 +382,9 @@ export function YearNavigator({
   return (
     <nav
       aria-label="Jump to a year. Year buttons move focus in the feed. Dragging the rail is optional."
-      className="relative flex h-full min-h-0 flex-col rounded-lg border border-line bg-paper/90 px-2.5 py-3 backdrop-blur-sm"
+      className="relative flex h-full min-h-0 flex-col rounded-2xl border border-line/80 bg-surface/80 px-2.5 py-3 shadow-card backdrop-blur-sm"
     >
-      <p className="mb-2.5 px-1.5 text-xs font-medium tracking-wide text-muted uppercase">
+      <p className="mb-2.5 px-1.5 text-[0.7rem] font-medium tracking-[0.16em] text-muted uppercase">
         Years
       </p>
       <div
@@ -408,10 +408,10 @@ export function YearNavigator({
               aria-label={`${group.year}, ${group.events.length} events${current ? ', current year in view' : ''}`}
               onClick={() => onYearSelect(group.year)}
               className={[
-                'flex min-h-11 flex-col justify-center rounded-md px-2.5 py-2.5 text-left',
+                'flex min-h-11 flex-col justify-center rounded-xl px-2.5 py-2.5 text-left transition-colors',
                 current
                   ? 'bg-crimson-soft font-medium text-crimson ring-2 ring-crimson'
-                  : 'text-muted ring-1 ring-transparent hover:bg-surface hover:text-ink',
+                  : 'text-muted ring-1 ring-transparent hover:bg-chip hover:text-ink',
               ].join(' ')}
               style={{ flexGrow: weight }}
             >
@@ -433,10 +433,10 @@ export function YearNavigator({
             aria-label={`Undated, ${undated.events.length} events${activeYear == null ? ', current section in view' : ''}`}
             onClick={() => onYearSelect(null)}
             className={[
-              'min-h-11 shrink-0 rounded-md px-2.5 py-2.5 text-left text-sm',
+              'min-h-11 shrink-0 rounded-xl px-2.5 py-2.5 text-left text-sm transition-colors',
               activeYear == null
                 ? 'bg-crimson-soft font-medium text-crimson ring-2 ring-crimson'
-                : 'text-muted hover:bg-surface',
+                : 'text-muted hover:bg-chip hover:text-ink',
             ].join(' ')}
           >
             Undated

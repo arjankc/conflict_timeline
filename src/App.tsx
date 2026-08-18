@@ -102,6 +102,26 @@ export default function App() {
     [loadState, appliedFilters],
   )
 
+  const collectionMeta = useMemo(() => {
+    if (loadState.status !== 'ready') return null
+    const years = loadState.events
+      .map((event) => event.year)
+      .filter((year): year is number => year != null)
+    const span =
+      years.length === 0
+        ? null
+        : Math.min(...years) === Math.max(...years)
+          ? String(Math.min(...years))
+          : `${Math.min(...years)}–${Math.max(...years)}`
+    return { count: loadState.events.length, span }
+  }, [loadState])
+
+  const hasActiveFilters =
+    filters.search.trim() !== '' ||
+    filters.category !== '' ||
+    filters.organization !== '' ||
+    filters.keyword !== ''
+
   // Browser tab title only. Open Graph / Twitter tags in index.html stay on the homepage copy.
   useEffect(() => {
     document.title = pageTitle(appliedFilters, focusYear)
@@ -124,43 +144,48 @@ export default function App() {
 
   return (
     <div className="min-h-dvh bg-paper text-ink">
+      <div className="masthead-rule" aria-hidden="true" />
       <nav aria-label="Skip links" className="contents">
         <a
           href="#timeline-search"
-          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-[max(0.75rem,env(safe-area-inset-top))] focus:z-50 focus:rounded-md focus:bg-ink focus:px-3 focus:py-2 focus:text-paper"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-[max(0.75rem,env(safe-area-inset-top))] focus:z-50 focus:rounded-xl focus:bg-ink focus:px-3 focus:py-2 focus:text-paper"
         >
           Skip to search
         </a>
         <a
           href="#years"
-          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-[max(3.25rem,calc(env(safe-area-inset-top)+2.5rem))] focus:z-50 focus:rounded-md focus:bg-ink focus:px-3 focus:py-2 focus:text-paper"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-[max(3.25rem,calc(env(safe-area-inset-top)+2.5rem))] focus:z-50 focus:rounded-xl focus:bg-ink focus:px-3 focus:py-2 focus:text-paper"
         >
           Skip to year navigation
         </a>
         <a
           href="#timeline"
-          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-[max(5.75rem,calc(env(safe-area-inset-top)+5rem))] focus:z-50 focus:rounded-md focus:bg-ink focus:px-3 focus:py-2 focus:text-paper"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-[max(5.75rem,calc(env(safe-area-inset-top)+5rem))] focus:z-50 focus:rounded-xl focus:bg-ink focus:px-3 focus:py-2 focus:text-paper"
         >
           Skip to events
         </a>
       </nav>
 
-      <header className="border-b border-line">
-        <div className="mx-auto max-w-5xl px-5 py-4 sm:px-8 sm:py-10">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+      <header>
+        <div className="mx-auto max-w-5xl px-5 py-6 sm:px-8 sm:py-12">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-8">
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-medium tracking-wide text-crimson uppercase sm:text-sm">
+              <p className="text-xs font-medium tracking-[0.16em] text-crimson uppercase sm:text-sm">
                 Digital archive
+                <span className="mx-2 text-muted" aria-hidden="true">
+                  ·
+                </span>
+                <span className="tracking-[0.12em] text-muted">1995–2006</span>
               </p>
-              <h1 className="mt-2 text-balance font-serif text-2xl leading-snug text-ink sm:text-4xl">
+              <h1 className="mt-2.5 text-balance font-serif text-3xl leading-tight tracking-tight text-ink sm:text-5xl sm:leading-[1.12]">
                 {SITE_NAME}
               </h1>
             </div>
-            <div className="flex flex-wrap items-center gap-2.5 sm:shrink-0 sm:justify-end">
+            <div className="flex flex-wrap items-center gap-2 sm:shrink-0 sm:justify-end">
               <div
                 role="toolbar"
                 aria-label="Reading and display"
-                className="flex flex-wrap gap-2"
+                className="flex flex-wrap gap-1.5"
               >
                 <ThemeToggle />
                 <ReadingControls />
@@ -168,11 +193,18 @@ export default function App() {
               <ShareButton filters={appliedFilters} year={focusYear} />
             </div>
           </div>
-          <p className="mt-3 max-w-prose text-sm leading-[1.7] text-muted sm:mt-5 sm:text-base">
+          <p className="mt-4 max-w-prose text-pretty text-sm leading-[1.75] text-muted sm:mt-6 sm:text-base">
             A chronological record of Nepal&apos;s internal armed conflict
             (1996–2006), compiled for transitional justice civil society. The
             archive currently opens with pre-conflict events from 1995.
           </p>
+          {collectionMeta ? (
+            <p className="mt-4 text-xs font-medium tracking-[0.12em] text-muted uppercase">
+              {collectionMeta.count}{' '}
+              {collectionMeta.count === 1 ? 'event' : 'events'}
+              {collectionMeta.span ? ` · ${collectionMeta.span}` : ''}
+            </p>
+          ) : null}
         </div>
       </header>
 
@@ -200,23 +232,26 @@ export default function App() {
         />
       ) : null}
 
-      <main id="timeline" tabIndex={-1} className="pt-5 outline-none sm:pt-10">
-        {loadState.status === 'loading' ? (
-          <p className="mx-auto max-w-5xl px-5 py-12 text-muted sm:px-8" role="status">
-            Loading the archive…
-          </p>
-        ) : null}
+      <main id="timeline" tabIndex={-1} className="pt-5 outline-none sm:pt-8">
+        {loadState.status === 'loading' ? <ArchiveSkeleton /> : null}
 
         {loadState.status === 'error' ? (
           <div className="mx-auto max-w-5xl px-5 py-12 sm:px-8" role="alert">
-            <p className="text-ink">{loadState.message}</p>
-            <button
-              type="button"
-              className="mt-4 min-h-11 font-medium text-crimson underline underline-offset-2"
-              onClick={() => window.location.reload()}
-            >
-              Try again
-            </button>
+            <div className="max-w-lg rounded-2xl border border-line bg-surface p-6 shadow-card sm:p-8">
+              <p className="font-serif text-xl text-ink">
+                The archive could not be loaded
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-muted">
+                {loadState.message}
+              </p>
+              <button
+                type="button"
+                className="btn-text-accent mt-5"
+                onClick={() => window.location.reload()}
+              >
+                Try again
+              </button>
+            </div>
           </div>
         ) : null}
 
@@ -253,6 +288,9 @@ export default function App() {
                   : organization,
               )
             }
+            onReset={
+              hasActiveFilters ? () => setFilters(EMPTY_FILTERS) : undefined
+            }
           />
         ) : null}
       </main>
@@ -260,21 +298,19 @@ export default function App() {
       <footer
         aria-label="About this archive"
         className={[
-          'border-t border-line',
+          'border-t border-line/80',
           // Extra space so the license line sits above the fixed mobile year dock.
           loadState.status === 'ready' && filteredEvents.length > 0
             ? 'pb-[calc(var(--dock-h)+1.25rem)] lg:pb-0'
             : '',
         ].join(' ')}
       >
-        <div className="mx-auto max-w-5xl px-5 py-8 text-sm leading-[1.7] text-muted sm:px-8">
-          <p>
+        <div className="mx-auto max-w-5xl px-5 py-10 text-sm leading-[1.75] text-muted sm:px-8">
+          <p className="font-serif text-base text-ink">{SITE_NAME}</p>
+          <p className="mt-3 max-w-prose">
             Open-source public archive. Application code is MIT licensed. Event
             texts retain the provenance of the source sheet, documented in{' '}
-            <a
-              href={DATA_DOC_URL}
-              className="font-medium text-crimson underline underline-offset-2"
-            >
+            <a href={DATA_DOC_URL} className="link-accent">
               DATA.md
             </a>
             .
@@ -283,6 +319,59 @@ export default function App() {
       </footer>
       {loadState.status === 'ready' ? <BackToTop /> : null}
       <Toast />
+    </div>
+  )
+}
+
+function ArchiveSkeleton() {
+  return (
+    <div className="mx-auto max-w-5xl px-5 pb-16 sm:px-8" role="status">
+      <p className="sr-only">Loading the archive…</p>
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <div className="skeleton h-11 flex-1 rounded-xl" />
+        <div className="skeleton hidden h-11 w-40 rounded-xl sm:block" />
+      </div>
+      <div className="mt-5 flex gap-2.5 overflow-hidden">
+        {Array.from({ length: 6 }, (_, index) => (
+          <div
+            key={index}
+            className="skeleton h-10 w-24 shrink-0 rounded-full"
+          />
+        ))}
+      </div>
+      <div className="mt-12 h-px bg-line/80" />
+      <div className="mt-8 flex items-center gap-3">
+        <span className="skeleton size-2.5 rounded-full" />
+        <div className="skeleton h-8 w-24 rounded-md" />
+        <div className="skeleton h-4 w-16 rounded-md" />
+      </div>
+      <div className="relative ms-1.5 mt-6 border-s-2 border-line ps-5 sm:ms-3 sm:ps-8">
+        {Array.from({ length: 3 }, (_, index) => (
+          <div
+            key={index}
+            className="relative pb-5 last:pb-0"
+          >
+            <span
+              aria-hidden="true"
+              className="absolute -start-[1.3rem] top-6 size-2.5 rounded-full border-2 border-paper bg-chip-strong sm:-start-[1.85rem] sm:top-7"
+            />
+            <div className="rounded-2xl border border-line bg-surface p-4 shadow-card sm:p-6">
+              <div className="sm:flex sm:gap-5">
+                <div className="skeleton mb-3 h-16 w-20 rounded-lg sm:mb-0" />
+                <div className="min-w-0 flex-1 space-y-2.5">
+                  <div className="skeleton h-4 w-full rounded-md" />
+                  <div className="skeleton h-4 w-[92%] rounded-md" />
+                  <div className="skeleton h-4 w-[70%] rounded-md" />
+                  <div className="mt-4 flex gap-2">
+                    <div className="skeleton h-9 w-20 rounded-full" />
+                    <div className="skeleton h-9 w-24 rounded-full" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

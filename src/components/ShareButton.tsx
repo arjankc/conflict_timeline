@@ -40,7 +40,7 @@ export function ShareButton({ filters, year }: ShareButtonProps) {
       type="button"
       onClick={() => void onShare()}
       aria-label="Share this view"
-      className="inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-md border border-control bg-surface px-3 text-sm font-medium text-ink"
+      className="icon-btn gap-2 px-3 text-sm font-medium hover:border-crimson hover:text-crimson"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"

@@ -34,7 +34,7 @@ export function BackToTop() {
       type="button"
       onClick={scrollTop}
       aria-label="Back to top"
-      className="fixed end-4 z-40 bottom-[calc(var(--dock-h)+0.75rem)] inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border border-control bg-surface/85 text-ink shadow-none backdrop-blur-sm lg:bottom-6"
+      className="fixed end-4 z-40 bottom-[calc(var(--dock-h)+0.75rem)] inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border border-line bg-surface/90 text-ink shadow-float backdrop-blur-sm transition-colors hover:border-control hover:bg-chip lg:bottom-6"
     >
       <ArrowUpIcon />
     </button>

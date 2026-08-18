@@ -28,7 +28,7 @@ export function Toast() {
       aria-atomic="true"
       className="pointer-events-none fixed inset-x-4 z-50 bottom-[calc(var(--dock-h)+0.75rem)] lg:bottom-6"
     >
-      <p className="mx-auto max-w-sm rounded-md border border-line bg-ink px-4 py-3 text-center text-sm leading-snug text-paper">
+      <p className="mx-auto max-w-sm rounded-xl border border-line bg-ink px-4 py-3 text-center text-sm leading-snug text-paper shadow-float">
         {message}
       </p>
     </div>

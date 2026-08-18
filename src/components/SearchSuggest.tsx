@@ -90,35 +90,40 @@ export function SearchSuggest({ value, index, onChange }: SearchSuggestProps) {
         Search events. Suggestions appear after two characters. Arrow keys choose
         a suggestion; Enter on the typed query keeps it.
       </label>
-      <input
-        id="timeline-search"
-        type="search"
-        role="combobox"
-        value={value}
-        onChange={(event) => {
-          onChange(event.target.value)
-          setOpen(true)
-        }}
-        onFocus={() => setOpen(true)}
-        onBlur={() => setOpen(false)}
-        onKeyDown={onKeyDown}
-        placeholder="Search events"
-        autoComplete="off"
-        enterKeyHint="search"
-        spellCheck={false}
-        aria-autocomplete="list"
-        aria-expanded={listOpen}
-        aria-controls={listOpen ? LIST_ID : undefined}
-        aria-activedescendant={activeId}
-        aria-haspopup="listbox"
-        className="min-h-11 w-full rounded-md border border-control bg-surface px-3 py-2.5 text-base text-ink placeholder:text-muted"
-      />
+      <div className="relative">
+        <span className="pointer-events-none absolute start-3.5 top-1/2 z-10 -translate-y-1/2 text-muted">
+          <SearchIcon />
+        </span>
+        <input
+          id="timeline-search"
+          type="search"
+          role="combobox"
+          value={value}
+          onChange={(event) => {
+            onChange(event.target.value)
+            setOpen(true)
+          }}
+          onFocus={() => setOpen(true)}
+          onBlur={() => setOpen(false)}
+          onKeyDown={onKeyDown}
+          placeholder="Search events"
+          autoComplete="off"
+          enterKeyHint="search"
+          spellCheck={false}
+          aria-autocomplete="list"
+          aria-expanded={listOpen}
+          aria-controls={listOpen ? LIST_ID : undefined}
+          aria-activedescendant={activeId}
+          aria-haspopup="listbox"
+          className="input-field ps-10"
+        />
+      </div>
       {listOpen ? (
         <ul
           id={LIST_ID}
           role="listbox"
           aria-label="Search suggestions"
-          className="absolute z-40 mt-1 max-h-[min(16rem,40dvh)] w-full overflow-y-auto rounded-md border border-line bg-surface py-1 [scrollbar-width:thin]"
+          className="absolute z-40 mt-1.5 max-h-[min(16rem,40dvh)] w-full overflow-y-auto rounded-xl border border-line bg-surface py-1.5 shadow-float [scrollbar-width:thin]"
         >
           {suggestions.map((suggestion, index) => {
             const selected = index === activeIndex
@@ -129,7 +134,7 @@ export function SearchSuggest({ value, index, onChange }: SearchSuggestProps) {
                 role="option"
                 aria-selected={selected}
                 className={[
-                  'flex min-h-11 cursor-pointer items-center justify-between gap-3 px-3 text-sm',
+                  'mx-1.5 flex min-h-11 cursor-pointer items-center justify-between gap-3 rounded-lg px-3 text-sm',
                   selected ? 'bg-crimson-soft text-crimson' : 'text-ink',
                 ].join(' ')}
                 onPointerDown={(event) => {
@@ -161,5 +166,24 @@ export function SearchSuggest({ value, index, onChange }: SearchSuggestProps) {
         </ul>
       ) : null}
     </div>
+  )
+}
+
+function SearchIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="size-4"
+      aria-hidden="true"
+    >
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-3-3" />
+    </svg>
   )
 }

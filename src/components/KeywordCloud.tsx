@@ -53,10 +53,10 @@ export function KeywordCloud({
                 }
                 onClick={() => onKeywordClick(tag.label)}
                 className={[
-                  'inline-flex min-h-11 items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm leading-snug',
+                  'inline-flex min-h-11 items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm leading-snug transition-colors',
                   pressed
                     ? 'border-crimson bg-crimson-soft font-medium text-crimson'
-                    : 'border-control bg-surface text-ink',
+                    : 'border-line bg-surface text-ink hover:border-control hover:bg-chip',
                 ].join(' ')}
               >
                 <span>{tag.label}</span>

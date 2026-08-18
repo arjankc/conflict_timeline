@@ -15,11 +15,11 @@
       content="An interactive, chronological archive of Nepal's internal armed conflict (1996–2006), compiled for transitional justice civil society. Browse events by year, theme, and search."
     />
     <meta name="robots" content="index, follow" />
-    <meta name="theme-color" content="#fafaf9" />
+    <meta name="theme-color" content="#f4f0e8" />
     <!-- Paint the canvas before CSS/JS so a system-dark visitor does not flash paper-white. -->
     <style>
-      html { background-color: #fafaf9; }
-      html.dark { background-color: #1c1917; }
+      html { background-color: #f4f0e8; }
+      html.dark { background-color: #1a1714; }
     </style>
     <!-- Mirrors src/lib/appearance.ts and src/lib/reading.ts. Storage keys must stay in sync. -->
     <script>
@@ -33,7 +33,7 @@
           document.documentElement.classList.toggle('dark', dark)
           document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
           var meta = document.querySelector('meta[name="theme-color"]')
-          if (meta) meta.setAttribute('content', dark ? '#1c1917' : '#fafaf9')
+          if (meta) meta.setAttribute('content', dark ? '#1a1714' : '#f4f0e8')
           var size = localStorage.getItem('text-size')
           if (size === 'large' || size === 'larger') {
             document.documentElement.classList.add('text-size-' + size)

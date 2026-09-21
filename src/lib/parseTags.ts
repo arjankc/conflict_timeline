@@ -23,7 +23,7 @@ export function parseTags(value: string | undefined): string[] {
 
 /** Split Organizations on semicolons so names can still contain commas. */
 export function parseOrganizations(value: string | undefined): string[] {
-  return parseDelimitedTags(value, value?.includes(';') ? ';' : ',')
+  return parseDelimitedTags(value, ';')
 }
 
 /** Unique tag list for filter controls, keeping first-seen display casing. */

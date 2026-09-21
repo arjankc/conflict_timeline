@@ -1,5 +1,5 @@
 ,Date,Detail,Keywords,Category,Organizations
-,11/1/95,"Operation Romeo commenced, an organised police crackdown in the Maoist heartland of Rolpa. Reportedly aimed at rooting out the Maoists and their sympathisers, the operation resulted in mass human rights abuses, 132 arrested, 6000 displaced, and the arbitrary detention, torture, execution and enforced disappearance of hundreds.","security offensive, Nepal police, Rolpa, pre-conflict, human rights violations, state",disappearance,Nepal Police
+,11/1/95,"Operation Romeo commenced, an organised police crackdown in the Maoist heartland of Rolpa. Reportedly aimed at rooting out the Maoists and their sympathisers, the operation resulted in mass human rights abuses, 132 arrested, 6000 displaced, and the arbitrary detention, torture, execution and enforced disappearance of hundreds.","security offensive, Nepal police, Rolpa, pre-conflict, human rights violations, state, police",disappearance,Nepal Police
 ,4/2/96,"Maoist leader Baburam Bhattarai submitted a 40-point demand to Prime Minister Sher Bahadur Deuba, who dismissed it and traveled to India for a state visit.","40-point demand, ultimatum to government, state rejection of demands, Singha Durbar Kathmandu, Maoist, state",policy,
 ,2/13/96,"Maoists attack a police post in Holeri, Rolpa, announcing the launch of their 'people's war'.","conflict onset, Maoist offensive, Holeri, Rolpa,  Maoist",combat,
 ,March 1996,"Prime Minster Deuba convenes an all-party meeting concerning the conflict, but the issue is largely substantively dismissed.","political dialogue, lack of political commitment, state",peace_process,
@@ -16,7 +16,7 @@
 ,May 1999,Parliamentary elections are held and the Maoists call for a boycott. Krishna Prasad Bhattarai becomes prime minister and he appoints Sher Bahadur Deuba to lead a committee tasked with finding a solution to 'the Maoist problem'.,"election, conflict resolution, legislative attempt, committee,",policy,
 ,"September 9, 1999","The Government introduces Nepal Laws Relating to Internal Administration (Amendment) Bill to Parliament, aimed at strengthening powers to bring 'terrorist activities' under control. Opposition Members of the House of Representatives reject the Bill on September 21.","counterterrorism, legislative attempt, state, parliament, Kathmandu",policy,
 ,October 1998,The Maoists expand out of the midwestern hills for the first time into central Nepal and the eastern hills.,"expansion, Maoist, midwestern, central, eastern",other,
-,"February 7, 2000","Maoists waylay a bus in Dolakha district carrying Polish tourists and rob them of about US$ 5,000 in cash. This is the first major incident by Maoists targeting foreign visitors.","Maoist, Maoist offensive, civilian, Central",combat,
+,"February 7, 2000","Maoists waylay a bus in Dolakha district carrying Polish tourists and rob them of about US$ 5,000 in cash. This is the first major incident by Maoists targeting foreign visitors.","Maoist, Maoist offensive, civilian, Central, Dolakha",combat,
 ,"February 13, 2000","During commemorations of the fourth anniversary of the 'People's War', Maoist leader Pushpa Kamal Dahal 'Prachanda' issues a press statement saying the Maoists may now be willing to negotiate with the government to end violence, killings and abductions, if the government agrees to certain conditions.","Maoist, political dialogue",peace_process,
 ,"March 20, 2000",G.P. Koirala again becomes Prime Minister after Krishna Prasad Bhattarai resigns following pressure for his inability to contain the Maoist insurgents.,"State, Parliament",policy,
 ,March 2000,Maoists use the chaos in Kathmandu to continue attacks on police posts and government offices. Police start pulling out of rural areas in the Midwest.,"Maoist offensive, violence, Nepal police, Maoist, state, Mid-western",combat,Nepal Police
@@ -542,7 +542,6 @@
 ,"About 60, 2015","Police used tear gas and batons to disperse protesters. In Bara, some 30 people were injured. The NHRC urged the government to show restraint and avoid use of excessive force.","police, NHRC, Bara, protest",protest,National Human Rights Commission of Nepal
 ,60 UDMF 2015,"cadres and 12 police were injured as clashes erupted during President Bidhya Devi Bhandari's visit to the Janaki temple in Janakpur, Dhanusha District.","police, Dhanusha, Janakpur, clash",combat,
 ,60 UDMF 2015,An unidentified assailant hurled a petrol bomb at Dish Home Control Unit offices in Lalitpur.,"Lalitpur, bombing",combat,
-,November 1995,Operation Romeo Police Crackdown,police,other,
 ,"September 21, 1999",Opposition Members of the House of Representatives reject the Bill.,,other,
 ,"June 1, 2001","The royal massacre, three kings in four days.",,killing,
 ,1 January 2004,"12 insurgents, including the vice-chairman of a Maoist village government, surrendered at the district administration office in Okhaldhunga district.","Maoist, Okhaldhunga",other,
@@ -1273,20 +1272,16 @@
 ,20 November 2019,"On the 13th anniversary of the implementation of the Comprehensive Peace Agreement, the National Human Rights Commission states it cannot support activities that harm conflict victims' sentiment. Statement.",,peace_process,National Human Rights Commission of Nepal
 ,21 November 2019,"On the 13th anniversary of the CPA, Prachanda comes to the victims and pledges to swiftly resolve transitional justice. (news)",Prachanda,transitional_justice,
 ,26 November 2019,NHRC's position made public: transitional justice must be in accordance with the Supreme Court's decision and international standards.,"NHRC, Supreme Court",transitional_justice,"National Human Rights Commission of Nepal, Supreme Court of Nepal"
-,November 1995,"Operation Romeo, Rolpa",Rolpa,other,
-,4 February 1996,40-Point Demand Submitted,,policy,
 ,13 February 1996,Launch of Armed Insurgency,,other,
 ,18 February 1996,Maoists Claim Responsibility,Maoist,other,
 ,25 February 1996,Government Hardline Response,,other,
 ,2 March 1996,First Recorded Conflict Death: Dil Bahadur Ramtel,,other,
 ,May 1997,Local Election Boycott and Violence,elections,other,
 ,July–August 1997,Anti-Terror Law Debate,,other,
-,March 1998,Operation Kilo Sierra II,,other,
 ,Late 1998,Expansion Beyond the Mid-West,,other,
 ,April 1999,Maoist Urban Bombings in Kathmandu,"Maoist, Kathmandu, bombing",combat,
 ,May 1999,Parliamentary Elections Held,elections,policy,
 ,September 1999,Anti-Terror Legislation Fails to PassThe government introduces amendments to internal security law like Terrorist and Disruptive (TADO) aimed at strengthening measures against terrorism and insurgency. The proposal faces political opposition and does not pass Parliament.,,policy,
-,February 2000,Maoists Target Foreign Tourists in Dolakha,"Maoist, Dolakha",other,
 ,13 February 2000,Maoists Signal Possible Negotiation,Maoist,other,
 ,23 July 2001,Maoist Ceasefire Declared,"Maoist, peace process",peace_process,
 ,30 August 2001,First Round of Talks,,peace_process,
@@ -1304,12 +1299,10 @@
 ,4 October 2002,"Royal Takeover of Executive AuthorityKing Gyanendra dismisses Prime Minister Sher Bahadur Deuba and assumes executive authority, deepening Nepal's political crisis.",,other,
 ,14 November 2002,"Jumla Attack — Major Maoist attacks targeted Jumla airport and security posts; Chief District Officer Damodar Pant was among those killed, along with two civilians, and security-force casualty claims reported large police and soldier losses (SATP attributing roughly 33 police and 4 soldiers among SF deaths that night). Attacks also damaged airport and police infrastructure in Jumla district headquarters.","Maoist, clash, Damodar Pant, CDO, Jumla airport",killing,
 ,27 December 2002,"First State Rehabilitation PlanningThe National Security Council prepares an early concept paper on disarmament, rehabilitation, and support for conflict victims.",,other,
-,12 March 2003,22-Point Code of Conduct Signed,,other,
 ,27 April 2003,First Round of 2003 Peace Talks,peace process,peace_process,
 ,9 May 2003,Second Round of Talks,,peace_process,
 ,5 June 2003,Change in Government,,other,
 ,17 August 2003,"Third Round of Talks, Nepalgunj",Nepalgunj,peace_process,
-,17 August 2003,"Doramba Massacre, Ramechhap",,killing,
 ,27 August 2003,Maoists Withdraw from Ceasefire,"Maoist, peace process",peace_process,
 ,28 August 2003,Maoists Declared Terrorist Organization,Maoist,other,
 ,September 2003,Doramba Exhumation and Investigation,,other,
@@ -1330,7 +1323,6 @@
 ,July 2007,"Nepal Peace Trust Fund EstablishedThe NPTF is created as the government's principal mechanism for financing peace process implementation, rehabilitation, reconstruction, and peacebuilding activities.",peace process,peace_process,
 ,2007,"Interim Relief Program IntroducedThe Government begins formulating Interim Relief Guidelines to provide interim relief (mostly economic compensation) to families of those killed, disappeared, displaced, and otherwise affected by the conflict. The torture and conflict related sexual violence were not included.","killing, transitional justice, CRSV exclusion, torture survivors, Interim Relief Programme",transitional_justice,
 ,October 2008,Sharma et al. v. Nepal Submitted to the UN Human Rights CommitteeThe family of a conflict-era disappearance victim submits one of the first Nepal conflict-related communications to the UN Human Rights Committee after failing to obtain justice through domestic mechanisms.,transitional justice,transitional_justice,
-,10 April 2008,First Constituent Assembly Election,elections,other,
 ,2008,"Growing Calls for Truth and AccountabilityVictims' groups and civil society intensify demands for investigation of disappearances, conflict-era killings, torture, sexual violence, and other serious violations.","killing, transitional justice",sexual_violence,
 ,May 2009,"Prime Minister Prachanda ResignsPrime Minister Pushpa Kamal Dahal (Prachanda) resigns following a dispute over the dismissal of the Army Chief, triggering a political crisis and contributing to delays in key peace process and transitional justice commitments.","Prachanda, peace process",transitional_justice,
 ,2009,First Truth and Reconciliation Commission Bill IntroducedThe Government introduces the first draft legislation to establish a Truth and Reconciliation Commission.,transitional justice,transitional_justice,Truth and Reconciliation Commission
@@ -1345,7 +1337,6 @@
 ,2012,"UN Human Rights Committee Holds Nepal Responsible in Disappearance CasesThe UN Human Rights Committee issues landmark decisions on conflict-era disappearances, calling for investigations, reparations, and legal reforms, including criminalization of enforced disappearance.",transitional justice,transitional_justice,
 ,March 2013,TRC Ordinance PromulgatedThe government adopts the Truth and Reconciliation Commission and Disappearance Commission Ordinance through executive action.,"TRC, transitional justice",transitional_justice,Truth and Reconciliation Commission
 ,2013,"Victims and Civil Society Submit Reform ProposalsVictims' groups, lawyers, human rights organizations, and civil society coalitions submit approximately fifteen rounds of recommendations and formal submissions calling for the proposed ordinance to comply with constitutional guarantees, victims' rights, and international human rights standards, while opposing provisions that could permit amnesty for serious violations.",,civil_society,
-,November 2013,Second Constituent Assembly Election,elections,other,
 ,2 January 2014,"Supreme Court Rejects Blanket AmnestyThe Supreme Court rules that serious human rights violations, including torture, enforced disappearance, and extrajudicial killing, cannot be subject to blanket amnesty and directs the government to revise transitional justice legislation in line with victims' rights and international standards.","Supreme Court, killing, transitional justice",transitional_justice,Supreme Court of Nepal
 ,May 2014,"TRC Act EnactedParliament adopts the Commission on Investigation of Disappeared Persons, Truth and Reconciliation Act.","TRC, transitional justice",transitional_justice,Truth and Reconciliation Commission
 ,February 2015,TRC and CIEDP Established and Concerns Raised Regarding Independence and Legal FrameworkNepal appoints commissioners to the Truth and Reconciliation Commission and the Commission of Investigation on Enforced Disappeared Persons.,"TRC, CIEDP, transitional justice",transitional_justice,"Truth and Reconciliation Commission, CIEDP"
@@ -1996,20 +1987,6 @@
 ,May 2026,"Victims and survivors honored Kalyan Budhathoki (63), a conflict victim leader and co-founder of the Conflict Victim Common Platform, following his death on 8 April 2026 after more than two decades of advocacy.",,transitional_justice,
 ,May 2026,"The Government of Nepal postponed the planned visit of UN Special Rapporteur Bernard Duhaime for a second time. Victim groups expressed disappointment, having prepared to present concerns regarding transitional justice.",,transitional_justice,Government of Nepal
 ,May 2026,"The Supreme Court ordered the government, TRC, and CIEDP to address all pending submissions from victims and survivors and ruled that prolonged delays in responding to complaints violate victims' rights.","TRC, CIEDP, Supreme Court, transitional justice",transitional_justice,"Truth and Reconciliation Commission, CIEDP, Supreme Court of Nepal"
-,November 1995,"Operation Romeo, Rolpa",Rolpa,other,
-,4 February 1996,40-Point Demand Submitted,,policy,
-,13 February 1996,Launch of Armed Insurgency,,other,
-,March 1998,Operation Kilo Sierra II,,other,
-,May 1999,Parliamentary Elections Held,elections,policy,
-,30 August 2001,First Round of Talks,,peace_process,
-,9 May 2003,Second Round of Talks,,peace_process,
-,5 June 2003,Change in Government,,other,
-,17 August 2003,"Doramba Massacre, Ramechhap",,killing,
-,September 2003,Doramba Exhumation and Investigation,,other,
-,October–December 2003,Humanitarian Impact Deepens,,other,
-,31 March 2007,Maina Sunuwar Exhumation,,other,
-,April 2012,Cantonment Handover Begins,demobilisation,peace_process,
-,20 September 2015,Constitution of Nepal Promulgated,,policy,
 ,"January 3, 2014",UN High Commissioner for Human Rights Navi Pillay issued a statement from Geneva welcoming the Supreme Court's January 2 decision against blanket amnesties for crimes committed during the 10-year conflict.,Supreme Court,civil_society,Supreme Court of Nepal
 ,"January 13, 2014",Secretary of CPN-Maoist Netra Bikram Chand warned that his party would be forced to wage another armed revolt if there were attempts to write the new constitution by sidelining the party.,"CPN-Maoist, Maoist",policy,CPN-Maoist
 ,"January 14, 2014","CPN-Maoist-affiliated ANFA captured five bigha of land belonging to Devilal Dhakal in Nawalparasi District. A team led by the party's District Secretary hoisted a party flag on the land, claiming it would be distributed to landless farmers.","CPN-Maoist, Maoist, Nawalparasi, extortion/land",other,CPN-Maoist

@@ -27,19 +27,23 @@ describe('parseCsvEvents', () => {
     const csv = readFileSync('public/data/mastersheet.csv', 'utf8')
     const events = parseCsvEvents(csv)
 
-    expect(events).toHaveLength(2173)
+    expect(events).toHaveLength(2150)
     const sortKeys = events.map((event) => event.sortKey)
     expect(sortKeys).toEqual([...sortKeys].sort((a, b) => a - b))
     expect(events[0]?.rawDate).toBe('11/1/95')
     expect(events.every((event) => event.categories.length > 0)).toBe(true)
     expect(events.some((event) => event.organizations.length > 0)).toBe(true)
+
+    const romeo = events.filter((event) => /romeo/i.test(event.detail))
+    expect(romeo).toHaveLength(1)
+    expect(romeo[0]?.detail).toMatch(/organised police crackdown/i)
   })
 
   it('ignores extra Sources and Confidence columns on the archival CSV', () => {
     const csv = readFileSync('public/data/mastersheet_with_sources.csv', 'utf8')
     const events = parseCsvEvents(csv)
 
-    expect(events).toHaveLength(2173)
+    expect(events).toHaveLength(2150)
     expect(events[0]?.rawDate).toBe('11/1/95')
     expect(events.every((event) => event.categories.length > 0)).toBe(true)
   })

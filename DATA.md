@@ -6,7 +6,7 @@ The Nepal Conflict Timeline reads a CSV at runtime. There is no database server.
 
 | Environment | Source |
 | --- | --- |
-| Default | [`public/data/mastersheet.csv`](public/data/mastersheet.csv) (**2173** events) |
+| Default | [`public/data/mastersheet.csv`](public/data/mastersheet.csv) (**2150** events) |
 | Archive (not loaded) | [`public/data/mastersheet_with_sources.csv`](public/data/mastersheet_with_sources.csv) |
 | Override | `VITE_DATA_URL` (see `.env.example`) |
 
@@ -30,7 +30,7 @@ Google Sheets exports often include a leading empty column. The parser ignores u
 | Detail | string | Plain text event narrative. Rendered as text, never as HTML |
 | Keywords | comma-separated string | Theme tags; about **502** unique values in the current sheet |
 | Category | comma-separated string | Populated on every row (**13** values: `civil_society`, `combat`, `detention`, `disappearance`, `displacement`, `killing`, `media`, `other`, `peace_process`, `policy`, `protest`, `sexual_violence`, `transitional_justice`) |
-| Organizations | semicolon-separated string | Populated on **899** of **2173** rows (**79** unique values); commas inside organization names are preserved |
+| Organizations | semicolon-separated string | Populated on **899** of **2150** rows (**79** unique values); commas inside organization names are preserved |
 
 An archival export with the same rows plus `Sources` and `Confidence` lives at [`public/data/mastersheet_with_sources.csv`](public/data/mastersheet_with_sources.csv). The app does not fetch that file; extra columns are ignored if it is parsed.
 

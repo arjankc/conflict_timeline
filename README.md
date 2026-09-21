@@ -45,7 +45,7 @@ Copy [`.env.example`](.env.example) to `.env` only if you need `VITE_DATA_URL` o
 
 The runtime dataset is [`public/data/mastersheet.csv`](public/data/mastersheet.csv). See [DATA.md](DATA.md) for the column schema, date formats, event IDs (used in permalinks), and how to refresh the file from Google Sheets.
 
-The current sheet has **53 events**. Category and Organizations columns are present but empty; Keywords are populated. Search, keyword pills, typeahead, and the year navigator all work against this data today. Category and organization filters appear once those columns have values. The filter bar shows the 16 most frequent keywords; the rest remain on event cards.
+The current sheet has **2173 events**. Keywords, Category, and Organizations are populated (Category on every row; Organizations on about 900). Search, keyword pills, category and organization filters, typeahead, and the year navigator all work against this data. The filter bar shows the 16 most frequent keywords; the rest remain on event cards. An archival CSV with Sources and Confidence is at [`public/data/mastersheet_with_sources.csv`](public/data/mastersheet_with_sources.csv); the live app does not load it.
 
 ## Architecture
 
@@ -58,7 +58,7 @@ public/data/mastersheet.csv  →  PapaParse  →  parseDate / parseTags
 
 There is no backend and no React Router. The product is a single page so it can later be wrapped with Capacitor without a routing rewrite. Fetch URLs are relative (`import.meta.env.BASE_URL`) on purpose.
 
-List virtualization is not used yet. Add it if the sheet grows into the thousands of rows.
+List virtualization is not used yet. The sheet is now in the thousands of rows; add virtualization if the feed feels slow.
 
 ### Source map
 
@@ -112,8 +112,8 @@ The address bar is the only “route”. Query parameters describe the **current
 | --- | --- | --- |
 | `q` | `?q=Rolpa` | Search in narrative, date label, year, and tags. Typeahead fills `q`; it does not set `tag` or `year`. |
 | `tag` | `?tag=Maoist` | Keyword / theme filter |
-| `category` | `?category=…` | Category filter (hidden while the column is empty) |
-| `org` | `?org=…` | Organization filter (hidden while the column is empty) |
+| `category` | `?category=…` | Category filter |
+| `org` | `?org=…` | Organization filter |
 | `year` | `?year=2001` | Scroll the feed to that year on load |
 | hash | `#event-row-12-20010608` | Scroll to one card after the CSV loads |
 

@@ -421,6 +421,10 @@ html.dark.contrast-more {
     @apply font-medium text-crimson underline decoration-crimson/35 underline-offset-4 transition-colors hover:decoration-crimson;
   }
 
+  .timeline-window {
+    overflow-anchor: none;
+  }
+
   .event-card {
     border: 1px solid var(--line);
     background: var(--surface);

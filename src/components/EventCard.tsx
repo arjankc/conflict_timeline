@@ -407,6 +407,7 @@ export function EventCard({
         canExpand ? 'cursor-pointer' : '',
       ].join(' ')}
       aria-labelledby={dateHeadingId}
+      tabIndex={-1}
       onClick={onArticleClick}
     >
       <PermalinkControl cardId={cardId} dateLabel={event.dateLabel} />

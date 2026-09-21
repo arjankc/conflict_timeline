@@ -63,7 +63,7 @@ Keywords and Category are split on commas; Organizations are split on semicolons
 
 The filter bar shows the **16** most frequent keywords (`KEYWORD_CLOUD_LIMIT` in `src/lib/parseTags.ts`). The current sheet has about **502** unique keywords; the rest still appear on event cards.
 
-Search (`?q=`) is case-insensitive and matches **Detail**, the display date label, the year, and every tag field. Typeahead suggestions come from an in-memory index of those tags, years, and narrative tokens of four or more letters. Picking a suggestion fills `q` only; it does not set `tag` or `year`.
+Search (`?q=`) is case-insensitive and matches **Event_ID**, **Detail**, the raw date, the display date label, the year, and every tag field. The index is built once per loaded event. Typeahead suggestions come from an in-memory index of those tags, years, and narrative tokens of four or more letters. Picking a suggestion fills `q` only; it does not set `tag` or `year`.
 
 ## Event identifiers
 

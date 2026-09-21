@@ -7,7 +7,7 @@ import { ThemeToggle } from './components/ThemeToggle'
 import { ReadingControls } from './components/ReadingControls'
 import { Toast } from './components/Toast'
 import { EMPTY_FILTERS, filterEvents, type TimelineFilters } from './lib/filterEvents'
-import { loadEvents } from './lib/loadEvents'
+import { subscribeTimelineLoad } from './lib/loadEvents'
 import { countTags, KEYWORD_CLOUD_LIMIT, uniqueTags } from './lib/parseTags'
 import { buildSearchIndex } from './lib/searchSuggest'
 import { pageDescription, pageTitle } from './lib/seo'
@@ -21,37 +21,38 @@ import type { ConflictEvent } from './types/event'
  * View state is the query string; there is no React Router.
  */
 
-type LoadState =
-  | { status: 'loading' }
-  | { status: 'error'; message: string }
-  | { status: 'ready'; events: ConflictEvent[] }
+const SEARCH_DEBOUNCE_MS = 200
+
+type LoadState = {
+  status: 'loading' | 'parsing' | 'ready' | 'error'
+  events: ConflictEvent[]
+  message?: string
+}
 
 export default function App() {
-  const [loadState, setLoadState] = useState<LoadState>({ status: 'loading' })
+  const [loadState, setLoadState] = useState<LoadState>({
+    status: 'loading',
+    events: [],
+  })
   const [filters, setFilters] = useState<TimelineFilters>(
     () => readExplorerQuery().filters,
   )
   const [focusYear, setFocusYear] = useState<number | undefined>(
     () => readExplorerQuery().year,
   )
-  const debouncedSearch = useDebouncedValue(filters.search, 150)
+  const debouncedSearch = useDebouncedValue(filters.search, SEARCH_DEBOUNCE_MS)
 
   useEffect(() => {
-    let cancelled = false
-
-    loadEvents()
-      .then((events) => {
-        if (!cancelled) setLoadState({ status: 'ready', events })
+    return subscribeTimelineLoad((update) => {
+      if (update.error && update.events.length === 0) {
+        setLoadState({ status: 'error', events: [], message: update.error })
+        return
+      }
+      setLoadState({
+        status: update.done ? 'ready' : update.events.length > 0 ? 'parsing' : 'loading',
+        events: update.events,
       })
-      .catch((error: unknown) => {
-        const message =
-          error instanceof Error ? error.message : 'Unable to load timeline data'
-        if (!cancelled) setLoadState({ status: 'error', message })
-      })
-
-    return () => {
-      cancelled = true
-    }
+    })
   }, [])
 
   const appliedFilters = useMemo(
@@ -66,7 +67,7 @@ export default function App() {
 
   const categories = useMemo(
     () =>
-      loadState.status === 'ready'
+      loadState.events.length > 0
         ? uniqueTags(loadState.events.map((event) => event.categories))
         : [],
     [loadState],
@@ -74,7 +75,7 @@ export default function App() {
 
   const organizations = useMemo(
     () =>
-      loadState.status === 'ready'
+      loadState.events.length > 0
         ? uniqueTags(loadState.events.map((event) => event.organizations))
         : [],
     [loadState],
@@ -82,7 +83,7 @@ export default function App() {
 
   const keywordCounts = useMemo(
     () =>
-      loadState.status === 'ready'
+      loadState.events.length > 0
         ? countTags(loadState.events.map((event) => event.keywords), KEYWORD_CLOUD_LIMIT)
         : [],
     [loadState],
@@ -96,14 +97,14 @@ export default function App() {
 
   const filteredEvents = useMemo(
     () =>
-      loadState.status === 'ready'
+      loadState.events.length > 0
         ? filterEvents(loadState.events, appliedFilters)
         : [],
     [loadState, appliedFilters],
   )
 
   const collectionMeta = useMemo(() => {
-    if (loadState.status !== 'ready') return null
+    if (loadState.events.length === 0) return null
     const years = loadState.events
       .map((event) => event.year)
       .filter((year): year is number => year != null)
@@ -128,12 +129,12 @@ export default function App() {
     const description = pageDescription(
       appliedFilters,
       focusYear,
-      loadState.status === 'ready' ? filteredEvents.length : undefined,
+      loadState.events.length > 0 ? filteredEvents.length : undefined,
     )
     document
       .querySelector('meta[name="description"]')
       ?.setAttribute('content', description)
-  }, [appliedFilters, focusYear, filteredEvents.length, loadState.status])
+  }, [appliedFilters, focusYear, filteredEvents.length, loadState.events.length])
 
   function updateFilter<K extends keyof TimelineFilters>(
     key: K,
@@ -208,7 +209,7 @@ export default function App() {
         </div>
       </header>
 
-      {loadState.status === 'ready' ? (
+      {loadState.events.length > 0 ? (
         <FilterBar
           filters={filters}
           categories={categories}
@@ -235,6 +236,15 @@ export default function App() {
       <main id="timeline" tabIndex={-1} className="pt-5 outline-none sm:pt-8">
         {loadState.status === 'loading' ? <ArchiveSkeleton /> : null}
 
+        {loadState.status === 'parsing' ? (
+          <p
+            className="mx-auto max-w-5xl px-5 pb-3 text-sm text-muted sm:px-8"
+            role="status"
+          >
+            Reading the archive… {loadState.events.length} events so far
+          </p>
+        ) : null}
+
         {loadState.status === 'error' ? (
           <div className="mx-auto max-w-5xl px-5 py-12 sm:px-8" role="alert">
             <div className="max-w-lg rounded-sm border border-line bg-surface p-6 sm:p-8">
@@ -255,7 +265,7 @@ export default function App() {
           </div>
         ) : null}
 
-        {loadState.status === 'ready' ? (
+        {loadState.events.length > 0 ? (
           <ChronologyExplorer
             events={filteredEvents}
             focusYear={focusYear}
@@ -300,7 +310,7 @@ export default function App() {
         className={[
           'border-t border-line/80',
           // Extra space so the license line sits above the fixed mobile year dock.
-          loadState.status === 'ready' && filteredEvents.length > 0
+          loadState.events.length > 0 && filteredEvents.length > 0
             ? 'pb-[calc(var(--dock-h)+1.25rem)] lg:pb-0'
             : '',
         ].join(' ')}
@@ -317,7 +327,7 @@ export default function App() {
           </p>
         </div>
       </footer>
-      {loadState.status === 'ready' ? <BackToTop /> : null}
+      {loadState.events.length > 0 ? <BackToTop /> : null}
       <Toast />
     </div>
   )

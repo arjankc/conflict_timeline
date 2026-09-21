@@ -50,21 +50,23 @@ The current sheet has **2150 events** with a stable `Event_ID` (`NCT-0001` … `
 ## Architecture
 
 ```
-public/data/mastersheet.csv  →  PapaParse  →  parseDate / parseTags
-                                           →  chronological ConflictEvent[]
-                                           →  FilterBar + ChronologyExplorer
-                                                (year groups, cards, year navigator)
+public/data/mastersheet.csv  →  one fetch (localStorage + If-None-Match)
+                             →  PapaParse in batches of 80
+                             →  parseDate / parseTags / Event_ID
+                             →  chronological ConflictEvent[]
+                             →  indexed filter (no re-parse on keystroke)
+                             →  windowed ChronologyExplorer
 ```
 
 There is no backend and no React Router. The product is a single page so it can later be wrapped with Capacitor without a routing rewrite. Fetch URLs are relative (`import.meta.env.BASE_URL`) on purpose.
 
-List virtualization is not used yet. The sheet is now in the thousands of rows; add virtualization if the feed feels slow.
+The header paints before the CSV is parsed. Rows are published in batches so the first events appear without waiting for the full sheet. A `localStorage` copy plus `If-None-Match` avoids a second download when the file is unchanged, and the page only starts one fetch. The feed mounts a window of rows around the scroll position (custom windowing, no list library) so 2,000 cards are not in the DOM at once. Search is debounced and matched against an index built once per event (`Event_ID`, date, detail, keywords, category, organizations).
 
 ### Source map
 
 | Path | Role |
 | --- | --- |
-| [`src/lib/loadEvents.ts`](src/lib/loadEvents.ts) | Fetch and parse CSV into `ConflictEvent` rows |
+| [`src/lib/loadEvents.ts`](src/lib/loadEvents.ts) | One CSV fetch, local cache, batched PapaParse |
 | [`src/lib/parseDate.ts`](src/lib/parseDate.ts) | Normalize mixed date strings; `M/D/YY` in, `2 March 1996` out |
 | [`src/lib/parseTags.ts`](src/lib/parseTags.ts) | Split metadata fields into filterable tags |
 | [`src/lib/filterEvents.ts`](src/lib/filterEvents.ts) | Search (narrative, date, year, tags), filters, year/month grouping |
@@ -79,7 +81,7 @@ List virtualization is not used yet. The sheet is now in the thousands of rows; 
 | [`src/lib/seo.ts`](src/lib/seo.ts) | Document title, share text, filtered share URL |
 | [`src/lib/site.ts`](src/lib/site.ts) | Site name, description, `%SITE_URL%` substitution |
 | [`src/components/ChronologyExplorer.tsx`](src/components/ChronologyExplorer.tsx) | Year-grouped feed + dock/rail |
-| [`src/components/TimelineFeed.tsx`](src/components/TimelineFeed.tsx) | Cards on a year spine |
+| [`src/components/TimelineFeed.tsx`](src/components/TimelineFeed.tsx) | Windowed cards on a year spine |
 | [`src/components/EventCard.tsx`](src/components/EventCard.tsx) | Teaser card, expand, permalink |
 | [`src/components/YearNavigator.tsx`](src/components/YearNavigator.tsx) | Jump-to-year density rail or mobile dock (scrub strip + year chips) |
 | [`src/components/YearCue.tsx`](src/components/YearCue.tsx) | Brief year overlay while scrolling or scrubbing |
@@ -117,7 +119,7 @@ The address bar is the only “route”. Query parameters describe the **current
 | `year` | `?year=2001` | Scroll the feed to that year on load |
 | hash | `#event-NCT-0001` | Scroll to one card after the CSV loads. Romeo is `NCT-0001`. |
 
-Filter changes use `history.replaceState` and **keep** an existing hash. Search is debounced (150ms) before it is written to the URL and applied to the list.
+Filter changes use `history.replaceState` and **keep** an existing hash. Search is debounced (200ms) before it is written to the URL and applied to the list. The list filters an in-memory index; it does not parse the CSV again.
 
 Two different copy actions:
 
@@ -126,7 +128,7 @@ Two different copy actions:
 
 Card hashes are `event-` plus the CSV `Event_ID`. They stay put when rows are inserted, as long as that id is not reused. See [DATA.md](DATA.md#event-identifiers).
 
-Opening `#event-…` (including a pasted permalink) waits until events are on the page, then scrolls the card into view below the sticky search, and outlines it (`:target`). Clicking the card’s link icon copies that permalink and does **not** scroll. A `?year=` jump is skipped when a card hash is present, so the two do not fight.
+Opening `#event-…` (including a pasted permalink) waits until that `Event_ID` has been parsed, then scrolls the card into view below the sticky search and outlines it (`:target`). The rest of the feed stays windowed. Clicking the card’s link icon copies that permalink and does **not** scroll. A `?year=` jump is skipped when a card hash is present, so the two do not fight.
 
 ## Appearance
 

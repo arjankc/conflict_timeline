@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
-import { parseCsvEvents } from './loadEvents'
+import { PARSE_BATCH_SIZE, parseCsvEvents, parseCsvEventsProgressive } from './loadEvents'
 
 const SAMPLE = `,Date,Detail,Keywords,Category,Organizations
 ,4/2/96,"Forty-point demand",Maoist, dialogue,CPN
@@ -91,6 +91,26 @@ NCT-0002,3/3/96,Separate event,Rolpa,combat,
       'Duplicate Event_ID NCT-0001 skipped; keeping the first row.',
     )
     warn.mockRestore()
+  })
+
+  it('parses in batches and finishes with every row', async () => {
+    const lines = ['Event_ID,Date,Detail']
+    const count = PARSE_BATCH_SIZE + 25
+    for (let index = 1; index <= count; index += 1) {
+      lines.push(`NCT-${String(index).padStart(4, '0')},1/1/96,Event ${index}`)
+    }
+    const sizes: number[] = []
+    const events = await new Promise<ReturnType<typeof parseCsvEvents>>((resolve) => {
+      parseCsvEventsProgressive(lines.join('\n'), (batch, done) => {
+        sizes.push(batch.length)
+        if (done) resolve(batch)
+      })
+    })
+    expect(sizes[0]).toBe(PARSE_BATCH_SIZE)
+    expect(sizes.at(-1)).toBe(count)
+    expect(sizes.length).toBeGreaterThan(1)
+    expect(events[0]?.id).toBe('NCT-0001')
+    expect(events).toHaveLength(count)
   })
 
   it('drops rows without a date or detail', () => {

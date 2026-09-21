@@ -1,9 +1,25 @@
-import { groupEventsByMonth, yearSectionId, type YearGroup } from '../lib/filterEvents'
-import { MONTH_NAMES } from '../lib/parseDate'
-import type { ConflictEvent } from '../types/event'
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react'
+import type { YearGroup } from '../lib/filterEvents'
+import {
+  buildTimelineRows,
+  estimateRowHeight,
+  yearAtOffset,
+  type TimelineRow,
+} from '../lib/timelineRows'
+import { visibleRange } from '../lib/windowRange'
 import { EventCard } from './EventCard'
 
-/** Year sections on a spine. Heading levels depend on whether a year is split into months. */
+/** Year sections on a spine. Only the rows near the viewport are mounted. */
+
+const OVERSCAN_PX = 720
 
 type TimelineFeedProps = {
   groups: YearGroup[]
@@ -15,6 +31,9 @@ type TimelineFeedProps = {
   onCategoryClick: (category: string) => void
   onOrganizationClick: (organization: string) => void
   onReset?: () => void
+  /** `event-NCT-0001` or `year-1996`. The feed scrolls that row into view once. */
+  anchorId?: string
+  onYearInView?: (year: number | null) => void
 }
 
 function YearHeading({
@@ -32,7 +51,7 @@ function YearHeading({
     <h2
       id={headingId}
       tabIndex={-1}
-      className="-mx-1 mb-5 flex flex-wrap items-baseline gap-x-3 gap-y-1 px-1 py-1 font-display text-[1.85rem] leading-none tracking-tight text-ink outline-none sm:mb-6 sm:text-4xl"
+      className="-mx-1 flex flex-wrap items-baseline gap-x-3 gap-y-1 px-1 py-1 font-display text-[1.85rem] leading-none tracking-tight text-ink outline-none sm:text-4xl"
     >
       <span aria-hidden="true" className="size-2 shrink-0 self-center bg-crimson sm:size-2.5" />
       <span>{label}</span>
@@ -44,46 +63,14 @@ function YearHeading({
   )
 }
 
-function EventEntry({
-  event,
-  search,
-  activeKeyword,
-  activeCategory,
-  activeOrganization,
-  dateHeadingLevel,
-  onKeywordClick,
-  onCategoryClick,
-  onOrganizationClick,
-}: {
-  event: ConflictEvent
-  search: string
-  activeKeyword: string
-  activeCategory: string
-  activeOrganization: string
-  dateHeadingLevel: 'h3' | 'h4'
-  onKeywordClick: (keyword: string) => void
-  onCategoryClick: (category: string) => void
-  onOrganizationClick: (organization: string) => void
-}) {
-  return (
-    <li className="relative pb-6 last:pb-0">
-      <span
-        aria-hidden="true"
-        className="absolute -start-[1.35rem] top-7 size-2 border-2 border-paper bg-crimson sm:-start-[1.9rem] sm:top-8"
-      />
-      <EventCard
-        event={event}
-        search={search}
-        activeKeyword={activeKeyword}
-        activeCategory={activeCategory}
-        activeOrganization={activeOrganization}
-        dateHeadingLevel={dateHeadingLevel}
-        onKeywordClick={onKeywordClick}
-        onCategoryClick={onCategoryClick}
-        onOrganizationClick={onOrganizationClick}
-      />
-    </li>
-  )
+function filterOffsetPx(): number {
+  const raw = getComputedStyle(document.documentElement).getPropertyValue('--filter-h')
+  const value = Number.parseFloat(raw)
+  return Number.isFinite(value) ? value : 88
+}
+
+function listDocumentTop(node: HTMLElement): number {
+  return node.getBoundingClientRect().top + window.scrollY
 }
 
 export function TimelineFeed({
@@ -96,13 +83,20 @@ export function TimelineFeed({
   onCategoryClick,
   onOrganizationClick,
   onReset,
+  anchorId,
+  onYearInView,
 }: TimelineFeedProps) {
-  if (groups.length === 0) {
+  const rows = useMemo(() => buildTimelineRows(groups), [groups])
+  const indexByKey = useMemo(() => {
+    const map = new Map<string, number>()
+    rows.forEach((row, index) => map.set(row.key, index))
+    return map
+  }, [rows])
+
+  if (rows.length === 0) {
     return (
       <div className="mx-auto max-w-md px-1 py-16 text-center" role="status">
-        <p className="font-display text-2xl tracking-tight text-ink">
-          No matching events
-        </p>
+        <p className="font-display text-2xl tracking-tight text-ink">No matching events</p>
         <p className="mt-3 text-pretty text-muted">
           Nothing in the archive matches the current search and filters.
         </p>
@@ -116,52 +110,318 @@ export function TimelineFeed({
   }
 
   return (
-    <div className="flex flex-col gap-14">
-      {groups.map((group) => {
-        const months = groupEventsByMonth(group.events)
-        // Month labels only when a year contains more than one month; then the date heading drops to h4.
-        const showMonths = months.length > 1
-        const sectionId = yearSectionId(group.year)
-        const headingId = `${sectionId}-heading`
+    <WindowedRows
+      rows={rows}
+      indexByKey={indexByKey}
+      anchorId={anchorId}
+      onYearInView={onYearInView}
+      search={search}
+      activeKeyword={activeKeyword}
+      activeCategory={activeCategory}
+      activeOrganization={activeOrganization}
+      onKeywordClick={onKeywordClick}
+      onCategoryClick={onCategoryClick}
+      onOrganizationClick={onOrganizationClick}
+    />
+  )
+}
 
+function WindowedRows({
+  rows,
+  indexByKey,
+  anchorId,
+  onYearInView,
+  search,
+  activeKeyword,
+  activeCategory,
+  activeOrganization,
+  onKeywordClick,
+  onCategoryClick,
+  onOrganizationClick,
+}: {
+  rows: TimelineRow[]
+  indexByKey: Map<string, number>
+  anchorId?: string
+  onYearInView?: (year: number | null) => void
+  search: string
+  activeKeyword: string
+  activeCategory: string
+  activeOrganization: string
+  onKeywordClick: (keyword: string) => void
+  onCategoryClick: (category: string) => void
+  onOrganizationClick: (organization: string) => void
+}) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const heightsRef = useRef(new Map<string, number>())
+  const offsetsRef = useRef<number[]>([])
+  const totalRef = useRef(0)
+  const onYearRef = useRef(onYearInView)
+  const lastYearRef = useRef<number | null | undefined>(undefined)
+  const [tick, setTick] = useState(0)
+  const [scrollRange, setScrollRange] = useState({ start: 0, end: 14 })
+  const [settledAnchor, setSettledAnchor] = useState<string | undefined>()
+
+  onYearRef.current = onYearInView
+
+  const estimates = useMemo(() => rows.map((row) => estimateRowHeight(row)), [rows])
+
+  const { offsets, total } = useMemo(() => {
+    // `tick` is the measurement revision. Heights live in a ref, so the
+    // revision has to be read or the offsets stay on their estimates.
+    const revision = tick
+    const nextOffsets = new Array<number>(rows.length)
+    let y = 0
+    for (let index = 0; index < rows.length; index += 1) {
+      nextOffsets[index] = y
+      const measured = revision >= 0 ? heightsRef.current.get(rows[index].key) : undefined
+      y += measured ?? estimates[index]
+    }
+    return { offsets: nextOffsets, total: y }
+  }, [rows, estimates, tick])
+
+  offsetsRef.current = offsets
+  totalRef.current = total
+
+  const reportYear = useCallback((viewStart: number) => {
+    const year = yearAtOffset(rows, offsetsRef.current, Math.max(0, viewStart + 12))
+    if (lastYearRef.current === year) return
+    lastYearRef.current = year
+    onYearRef.current?.(year)
+  }, [rows])
+
+  const updateRange = useCallback(() => {
+    const node = containerRef.current
+    if (!node || rows.length === 0) return
+    const top = listDocumentTop(node)
+    const viewStart = window.scrollY - top
+    const viewEnd = viewStart + window.innerHeight
+    const next = visibleRange(
+      offsetsRef.current,
+      totalRef.current,
+      viewStart,
+      viewEnd,
+      OVERSCAN_PX,
+    )
+    setScrollRange((current) =>
+      current.start === next.start && current.end === next.end ? current : next,
+    )
+    reportYear(viewStart)
+  }, [reportYear, rows.length])
+
+  useEffect(() => {
+    let frame = 0
+    function onScroll() {
+      if (frame) return
+      frame = window.requestAnimationFrame(() => {
+        frame = 0
+        updateRange()
+      })
+    }
+    updateRange()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    return () => {
+      window.cancelAnimationFrame(frame)
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+    }
+  }, [updateRange])
+
+  const anchorIndex = anchorId != null ? indexByKey.get(anchorId) : undefined
+  const locking = anchorId != null && anchorId !== settledAnchor && anchorIndex != null
+  const range = locking
+    ? {
+        start: Math.max(0, anchorIndex - 2),
+        end: Math.min(rows.length, anchorIndex + 8),
+      }
+    : scrollRange
+
+  useLayoutEffect(() => {
+    if (!locking || anchorIndex == null || !anchorId) return
+    const node = containerRef.current
+    if (!node) return
+    const snap = () => {
+      const current = containerRef.current
+      if (!current) return
+      const top =
+        listDocumentTop(current) +
+        offsetsRef.current[anchorIndex] -
+        filterOffsetPx() -
+        8
+      const root = document.documentElement
+      const previous = root.style.scrollBehavior
+      root.style.scrollBehavior = 'auto'
+      window.scrollTo(0, Math.max(0, top))
+      root.style.scrollBehavior = previous
+    }
+    snap()
+    const focusId = anchorId.startsWith('year-') ? `${anchorId}-heading` : anchorId
+    const frame = window.requestAnimationFrame(() => {
+      snap()
+      const element = document.getElementById(focusId)
+      const filter = filterOffsetPx()
+      const near =
+        element != null && Math.abs(element.getBoundingClientRect().top - filter) < 280
+      if (!near) return
+      element.focus({ preventScroll: true })
+      setScrollRange({
+        start: Math.max(0, anchorIndex - 3),
+        end: Math.min(rows.length, anchorIndex + 10),
+      })
+      setSettledAnchor(anchorId)
+    })
+    return () => window.cancelAnimationFrame(frame)
+  }, [locking, anchorIndex, anchorId, offsets, rows.length])
+
+  const measure = useCallback((key: string, index: number, height: number) => {
+    const previous = heightsRef.current.get(key)
+    const baseline = previous ?? estimates[index] ?? height
+    if (Math.abs(baseline - height) < 1) {
+      if (previous == null) heightsRef.current.set(key, height)
+      return
+    }
+    heightsRef.current.set(key, height)
+    // While a permalink is still settling, scroll corrections fight the snap.
+    if (anchorId != null && settledAnchor !== anchorId) {
+      setTick((value) => value + 1)
+      return
+    }
+    const node = containerRef.current
+    const rowOffset = offsetsRef.current[index]
+    if (node && rowOffset != null) {
+      const rowTop = listDocumentTop(node) + rowOffset
+      if (rowTop < window.scrollY - 2) {
+        window.scrollBy(0, height - baseline)
+      }
+    }
+    setTick((value) => value + 1)
+  }, [estimates, anchorId, settledAnchor])
+
+  const top = offsets[range.start] ?? 0
+  const bottom = Math.max(0, total - (offsets[range.end] ?? total))
+  const eventCount = rows.reduce((count, row) => count + (row.kind === 'event' ? 1 : 0), 0)
+
+  return (
+    <div ref={containerRef} className="timeline-window">
+      <p className="sr-only">
+        {eventCount} {eventCount === 1 ? 'event' : 'events'} in this view. Off-screen
+        events are not mounted until you scroll to them.
+      </p>
+      <div aria-hidden="true" style={{ height: top }} />
+      {rows.slice(range.start, range.end).map((row, offset) => {
+        const index = range.start + offset
         return (
-          <section
-            key={sectionId}
-            id={sectionId}
-            aria-labelledby={headingId}
-            className="scroll-mt-[calc(var(--filter-h)+0.35rem)]"
+          <MeasuredRow
+            key={row.key}
+            rowKey={row.key}
+            index={index}
+            onMeasure={measure}
           >
-            <YearHeading year={group.year} count={group.events.length} headingId={headingId} />
-            {months.map((monthGroup) => (
-              <div key={monthGroup.month ?? 'undated'} className="mb-2 last:mb-0">
-                {showMonths ? (
-                  <h3 className="ms-1 pb-3 pt-2 text-xs font-medium tracking-[0.16em] text-muted uppercase">
-                    {monthGroup.month
-                      ? MONTH_NAMES[monthGroup.month - 1]
-                      : 'Date unknown'}
-                  </h3>
-                ) : null}
-                <ol className="relative ms-1.5 border-s-2 border-crimson/25 ps-5 sm:ms-3 sm:ps-8">
-                  {monthGroup.events.map((event) => (
-                    <EventEntry
-                      key={event.id}
-                      event={event}
-                      search={search}
-                      activeKeyword={activeKeyword}
-                      activeCategory={activeCategory}
-                      activeOrganization={activeOrganization}
-                      dateHeadingLevel={showMonths ? 'h4' : 'h3'}
-                      onKeywordClick={onKeywordClick}
-                      onCategoryClick={onCategoryClick}
-                      onOrganizationClick={onOrganizationClick}
-                    />
-                  ))}
-                </ol>
-              </div>
-            ))}
-          </section>
+            <TimelineRowView
+              row={row}
+              search={search}
+              activeKeyword={activeKeyword}
+              activeCategory={activeCategory}
+              activeOrganization={activeOrganization}
+              onKeywordClick={onKeywordClick}
+              onCategoryClick={onCategoryClick}
+              onOrganizationClick={onOrganizationClick}
+            />
+          </MeasuredRow>
         )
       })}
+      <div aria-hidden="true" style={{ height: bottom }} />
+    </div>
+  )
+}
+
+function MeasuredRow({
+  rowKey,
+  index,
+  onMeasure,
+  children,
+}: {
+  rowKey: string
+  index: number
+  onMeasure: (key: string, index: number, height: number) => void
+  children: ReactNode
+}) {
+  const ref = useRef<HTMLDivElement>(null)
+  const onMeasureRef = useRef(onMeasure)
+  onMeasureRef.current = onMeasure
+
+  useLayoutEffect(() => {
+    const node = ref.current
+    if (!node) return
+    const measure = () => {
+      const height = node.getBoundingClientRect().height
+      if (height > 0) onMeasureRef.current(rowKey, index, height)
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [rowKey, index])
+
+  return <div ref={ref}>{children}</div>
+}
+
+function TimelineRowView({
+  row,
+  search,
+  activeKeyword,
+  activeCategory,
+  activeOrganization,
+  onKeywordClick,
+  onCategoryClick,
+  onOrganizationClick,
+}: {
+  row: TimelineRow
+  search: string
+  activeKeyword: string
+  activeCategory: string
+  activeOrganization: string
+  onKeywordClick: (keyword: string) => void
+  onCategoryClick: (category: string) => void
+  onOrganizationClick: (organization: string) => void
+}) {
+  if (row.kind === 'year') {
+    return (
+      <div id={row.sectionId} className="pb-5 pt-8 first:pt-0">
+        <YearHeading
+          year={row.year}
+          count={row.count}
+          headingId={`${row.sectionId}-heading`}
+        />
+      </div>
+    )
+  }
+
+  if (row.kind === 'month') {
+    return (
+      <h3 className="pb-2 pt-2 text-xs font-medium tracking-[0.16em] text-muted uppercase">
+        {row.label}
+      </h3>
+    )
+  }
+
+  return (
+    <div className="relative border-s-2 border-crimson/25 pb-6 ps-5 sm:ps-8">
+      <span
+        aria-hidden="true"
+        className="absolute -start-[5px] top-7 size-2 border-2 border-paper bg-crimson"
+      />
+      <EventCard
+        event={row.event}
+        search={search}
+        activeKeyword={activeKeyword}
+        activeCategory={activeCategory}
+        activeOrganization={activeOrganization}
+        dateHeadingLevel={row.dateHeadingLevel}
+        onKeywordClick={onKeywordClick}
+        onCategoryClick={onCategoryClick}
+        onOrganizationClick={onOrganizationClick}
+      />
     </div>
   )
 }

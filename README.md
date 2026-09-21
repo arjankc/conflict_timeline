@@ -132,7 +132,7 @@ Opening `#event-…` (including a pasted permalink) waits until events are on th
 
 The header **Reading and display** toolbar cycles **System → Light → Dark**, **Default → Large → Larger** text, and a high-contrast palette. Choices are stored as `localStorage.appearance`, `text-size`, and `contrast`. A blocking script in [`index.html`](index.html) applies the classes **before React loads**, so a system-dark or larger-text visitor does not flash the default palette. `color-scheme` and `theme-color` follow the resolved colours so scrollbars and the browser chrome match.
 
-Native form controls pick up `color-scheme`. Tokens live in [`src/index.css`](src/index.css) (`--paper`, `--ink`, `--muted`, `--crimson`, `--surface`, and chip colours). Light crimson is `#7f1d1d`; dark mode uses a lighter crimson so date text still meets contrast on the dark paper. Titles, years, and date stacks use **Source Serif 4**; UI and event narratives use **Source Sans 3**. Both are self-hosted from the Google Fonts catalog (Fontsource, OFL, Latin and Latin-extended) so the page never calls `fonts.googleapis.com`. Devanagari falls back to the system UI font. Event narratives sit in a ~65-character measure with 1.75 line-height. Search hits are wrapped in `<mark>` as React text nodes, not as HTML from the CSV. Permalink and view-share confirmations use a short toast.
+Native form controls pick up `color-scheme`. Tokens live in [`src/index.css`](src/index.css) (`--paper`, `--ink`, `--muted`, `--crimson`, `--surface`, and chip colours). Light vermillion is `#8b1e12` on paper `#f3eee4` (text contrast above 7:1); dark mode uses `#ffb59a` on `#13110f`. Titles, years, and date stacks use **Fraunces**; UI chrome and shorter event notes use **Source Sans 3**; long narratives use **Source Serif 4**. All three are self-hosted from Fontsource (OFL, Latin and Latin-extended) so the page never calls `fonts.googleapis.com`. Devanagari falls back to the system UI font. Short notes stay compact; longer Detail text gets more measure, serif type, and a vermillion rule. Search hits are wrapped in `<mark>` as React text nodes, not as HTML from the CSV. Permalink and view-share confirmations use a short toast. Motion is limited to colour and a year label fade, and `prefers-reduced-motion` collapses it.
 
 ## Sharing and SEO
 
@@ -185,7 +185,7 @@ Keep these constraints when adding a native shell:
 
 - Continue loading data with relative URLs or `VITE_DATA_URL`
 - Do not introduce a required backend
-- Fonts are bundled (Source Sans 3 / Source Serif 4); the WebView does not need `fonts.google.com`
+- Fonts are bundled (Fraunces / Source Sans 3 / Source Serif 4); the WebView does not need `fonts.google.com`
 - Clipboard permalinks and `navigator.share` need a secure context (HTTPS or localhost)
 
 ## Contributing
@@ -194,6 +194,6 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md). This archive describes political
 
 ## License
 
-Application code is licensed under the [MIT License](LICENSE). Source Sans 3 and Source Serif 4 are © Google Inc. / Adobe, licensed under the [SIL Open Font License 1.1](https://scripts.sil.org/OFL).
+Application code is licensed under the [MIT License](LICENSE). Fraunces is © The Fraunces Project Authors. Source Sans 3 and Source Serif 4 are © Google Inc. / Adobe. All three are licensed under the [SIL Open Font License 1.1](https://scripts.sil.org/OFL).
 
 **Event narratives in the CSV are not automatically covered by that license.** Their provenance sits with the researchers and organizations who compiled the sheet. Do not republish the text under MIT until maintainers confirm the data license. See [DATA.md](DATA.md).

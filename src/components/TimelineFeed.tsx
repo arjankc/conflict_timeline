@@ -32,9 +32,9 @@ function YearHeading({
     <h2
       id={headingId}
       tabIndex={-1}
-      className="-mx-1 mb-5 flex flex-wrap items-center gap-x-3 gap-y-1 px-1 py-1 font-serif text-2xl leading-none tracking-tight text-ink outline-none sm:mb-6 sm:text-4xl"
+      className="-mx-1 mb-5 flex flex-wrap items-baseline gap-x-3 gap-y-1 px-1 py-1 font-display text-[1.85rem] leading-none tracking-tight text-ink outline-none sm:mb-6 sm:text-4xl"
     >
-      <span aria-hidden="true" className="size-2 shrink-0 rounded-full bg-crimson sm:size-2.5" />
+      <span aria-hidden="true" className="size-2 shrink-0 self-center bg-crimson sm:size-2.5" />
       <span>{label}</span>
       <span className="font-sans text-sm font-normal tracking-normal text-muted">
         {count} {count === 1 ? 'event' : 'events'}
@@ -69,7 +69,7 @@ function EventEntry({
     <li className="relative pb-6 last:pb-0">
       <span
         aria-hidden="true"
-        className="absolute -start-[1.35rem] top-6 size-2.5 rounded-full border-2 border-paper bg-crimson sm:-start-[1.9rem] sm:top-7"
+        className="absolute -start-[1.35rem] top-7 size-2 border-2 border-paper bg-crimson sm:-start-[1.9rem] sm:top-8"
       />
       <EventCard
         event={event}
@@ -100,7 +100,7 @@ export function TimelineFeed({
   if (groups.length === 0) {
     return (
       <div className="mx-auto max-w-md px-1 py-16 text-center" role="status">
-        <p className="font-serif text-2xl tracking-tight text-ink">
+        <p className="font-display text-2xl tracking-tight text-ink">
           No matching events
         </p>
         <p className="mt-3 text-pretty text-muted">

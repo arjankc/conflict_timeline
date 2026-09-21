@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   DESKTOP_TAG_LIMIT,
   MOBILE_TAG_LIMIT,
+  eventDensity,
   metadataPills,
   pickVisiblePills,
   type MetaPill,
@@ -79,5 +80,13 @@ describe('pickVisiblePills', () => {
     const result = pickVisiblePills(sample, DESKTOP_TAG_LIMIT, false, () => false)
     expect(result.visible).toEqual(sample)
     expect(result.hiddenCount).toBe(0)
+  })
+})
+
+describe('eventDensity', () => {
+  it('treats short notes as brief and long narratives as rich', () => {
+    expect(eventDensity('Police raid in Rolpa.')).toBe('brief')
+    expect(eventDensity('x'.repeat(96))).toBe('standard')
+    expect(eventDensity('x'.repeat(280))).toBe('rich')
   })
 })

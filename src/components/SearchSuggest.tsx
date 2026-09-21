@@ -123,7 +123,7 @@ export function SearchSuggest({ value, index, onChange }: SearchSuggestProps) {
           id={LIST_ID}
           role="listbox"
           aria-label="Search suggestions"
-          className="absolute z-40 mt-1.5 max-h-[min(16rem,40dvh)] w-full overflow-y-auto rounded-xl border border-line bg-surface py-1.5 shadow-float [scrollbar-width:thin]"
+          className="absolute z-40 mt-1.5 max-h-[min(16rem,40dvh)] w-full overflow-y-auto rounded-sm border border-line bg-surface py-1.5 [scrollbar-width:thin]"
         >
           {suggestions.map((suggestion, index) => {
             const selected = index === activeIndex

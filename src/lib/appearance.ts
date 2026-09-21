@@ -1,8 +1,8 @@
 /** localStorage key. Must match the blocking script in `index.html`. */
 export const APPEARANCE_STORAGE_KEY = 'appearance'
 
-export const PAPER_LIGHT = '#f4f0e8'
-export const PAPER_DARK = '#1a1714'
+export const PAPER_LIGHT = '#f3eee4'
+export const PAPER_DARK = '#13110f'
 
 export type Appearance = 'light' | 'dark' | 'system'
 export type ResolvedAppearance = 'light' | 'dark'

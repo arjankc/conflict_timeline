@@ -44,6 +44,18 @@ describe('parseCsvEvents', () => {
     expect(events.every((event) => event.categories.length > 0)).toBe(true)
   })
 
+  it('parses semicolon-delimited Organizations in archival rows without splitting comma-bearing names', () => {
+    const events = parseCsvEvents(`Date,Detail,Keywords,Category,Organizations,Sources,Confidence
+5 February 2021,Example event,TRC,transitional_justice,"Office of the President; Ministry of Law, Justice and Parliamentary Affairs; CIEDP",example source,high
+`)
+
+    expect(events[0]?.organizations).toEqual([
+      'Office of the President',
+      'Ministry of Law, Justice and Parliamentary Affairs',
+      'CIEDP',
+    ])
+  })
+
   it('drops rows without a date or detail', () => {
     const events = parseCsvEvents(`Date,Detail
 ,missing date

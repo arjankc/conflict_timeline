@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { KEYWORD_CLOUD_LIMIT, countTags, parseTags, uniqueTags } from './parseTags'
+import { KEYWORD_CLOUD_LIMIT, countTags, parseOrganizations, parseTags, uniqueTags } from './parseTags'
 
 describe('parseTags', () => {
   it('splits, trims, and drops empty fragments', () => {
@@ -17,6 +17,20 @@ describe('parseTags', () => {
   it('returns an empty array for missing values', () => {
     expect(parseTags(undefined)).toEqual([])
     expect(parseTags('')).toEqual([])
+  })
+})
+
+describe('parseOrganizations', () => {
+  it('splits semicolon-delimited values without breaking names that contain commas', () => {
+    expect(
+      parseOrganizations(
+        'Office of the President; Ministry of Law, Justice and Parliamentary Affairs; CIEDP',
+      ),
+    ).toEqual([
+      'Office of the President',
+      'Ministry of Law, Justice and Parliamentary Affairs',
+      'CIEDP',
+    ])
   })
 })
 

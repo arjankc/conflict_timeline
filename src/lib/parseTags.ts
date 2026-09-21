@@ -1,11 +1,10 @@
-/** Split a comma-separated field into trimmed, non-empty tags. Display text is preserved. */
-export function parseTags(value: string | undefined): string[] {
+function parseDelimitedTags(value: string | undefined, delimiter: string): string[] {
   if (!value) return []
 
   const seen = new Set<string>()
   const tags: string[] = []
 
-  for (const part of value.split(',')) {
+  for (const part of value.split(delimiter)) {
     const tag = part.replace(/\u00a0/g, ' ').trim()
     if (!tag) continue
     const key = tag.toLowerCase()
@@ -15,6 +14,16 @@ export function parseTags(value: string | undefined): string[] {
   }
 
   return tags
+}
+
+/** Split a comma-separated field into trimmed, non-empty tags. Display text is preserved. */
+export function parseTags(value: string | undefined): string[] {
+  return parseDelimitedTags(value, ',')
+}
+
+/** Split Organizations on semicolons so names can still contain commas. */
+export function parseOrganizations(value: string | undefined): string[] {
+  return parseDelimitedTags(value, value?.includes(';') ? ';' : ',')
 }
 
 /** Unique tag list for filter controls, keeping first-seen display casing. */

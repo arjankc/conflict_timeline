@@ -66,7 +66,7 @@ List virtualization is not used yet. The sheet is now in the thousands of rows; 
 | --- | --- |
 | [`src/lib/loadEvents.ts`](src/lib/loadEvents.ts) | Fetch and parse CSV into `ConflictEvent` rows |
 | [`src/lib/parseDate.ts`](src/lib/parseDate.ts) | Normalize mixed date strings; `M/D/YY` in, `2 March 1996` out |
-| [`src/lib/parseTags.ts`](src/lib/parseTags.ts) | Split comma-separated metadata |
+| [`src/lib/parseTags.ts`](src/lib/parseTags.ts) | Split metadata fields into filterable tags |
 | [`src/lib/filterEvents.ts`](src/lib/filterEvents.ts) | Search (narrative, date, year, tags), filters, year/month grouping |
 | [`src/lib/searchSuggest.ts`](src/lib/searchSuggest.ts) | In-memory typeahead index (no search server) |
 | [`src/lib/eventCardTeaser.ts`](src/lib/eventCardTeaser.ts) | Collapsed card: line/tag limits |

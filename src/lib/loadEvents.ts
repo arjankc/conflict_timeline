@@ -1,7 +1,7 @@
 import { parse } from 'papaparse'
 import type { ConflictEvent, RawCsvRow } from '../types/event'
 import { parseDate } from './parseDate'
-import { parseTags } from './parseTags'
+import { parseOrganizations, parseTags } from './parseTags'
 
 /** Relative URL so GitHub Pages (`/conflict_timeline/`) and a later Capacitor shell both resolve. */
 const DEFAULT_DATA_PATH = `${import.meta.env.BASE_URL}data/mastersheet.csv`
@@ -37,7 +37,7 @@ export function rowToEvent(row: RawCsvRow, sourceIndex: number): ConflictEvent |
     detail,
     keywords: parseTags(cell(row, 'Keywords')),
     categories: parseTags(cell(row, 'Category')),
-    organizations: parseTags(cell(row, 'Organizations')),
+    organizations: parseOrganizations(cell(row, 'Organizations')),
   }
 }
 

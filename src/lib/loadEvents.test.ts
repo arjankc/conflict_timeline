@@ -27,10 +27,33 @@ describe('parseCsvEvents', () => {
     const csv = readFileSync('public/data/mastersheet.csv', 'utf8')
     const events = parseCsvEvents(csv)
 
-    expect(events).toHaveLength(53)
+    expect(events).toHaveLength(2173)
     const sortKeys = events.map((event) => event.sortKey)
     expect(sortKeys).toEqual([...sortKeys].sort((a, b) => a - b))
     expect(events[0]?.rawDate).toBe('11/1/95')
+    expect(events.every((event) => event.categories.length > 0)).toBe(true)
+    expect(events.some((event) => event.organizations.length > 0)).toBe(true)
+  })
+
+  it('ignores extra Sources and Confidence columns on the archival CSV', () => {
+    const csv = readFileSync('public/data/mastersheet_with_sources.csv', 'utf8')
+    const events = parseCsvEvents(csv)
+
+    expect(events).toHaveLength(2173)
+    expect(events[0]?.rawDate).toBe('11/1/95')
+    expect(events.every((event) => event.categories.length > 0)).toBe(true)
+  })
+
+  it('parses semicolon-delimited Organizations in archival rows without splitting comma-bearing names', () => {
+    const events = parseCsvEvents(`Date,Detail,Keywords,Category,Organizations,Sources,Confidence
+5 February 2021,Example event,TRC,transitional_justice,"Office of the President; Ministry of Law, Justice and Parliamentary Affairs; CIEDP",example source,high
+`)
+
+    expect(events[0]?.organizations).toEqual([
+      'Office of the President',
+      'Ministry of Law, Justice and Parliamentary Affairs',
+      'CIEDP',
+    ])
   })
 
   it('drops rows without a date or detail', () => {

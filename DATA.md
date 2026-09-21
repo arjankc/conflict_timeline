@@ -6,7 +6,8 @@ The Nepal Conflict Timeline reads a CSV at runtime. There is no database server.
 
 | Environment | Source |
 | --- | --- |
-| Default | [`public/data/mastersheet.csv`](public/data/mastersheet.csv) |
+| Default | [`public/data/mastersheet.csv`](public/data/mastersheet.csv) (**2173** events) |
+| Archive (not loaded) | [`public/data/mastersheet_with_sources.csv`](public/data/mastersheet_with_sources.csv) |
 | Override | `VITE_DATA_URL` (see `.env.example`) |
 
 `VITE_DATA_URL` is a documented hook for a later published Google Sheets CSV endpoint. This version does not fetch Sheets unless you set that variable at build time.
@@ -27,9 +28,11 @@ Google Sheets exports often include a leading empty column. The parser ignores u
 | --- | --- | --- |
 | Date | string | Mixed human formats; see below |
 | Detail | string | Plain text event narrative. Rendered as text, never as HTML |
-| Keywords | comma-separated string | Primary taxonomy in the current sheet |
-| Category | comma-separated string | **Currently empty** on every row |
-| Organizations | comma-separated string | **Currently empty** on every row |
+| Keywords | comma-separated string | Theme tags; about **502** unique values in the current sheet |
+| Category | comma-separated string | Populated on every row (**13** values: `civil_society`, `combat`, `detention`, `disappearance`, `displacement`, `killing`, `media`, `other`, `peace_process`, `policy`, `protest`, `sexual_violence`, `transitional_justice`) |
+| Organizations | semicolon-separated string | Populated on **899** of **2173** rows (**79** unique values); commas inside organization names are preserved |
+
+An archival export with the same rows plus `Sources` and `Confidence` lives at [`public/data/mastersheet_with_sources.csv`](public/data/mastersheet_with_sources.csv). The app does not fetch that file; extra columns are ignored if it is parsed.
 
 Rows without both a Date and a Detail are dropped.
 
@@ -55,9 +58,9 @@ Display labels use day-month-year (`2 March 1996`), which is the usual form in N
 
 ## Metadata
 
-Tags are split on commas, trimmed, and de-duplicated case-insensitively. Filter dropdowns hide themselves when a column has no values, so empty Category / Organizations fields do not produce broken controls. Keyword pills remain the working interactive taxonomy until those columns are filled.
+Keywords and Category are split on commas; Organizations are split on semicolons so names can still contain commas. Values are trimmed and de-duplicated case-insensitively. Filter dropdowns hide themselves when a column has no values. Category and Organizations now have values, so those filters appear alongside keyword pills.
 
-The filter bar shows the **16** most frequent keywords (`KEYWORD_CLOUD_LIMIT` in `src/lib/parseTags.ts`). The current sheet has about **60** unique keywords; the rest still appear on event cards.
+The filter bar shows the **16** most frequent keywords (`KEYWORD_CLOUD_LIMIT` in `src/lib/parseTags.ts`). The current sheet has about **502** unique keywords; the rest still appear on event cards.
 
 Search (`?q=`) is case-insensitive and matches **Detail**, the display date label, the year, and every tag field. Typeahead suggestions come from an in-memory index of those tags, years, and narrative tokens of four or more letters. Picking a suggestion fills `q` only; it does not set `tag` or `year`.
 
@@ -87,7 +90,7 @@ HTML ids are prefixed with `event-` so they cannot collide with year section ids
 
 1. Open the master spreadsheet.
 2. **File → Download → Comma Separated Values (.csv)**.
-3. Replace `public/data/mastersheet.csv`.
+3. Replace `public/data/mastersheet.csv` (the runtime file). Optionally also replace `public/data/mastersheet_with_sources.csv` if Sources / Confidence changed.
 4. Run `npm test` and `npm run dev`, then commit the CSV if the parse still looks right.
 
 If Sheets later adds an official published-CSV link, set `VITE_DATA_URL` to that URL. Keep a committed CSV fallback until the live URL is treated as reliable.

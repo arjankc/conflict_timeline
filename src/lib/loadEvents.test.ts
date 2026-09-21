@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { parseCsvEvents } from './loadEvents'
 
 const SAMPLE = `,Date,Detail,Keywords,Category,Organizations
@@ -31,11 +31,14 @@ describe('parseCsvEvents', () => {
     const sortKeys = events.map((event) => event.sortKey)
     expect(sortKeys).toEqual([...sortKeys].sort((a, b) => a - b))
     expect(events[0]?.rawDate).toBe('11/1/95')
+    expect(events[0]?.id).toBe('NCT-0001')
+    expect(new Set(events.map((event) => event.id)).size).toBe(events.length)
     expect(events.every((event) => event.categories.length > 0)).toBe(true)
     expect(events.some((event) => event.organizations.length > 0)).toBe(true)
 
     const romeo = events.filter((event) => /romeo/i.test(event.detail))
     expect(romeo).toHaveLength(1)
+    expect(romeo[0]?.id).toBe('NCT-0001')
     expect(romeo[0]?.detail).toMatch(/organised police crackdown/i)
 
     const [header, firstRow] = csv.split(/\r?\n/)
@@ -51,6 +54,7 @@ describe('parseCsvEvents', () => {
     const events = parseCsvEvents(csv)
 
     expect(events).toHaveLength(2150)
+    expect(events[0]?.id).toBe('NCT-0001')
     expect(events[0]?.rawDate).toBe('11/1/95')
     expect(events.every((event) => event.categories.length > 0)).toBe(true)
     expect(csv.split(/\r?\n/, 1)[0]).toBe(
@@ -68,6 +72,25 @@ describe('parseCsvEvents', () => {
       'Ministry of Law, Justice and Parliamentary Affairs',
       'CIEDP',
     ])
+  })
+
+  it('keeps the first row when Event_ID is duplicated and does not merge the incidents', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const events = parseCsvEvents(`Event_ID,Date,Detail,Keywords,Category,Organizations
+NCT-0001,1/1/96,First Romeo narrative,Rolpa,disappearance,Nepal Police
+NCT-0001,6/2/96,A different later incident,Kathmandu,protest,
+NCT-0002,3/3/96,Separate event,Rolpa,combat,
+`)
+
+    expect(events.map((event) => event.id)).toEqual(['NCT-0001', 'NCT-0002'])
+    expect(events.map((event) => event.detail)).toEqual([
+      'First Romeo narrative',
+      'Separate event',
+    ])
+    expect(warn).toHaveBeenCalledWith(
+      'Duplicate Event_ID NCT-0001 skipped; keeping the first row.',
+    )
+    warn.mockRestore()
   })
 
   it('drops rows without a date or detail', () => {

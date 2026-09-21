@@ -13,6 +13,6 @@ Target columns (user format + swarm requirements):
 | Sources | yes | Citation (+ URL if known) — project rule |
 | Confidence | yes | high / medium / low + brief rationale — project rule |
 
-The GitHub Pages app loads the slim CSV at [`public/data/mastersheet.csv`](../public/data/mastersheet.csv) (`Event_ID` through `Organizations` only). The full schema, including `Sources` and `Confidence`, is in [`public/data/mastersheet_with_sources.csv`](../public/data/mastersheet_with_sources.csv). The live parser does not yet use `Event_ID` for permalinks.
+The GitHub Pages app loads the slim CSV at [`public/data/mastersheet.csv`](../public/data/mastersheet.csv) (`Event_ID` through `Organizations` only). The full schema, including `Sources` and `Confidence`, is in [`public/data/mastersheet_with_sources.csv`](../public/data/mastersheet_with_sources.csv). The live parser uses `Event_ID` for card permalinks (`#event-NCT-0001`).
 
 Machine-readable copy: [`event_schema.json`](event_schema.json). Runtime column notes for this repo: [`DATA.md`](../DATA.md).

@@ -1,7 +1,11 @@
 export type DatePrecision = 'day' | 'range' | 'month' | 'unknown'
 
-/** One chronology row after CSV parse. Ids are `row-<csvIndex>-<sortKey>`; see DATA.md. */
+/**
+ * One chronology row after CSV parse.
+ * `id` is the CSV `Event_ID` (`NCT-0001`). Card permalinks are `#event-${id}`.
+ */
 export type ConflictEvent = {
+  /** Stable `Event_ID` from the sheet. Not a row index. */
   id: string
   /** Original Date cell; not rewritten. */
   rawDate: string

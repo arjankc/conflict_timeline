@@ -58,6 +58,18 @@ describe('filterEvents', () => {
     ).toEqual(['1'])
   })
 
+  it('matches Event_ID without scanning the narrative', () => {
+    expect(
+      filterEvents(events, { ...EMPTY_FILTERS, search: 'nct-0009' }).map((item) => item.id),
+    ).toEqual([])
+    expect(
+      filterEvents(
+        [event({ id: 'NCT-0001', detail: 'Operation Romeo commenced' })],
+        { ...EMPTY_FILTERS, search: 'NCT-0001' },
+      ).map((item) => item.id),
+    ).toEqual(['NCT-0001'])
+  })
+
   it('matches the display date label', () => {
     expect(
       filterEvents(events, { ...EMPTY_FILTERS, search: '8 June' }).map((item) => item.id),

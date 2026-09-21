@@ -7,14 +7,14 @@ import {
 } from './eventAnchor'
 
 describe('eventCardId', () => {
-  it('namespaces row ids so they do not collide with year headings', () => {
-    expect(eventCardId('row-12-20010608')).toBe('event-row-12-20010608')
+  it('namespaces Event_IDs so they do not collide with year headings', () => {
+    expect(eventCardId('NCT-0001')).toBe('event-NCT-0001')
   })
 })
 
 describe('readEventHash', () => {
   it('accepts a leading hash', () => {
-    expect(readEventHash('#event-row-1-19960101')).toBe('event-row-1-19960101')
+    expect(readEventHash('#event-NCT-0001')).toBe('event-NCT-0001')
   })
 
   it('ignores year and unrelated fragments', () => {
@@ -31,13 +31,11 @@ describe('eventPermalink', () => {
   it('copies origin, path, and card fragment without query filters', () => {
     expect(
       eventPermalink(
-        'event-row-1-19960101',
+        'event-NCT-0001',
         'https://example.github.io',
         '/conflict_timeline/',
       ),
-    ).toBe(
-      'https://example.github.io/conflict_timeline/#event-row-1-19960101',
-    )
+    ).toBe('https://example.github.io/conflict_timeline/#event-NCT-0001')
   })
 })
 
@@ -47,8 +45,8 @@ describe('pageUrlWithEventHash', () => {
       pageUrlWithEventHash(
         '/conflict_timeline/',
         '?year=1996',
-        'event-row-1-19960101',
+        'event-NCT-0001',
       ),
-    ).toBe('/conflict_timeline/?year=1996#event-row-1-19960101')
+    ).toBe('/conflict_timeline/?year=1996#event-NCT-0001')
   })
 })

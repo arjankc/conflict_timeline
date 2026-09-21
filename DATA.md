@@ -26,7 +26,7 @@ The shipped runtime CSV starts with a stable `Event_ID` (`NCT-0001` … `NCT-215
 
 | Column | Type | Notes |
 | --- | --- | --- |
-| Event_ID | string | Required first column. Format `NCT-` + four-digit pad. Romeo (rich HRW row) is `NCT-0001`. Never reuse an id. The UI does not yet permalink with this value |
+| Event_ID | string | Required first column. Format `NCT-` + four-digit pad. Romeo (rich HRW row) is `NCT-0001`. Never reuse an id. Card permalinks use this value |
 | Date | string | Mixed human formats; see below |
 | Detail | string | Plain text event narrative. Rendered as text, never as HTML |
 | Keywords | comma-separated string | Theme tags; about **502** unique values in the current sheet |
@@ -67,25 +67,19 @@ Search (`?q=`) is case-insensitive and matches **Detail**, the display date labe
 
 ## Event identifiers
 
-Each CSV row has a stable `Event_ID` (`NCT-0001` … `NCT-2150`), minted in chronological order. **Card permalinks do not use it yet.** Until that wiring lands, each loaded row still gets a runtime id:
-
-```
-row-<csvIndex>-<sortKey>
-```
-
-`csvIndex` is the 0-based index in PapaParse’s `data` array (invalid rows still occupy an index). `sortKey` is `YYYYMMDD` from `parseDate` (unknown dates use `99991231`).
+Each CSV row has a stable `Event_ID` (`NCT-0001` … `NCT-2150`), minted in chronological order. The loaded event’s `id` **is** that value. Romeo (Operation Romeo, November 1995) is `NCT-0001`.
 
 The permalink on each card is:
 
 ```
-https://<origin><pathname>#event-row-<csvIndex>-<sortKey>
+https://<origin><pathname>#event-NCT-0001
 ```
 
-That URL **does not include** `?q=` / `?tag=` filters, so the event remains visible when the link is opened.
+The `event-` prefix keeps the fragment distinct from year sections (`year-2001`, `year-undated`). That URL **does not include** `?q=` / `?tag=` filters, so the event remains visible when the link is opened.
 
-**Ids move if the CSV is edited.** Inserting, deleting, or reordering rows changes `csvIndex` for everything after the change. Correcting a Date cell changes `sortKey`. Either change breaks previously copied card links. Prefer appending new events and fixing dates only when the displayed date was wrong; if you must insert rows, say so in the pull request so maintainers know permalinks will shift.
+If the same `Event_ID` appears twice, the parser keeps the first row and skips the rest with a console warning. It does not merge the narratives.
 
-HTML ids are prefixed with `event-` so they cannot collide with year section ids (`year-2001`, `year-undated`).
+Do not reuse an `Event_ID`. Append new events with the next id. Inserting a row no longer rewrites other permalinks, because links follow `Event_ID` rather than the row index.
 
 ## Refreshing the CSV from Google Sheets
 

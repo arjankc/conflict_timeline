@@ -45,7 +45,7 @@ Copy [`.env.example`](.env.example) to `.env` only if you need `VITE_DATA_URL` o
 
 The runtime dataset is [`public/data/mastersheet.csv`](public/data/mastersheet.csv). See [DATA.md](DATA.md) for the column schema, date formats, event IDs (used in permalinks), and how to refresh the file from Google Sheets.
 
-The current sheet has **2150 events** with a stable `Event_ID` (`NCT-0001` … `NCT-2150`; Romeo is `NCT-0001`). Card permalinks still use the row-index hash until a follow-up wires `Event_ID`. Keywords, Category, and Organizations are populated (Category on every row; Organizations on about 900). Search, keyword pills, category and organization filters, typeahead, and the year navigator all work against this data. The filter bar shows the 16 most frequent keywords; the rest remain on event cards. An archival CSV with Sources and Confidence is at [`public/data/mastersheet_with_sources.csv`](public/data/mastersheet_with_sources.csv); the live app does not load it. Schema: [`docs/EVENT_SCHEMA.md`](docs/EVENT_SCHEMA.md).
+The current sheet has **2150 events** with a stable `Event_ID` (`NCT-0001` … `NCT-2150`; Romeo is `NCT-0001`). Card permalinks are `#event-NCT-0001`. Keywords, Category, and Organizations are populated (Category on every row; Organizations on about 900). Search, keyword pills, category and organization filters, typeahead, and the year navigator all work against this data. The filter bar shows the 16 most frequent keywords; the rest remain on event cards. An archival CSV with Sources and Confidence is at [`public/data/mastersheet_with_sources.csv`](public/data/mastersheet_with_sources.csv); the live app does not load it. Schema: [`docs/EVENT_SCHEMA.md`](docs/EVENT_SCHEMA.md).
 
 ## Architecture
 
@@ -115,7 +115,7 @@ The address bar is the only “route”. Query parameters describe the **current
 | `category` | `?category=…` | Category filter |
 | `org` | `?org=…` | Organization filter |
 | `year` | `?year=2001` | Scroll the feed to that year on load |
-| hash | `#event-row-12-20010608` | Scroll to one card after the CSV loads |
+| hash | `#event-NCT-0001` | Scroll to one card after the CSV loads. Romeo is `NCT-0001`. |
 
 Filter changes use `history.replaceState` and **keep** an existing hash. Search is debounced (150ms) before it is written to the URL and applied to the list.
 
@@ -124,7 +124,7 @@ Two different copy actions:
 - **Share** (header) copies or native-shares the **current view**, including `?q=&tag=&year=`.
 - **Card link icon** copies a **permalink** of `origin + pathname + #event-…` with **no query string**, so filters cannot hide the event when someone opens the link later.
 
-Card ids include the CSV row index. Inserting or reordering rows changes those hashes. See [DATA.md](DATA.md#event-identifiers).
+Card hashes are `event-` plus the CSV `Event_ID`. They stay put when rows are inserted, as long as that id is not reused. See [DATA.md](DATA.md#event-identifiers).
 
 Opening `#event-…` (including a pasted permalink) waits until events are on the page, then scrolls the card into view below the sticky search, and outlines it (`:target`). Clicking the card’s link icon copies that permalink and does **not** scroll. A `?year=` jump is skipped when a card hash is present, so the two do not fight.
 

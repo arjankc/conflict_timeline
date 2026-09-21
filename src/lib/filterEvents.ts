@@ -20,7 +20,9 @@ function hasTag(tags: string[], selected: string): boolean {
 }
 
 function eventMatchesSearch(event: ConflictEvent, needle: string): boolean {
+  if (event.id.toLowerCase().includes(needle)) return true
   if (event.detail.toLowerCase().includes(needle)) return true
+  if (event.rawDate.toLowerCase().includes(needle)) return true
   if (event.dateLabel.toLowerCase().includes(needle)) return true
   if (event.year != null && String(event.year).includes(needle)) return true
   return (
@@ -30,7 +32,7 @@ function eventMatchesSearch(event: ConflictEvent, needle: string): boolean {
   )
 }
 
-/** Case-insensitive search of narrative, date, year, and tags; empty fields mean “no filter”. */
+/** Case-insensitive search of Event_ID, narrative, date, year, and tags; empty fields mean “no filter”. */
 export function filterEvents(
   events: ConflictEvent[],
   filters: TimelineFilters,

@@ -22,10 +22,11 @@ That form works in local Vite, GitHub Pages (`/conflict_timeline/`), and a futur
 
 ## Column schema
 
-Google Sheets exports often include a leading empty column. The parser ignores unnamed columns and reads these headers:
+The shipped runtime CSV starts with a stable `Event_ID` (`NCT-0001` … `NCT-2150`). There is **no** leading blank column. The parser still ignores unnamed headers if an export includes one, and it ignores extra columns it does not map. Locked column notes: [`docs/EVENT_SCHEMA.md`](docs/EVENT_SCHEMA.md).
 
 | Column | Type | Notes |
 | --- | --- | --- |
+| Event_ID | string | Required first column. Format `NCT-` + four-digit pad. Romeo (rich HRW row) is `NCT-0001`. Never reuse an id. The UI does not yet permalink with this value |
 | Date | string | Mixed human formats; see below |
 | Detail | string | Plain text event narrative. Rendered as text, never as HTML |
 | Keywords | comma-separated string | Theme tags; about **502** unique values in the current sheet |
@@ -66,7 +67,7 @@ Search (`?q=`) is case-insensitive and matches **Detail**, the display date labe
 
 ## Event identifiers
 
-Each loaded row gets an id:
+Each CSV row has a stable `Event_ID` (`NCT-0001` … `NCT-2150`), minted in chronological order. **Card permalinks do not use it yet.** Until that wiring lands, each loaded row still gets a runtime id:
 
 ```
 row-<csvIndex>-<sortKey>
@@ -90,7 +91,7 @@ HTML ids are prefixed with `event-` so they cannot collide with year section ids
 
 1. Open the master spreadsheet.
 2. **File → Download → Comma Separated Values (.csv)**.
-3. Replace `public/data/mastersheet.csv` (the runtime file). Optionally also replace `public/data/mastersheet_with_sources.csv` if Sources / Confidence changed.
+3. Replace `public/data/mastersheet.csv` (the runtime file) with a **clean** export: `Event_ID` first, **no** leading blank column. Optionally also replace `public/data/mastersheet_with_sources.csv` if Sources / Confidence changed. Do not reuse Event_IDs.
 4. Run `npm test` and `npm run dev`, then commit the CSV if the parse still looks right.
 
 If Sheets later adds an official published-CSV link, set `VITE_DATA_URL` to that URL. Keep a committed CSV fallback until the live URL is treated as reliable.

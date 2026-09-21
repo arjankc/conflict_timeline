@@ -37,6 +37,13 @@ describe('parseCsvEvents', () => {
     const romeo = events.filter((event) => /romeo/i.test(event.detail))
     expect(romeo).toHaveLength(1)
     expect(romeo[0]?.detail).toMatch(/organised police crackdown/i)
+
+    const [header, firstRow] = csv.split(/\r?\n/)
+    expect(header).toBe(
+      'Event_ID,Date,Detail,Keywords,Category,Organizations',
+    )
+    expect(firstRow?.startsWith('NCT-0001,11/1/95,')).toBe(true)
+    expect(firstRow).toMatch(/Operation Romeo commenced/)
   })
 
   it('ignores extra Sources and Confidence columns on the archival CSV', () => {
@@ -46,6 +53,9 @@ describe('parseCsvEvents', () => {
     expect(events).toHaveLength(2150)
     expect(events[0]?.rawDate).toBe('11/1/95')
     expect(events.every((event) => event.categories.length > 0)).toBe(true)
+    expect(csv.split(/\r?\n/, 1)[0]).toBe(
+      'Event_ID,Date,Detail,Keywords,Category,Organizations,Sources,Confidence',
+    )
   })
 
   it('parses semicolon-delimited Organizations in archival rows without splitting comma-bearing names', () => {

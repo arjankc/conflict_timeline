@@ -1,0 +1,54 @@
+{
+  "name": "Nepal Conflict Timeline Event",
+  "version": "1.1-LOCKED",
+  "source_of_truth": "docs/EVENT_SCHEMA.md",
+  "columns": [
+    {
+      "name": "Event_ID",
+      "required": true,
+      "notes": "Stable NCT-#### id; first column; unique; chronological mint"
+    },
+    {
+      "name": "Date",
+      "required": true,
+      "notes": "Preserve source phrasing when imprecise; normalize to ISO when day-certain"
+    },
+    {
+      "name": "Detail",
+      "required": true,
+      "notes": "Factual narrative; do not invent"
+    },
+    {
+      "name": "Keywords",
+      "required": false,
+      "notes": "Comma-separated tags"
+    },
+    {
+      "name": "Category",
+      "required": false,
+      "notes": "Only if supported by Detail/Keywords/source; else leave blank"
+    },
+    {
+      "name": "Organizations",
+      "required": false,
+      "notes": "Only if named/supported; else leave blank"
+    },
+    {
+      "name": "Sources",
+      "required": true,
+      "notes": "Citation + URL when available; swarm rule"
+    },
+    {
+      "name": "Confidence",
+      "required": true,
+      "notes": "high | medium | low + short rationale; swarm rule"
+    }
+  ],
+  "output_dir": "public/data/",
+  "rules": [
+    "Never invent facts, numbers, names, or dates",
+    "Mark unclear/missing as blank + note in conversion problems log",
+    "Do not redefine schema",
+    "One event per record"
+  ]
+}

@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { PARSE_BATCH_SIZE, parseCsvEvents, parseCsvEventsProgressive } from './loadEvents'
 
 const SAMPLE = `,Date,Detail,Keywords,Category,Organizations
@@ -7,6 +7,10 @@ const SAMPLE = `,Date,Detail,Keywords,Category,Organizations
 ,2/13/96,"People's war launched","Holeri, Rolpa", conflict,
 ,March 1996,"All-party meeting",state,,
 `
+
+afterEach(() => {
+  vi.unstubAllGlobals()
+})
 
 describe('parseCsvEvents', () => {
   it('skips the empty leading column and sorts chronologically', () => {
@@ -106,6 +110,7 @@ NCT-0002,3/3/96,Separate event,Rolpa,combat,
         if (done) resolve(batch)
       })
     })
+
     expect(sizes[0]).toBe(PARSE_BATCH_SIZE)
     expect(sizes.at(-1)).toBe(count)
     expect(sizes.length).toBeGreaterThan(1)
@@ -119,5 +124,35 @@ NCT-0002,3/3/96,Separate event,Rolpa,combat,
 2001-01-01,
 `)
     expect(events).toHaveLength(0)
+  })
+})
+
+describe('loadEvents', () => {
+  it('waits for cached parsing to finish when the network refresh fails', async () => {
+    vi.resetModules()
+    const count = PARSE_BATCH_SIZE + 5
+    const lines = ['Event_ID,Date,Detail']
+    for (let index = 1; index <= count; index += 1) {
+      lines.push(`NCT-${String(index).padStart(4, '0')},1/1/96,Event ${index}`)
+    }
+    const body = lines.join('\n')
+    vi.stubGlobal('localStorage', {
+      getItem: () => JSON.stringify({ etag: null, body }),
+    })
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')))
+
+    const { loadEvents } = await import('./loadEvents')
+    const events = await loadEvents()
+
+    expect(events).toHaveLength(count)
+  })
+
+  it('replays a terminal error without throwing during subscription', async () => {
+    vi.resetModules()
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')))
+    const { loadEvents } = await import('./loadEvents')
+
+    await expect(loadEvents()).rejects.toThrow('offline')
+    await expect(loadEvents()).rejects.toThrow('offline')
   })
 })

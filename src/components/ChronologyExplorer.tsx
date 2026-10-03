@@ -46,10 +46,12 @@ export function ChronologyExplorer({
     focusYear ?? groups[0]?.year ?? null,
   )
   const [cueOpen, setCueOpen] = useState(false)
-  const [anchorId, setAnchorId] = useState<string | undefined>(() => {
+  const [anchorRequest, setAnchorRequest] = useState<
+    { id: string; sequence: number } | undefined
+  >(() => {
     const fromHash = readEventHash(window.location.hash)
-    if (fromHash) return fromHash
-    if (focusYear != null) return yearSectionId(focusYear)
+    if (fromHash) return { id: fromHash, sequence: 0 }
+    if (focusYear != null) return { id: yearSectionId(focusYear), sequence: 0 }
     return undefined
   })
   const cueArmed = useRef(false)
@@ -120,14 +122,22 @@ export function ChronologyExplorer({
   useEffect(() => {
     function onHashChange() {
       const id = readEventHash(window.location.hash)
-      if (id) setAnchorId(id)
+      if (id) {
+        setAnchorRequest((current) => ({
+          id,
+          sequence: (current?.sequence ?? 0) + 1,
+        }))
+      }
     }
     window.addEventListener('hashchange', onHashChange)
     return () => window.removeEventListener('hashchange', onHashChange)
   }, [])
 
   function scrollToYear(year: number | null) {
-    setAnchorId(yearSectionId(year))
+    setAnchorRequest((current) => ({
+      id: yearSectionId(year),
+      sequence: (current?.sequence ?? 0) + 1,
+    }))
     updateActiveYear(year, true)
   }
 
@@ -184,7 +194,7 @@ export function ChronologyExplorer({
           onCategoryClick={onCategoryClick}
           onOrganizationClick={onOrganizationClick}
           onReset={onReset}
-          anchorId={anchorId}
+          anchorRequest={anchorRequest}
           onYearInView={onYearInView}
         />
       </div>

@@ -239,6 +239,7 @@ async function runTimelineLoad() {
     writeStoredCsv({ etag: result.etag, body: result.body })
     startParse(result.body)
   } catch (error) {
+    if (parsingBody) return
     if (published && published.events.length > 0) {
       publish({ events: published.events, done: true })
       return
@@ -267,8 +268,11 @@ export function subscribeTimelineLoad(
 export function loadEvents(): Promise<ConflictEvent[]> {
   if (published?.done && !published.error) return Promise.resolve(published.events)
   return new Promise((resolve, reject) => {
-    const unsubscribe = subscribeTimelineLoad((update) => {
+    let unsubscribe = () => {}
+    let completed = false
+    unsubscribe = subscribeTimelineLoad((update) => {
       if (!update.done) return
+      completed = true
       unsubscribe()
       if (update.error && update.events.length === 0) {
         reject(new Error(update.error))
@@ -276,5 +280,6 @@ export function loadEvents(): Promise<ConflictEvent[]> {
       }
       resolve(update.events)
     })
+    if (completed) unsubscribe()
   })
 }

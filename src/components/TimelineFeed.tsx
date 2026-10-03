@@ -31,8 +31,8 @@ type TimelineFeedProps = {
   onCategoryClick: (category: string) => void
   onOrganizationClick: (organization: string) => void
   onReset?: () => void
-  /** `event-NCT-0001` or `year-1996`. The feed scrolls that row into view once. */
-  anchorId?: string
+  /** `event-NCT-0001` or `year-1996`, with a sequence for repeat requests. */
+  anchorRequest?: { id: string; sequence: number }
   onYearInView?: (year: number | null) => void
 }
 
@@ -83,7 +83,7 @@ export function TimelineFeed({
   onCategoryClick,
   onOrganizationClick,
   onReset,
-  anchorId,
+  anchorRequest,
   onYearInView,
 }: TimelineFeedProps) {
   const rows = useMemo(() => buildTimelineRows(groups), [groups])
@@ -113,7 +113,7 @@ export function TimelineFeed({
     <WindowedRows
       rows={rows}
       indexByKey={indexByKey}
-      anchorId={anchorId}
+      anchorRequest={anchorRequest}
       onYearInView={onYearInView}
       search={search}
       activeKeyword={activeKeyword}
@@ -129,7 +129,7 @@ export function TimelineFeed({
 function WindowedRows({
   rows,
   indexByKey,
-  anchorId,
+  anchorRequest,
   onYearInView,
   search,
   activeKeyword,
@@ -141,7 +141,7 @@ function WindowedRows({
 }: {
   rows: TimelineRow[]
   indexByKey: Map<string, number>
-  anchorId?: string
+  anchorRequest?: { id: string; sequence: number }
   onYearInView?: (year: number | null) => void
   search: string
   activeKeyword: string
@@ -159,7 +159,7 @@ function WindowedRows({
   const lastYearRef = useRef<number | null | undefined>(undefined)
   const [tick, setTick] = useState(0)
   const [scrollRange, setScrollRange] = useState({ start: 0, end: 14 })
-  const [settledAnchor, setSettledAnchor] = useState<string | undefined>()
+  const [settledAnchor, setSettledAnchor] = useState<number>()
 
   onYearRef.current = onYearInView
 
@@ -227,8 +227,12 @@ function WindowedRows({
     }
   }, [updateRange])
 
+  const anchorId = anchorRequest?.id
   const anchorIndex = anchorId != null ? indexByKey.get(anchorId) : undefined
-  const locking = anchorId != null && anchorId !== settledAnchor && anchorIndex != null
+  const locking =
+    anchorRequest != null &&
+    anchorRequest.sequence !== settledAnchor &&
+    anchorIndex != null
   const range = locking
     ? {
         start: Math.max(0, anchorIndex - 2),
@@ -268,10 +272,10 @@ function WindowedRows({
         start: Math.max(0, anchorIndex - 3),
         end: Math.min(rows.length, anchorIndex + 10),
       })
-      setSettledAnchor(anchorId)
+      setSettledAnchor(anchorRequest.sequence)
     })
     return () => window.cancelAnimationFrame(frame)
-  }, [locking, anchorIndex, anchorId, offsets, rows.length])
+  }, [locking, anchorIndex, anchorId, anchorRequest, offsets, rows.length])
 
   const measure = useCallback((key: string, index: number, height: number) => {
     const previous = heightsRef.current.get(key)
@@ -282,7 +286,7 @@ function WindowedRows({
     }
     heightsRef.current.set(key, height)
     // While a permalink is still settling, scroll corrections fight the snap.
-    if (anchorId != null && settledAnchor !== anchorId) {
+    if (anchorRequest != null && settledAnchor !== anchorRequest.sequence) {
       setTick((value) => value + 1)
       return
     }
@@ -295,7 +299,7 @@ function WindowedRows({
       }
     }
     setTick((value) => value + 1)
-  }, [estimates, anchorId, settledAnchor])
+  }, [estimates, anchorRequest, settledAnchor])
 
   const top = offsets[range.start] ?? 0
   const bottom = Math.max(0, total - (offsets[range.end] ?? total))
@@ -326,6 +330,7 @@ function WindowedRows({
               onKeywordClick={onKeywordClick}
               onCategoryClick={onCategoryClick}
               onOrganizationClick={onOrganizationClick}
+              isFirstRow={index === 0}
             />
           </MeasuredRow>
         )
@@ -375,6 +380,7 @@ function TimelineRowView({
   onKeywordClick,
   onCategoryClick,
   onOrganizationClick,
+  isFirstRow,
 }: {
   row: TimelineRow
   search: string
@@ -384,10 +390,11 @@ function TimelineRowView({
   onKeywordClick: (keyword: string) => void
   onCategoryClick: (category: string) => void
   onOrganizationClick: (organization: string) => void
+  isFirstRow: boolean
 }) {
   if (row.kind === 'year') {
     return (
-      <div id={row.sectionId} className="pb-5 pt-8 first:pt-0">
+      <div id={row.sectionId} className={isFirstRow ? 'pb-5 pt-0' : 'pb-5 pt-8'}>
         <YearHeading
           year={row.year}
           count={row.count}

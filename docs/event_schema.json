@@ -11,7 +11,7 @@
     {
       "name": "Date",
       "required": true,
-      "notes": "Preserve source phrasing when imprecise; normalize to ISO when day-certain"
+      "notes": "Preserve source Date text; do not rewrite the CSV"
     },
     {
       "name": "Detail",

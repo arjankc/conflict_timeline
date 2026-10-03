@@ -1,5 +1,6 @@
 /**
- * Card permalinks. Hashes are `event-${ConflictEvent.id}`.
+ * Card permalinks. Hashes are `event-${Event_ID}` (`#event-NCT-0001`).
+ * The `event-` prefix keeps them distinct from year sections (`#year-2001`).
  * Copied URLs omit `?q=&tag=` so a later reader still sees the event.
  */
 

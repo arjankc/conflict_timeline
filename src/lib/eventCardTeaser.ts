@@ -1,3 +1,16 @@
+/** Under this length the card stays compact. At or above RICH, the narrative breathes. */
+export const BRIEF_DETAIL_MAX = 96
+export const RICH_DETAIL_MIN = 280
+
+export type EventDensity = 'brief' | 'standard' | 'rich'
+
+export function eventDensity(detail: string): EventDensity {
+  const length = detail.trim().length
+  if (length < BRIEF_DETAIL_MAX) return 'brief'
+  if (length >= RICH_DETAIL_MIN) return 'rich'
+  return 'standard'
+}
+
 export const MOBILE_TAG_LIMIT = 3
 export const DESKTOP_TAG_LIMIT = 5
 export const DESKTOP_TEASER_MIN_WIDTH_PX = 640

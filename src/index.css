@@ -60,6 +60,37 @@
 }
 
 /*
+  Fraunces (OFL) for dates, year headings, and the title — a high-contrast
+  old-style with an optical-size axis. Body copy stays Source Sans 3.
+  Latin + latin-ext only. The "standard" files carry weight and optical size.
+*/
+@font-face {
+  font-family: "Fraunces Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url("@fontsource-variable/fraunces/files/fraunces-latin-standard-normal.woff2")
+    format("woff2-variations");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Fraunces Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url("@fontsource-variable/fraunces/files/fraunces-latin-ext-standard-normal.woff2")
+    format("woff2-variations");
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+    U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB,
+    U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/*
   Semantic palette. Light values live on :root; `.dark` (applied to <html>) swaps them.
   Tailwind utilities (bg-paper, text-ink, …) read these through @theme inline, so opacity
   modifiers such as bg-paper/90 keep working via color-mix.
@@ -70,38 +101,38 @@
 */
 
 :root {
-  --paper: #f4f0e8;
-  --surface: #fcfaf6;
-  --ink: #1c1917;
-  --muted: #44403c;
-  --line: #d6d0c7;
-  --control: #6b645c;
-  --crimson: #7f1d1d;
-  --crimson-soft: #f4e8e4;
-  --chip: #ece7de;
-  --chip-strong: #e3dcd2;
-  --chip-rose: #f1e5e2;
-  --elev-card: 0 1px 2px rgb(28 25 23 / 0.04), 0 8px 24px rgb(28 25 23 / 0.05);
-  --elev-card-hover: 0 2px 8px rgb(28 25 23 / 0.06), 0 14px 36px rgb(28 25 23 / 0.08);
-  --elev-float: 0 10px 40px rgb(28 25 23 / 0.14);
+  --paper: #f3eee4;
+  --surface: #faf6ef;
+  --ink: #1b1613;
+  --muted: #3f3832;
+  --line: #c9bfb2;
+  --control: #4a433c;
+  --crimson: #8b1e12;
+  --crimson-soft: #f4e4dc;
+  --chip: #e8e0d4;
+  --chip-strong: #ddd4c6;
+  --chip-rose: #f0e0d8;
+  --elev-card: none;
+  --elev-card-hover: none;
+  --elev-float: none;
   color-scheme: light;
 }
 
 .dark {
-  --paper: #1a1714;
-  --surface: #26211c;
-  --ink: #f5f5f4;
-  --muted: #d6d3d1;
-  --line: #5c564c;
-  --control: #a8a29e;
-  --crimson: #f0b4b4;
-  --crimson-soft: #3d2420;
-  --chip: #322c26;
-  --chip-strong: #3f3831;
-  --chip-rose: #4a2c2a;
-  --elev-card: 0 1px 2px rgb(0 0 0 / 0.28), 0 10px 28px rgb(0 0 0 / 0.32);
-  --elev-card-hover: 0 4px 16px rgb(0 0 0 / 0.4);
-  --elev-float: 0 14px 44px rgb(0 0 0 / 0.5);
+  --paper: #13110f;
+  --surface: #1c1916;
+  --ink: #f6f1ea;
+  --muted: #ddd4c8;
+  --line: #5c534c;
+  --control: #c8bfb4;
+  --crimson: #ffb59a;
+  --crimson-soft: #3a2420;
+  --chip: #2a2521;
+  --chip-strong: #342e29;
+  --chip-rose: #3d2a26;
+  --elev-card: none;
+  --elev-card-hover: none;
+  --elev-float: none;
   color-scheme: dark;
 }
 
@@ -114,28 +145,28 @@ html.text-size-larger {
 }
 
 html.contrast-more {
-  --muted: #1c1917;
-  --line: #44403c;
-  --control: #1c1917;
+  --muted: #1b1613;
+  --line: #3f3832;
+  --control: #1b1613;
 }
 
 html.dark.contrast-more {
-  --muted: #f5f5f4;
-  --line: #d6d3d1;
-  --control: #f5f5f4;
+  --muted: #f6f1ea;
+  --line: #ddd4c8;
+  --control: #f6f1ea;
 }
 
 @media (prefers-contrast: more) {
   :root {
-    --muted: #1c1917;
-    --line: #44403c;
-    --control: #1c1917;
+    --muted: #1b1613;
+    --line: #3f3832;
+    --control: #1b1613;
   }
 
   .dark {
-    --muted: #f5f5f4;
-    --line: #d6d3d1;
-    --control: #f5f5f4;
+    --muted: #f6f1ea;
+    --line: #ddd4c8;
+    --control: #f6f1ea;
   }
 }
 
@@ -144,6 +175,8 @@ html.dark.contrast-more {
     system-ui, sans-serif;
   --font-serif: "Source Serif 4 Variable", "Source Serif 4", ui-serif, Georgia,
     "Times New Roman", serif;
+  --font-display: "Fraunces Variable", "Source Serif 4 Variable", ui-serif,
+    Georgia, serif;
   --color-paper: var(--paper);
   --color-surface: var(--surface);
   --color-ink: var(--ink);
@@ -194,11 +227,6 @@ html.dark.contrast-more {
 
   body {
     @apply overflow-x-clip bg-paper font-sans text-ink;
-    background-image: linear-gradient(
-      to bottom,
-      color-mix(in srgb, var(--crimson) 7%, var(--paper)),
-      var(--paper) 18rem
-    );
     text-rendering: optimizeLegibility;
   }
 
@@ -318,8 +346,7 @@ html.dark.contrast-more {
   }
 
   .year-cue-label {
-    background: color-mix(in srgb, var(--paper) 88%, transparent);
-    backdrop-filter: none;
+    background: var(--paper);
   }
 }
 
@@ -349,22 +376,21 @@ html.dark.contrast-more {
 
 .year-cue-label {
   margin: 0;
-  border-radius: 0.85rem;
-  border: 1px solid color-mix(in srgb, var(--line) 45%, transparent);
-  background: color-mix(in srgb, var(--paper) 58%, transparent);
-  backdrop-filter: blur(14px);
-  padding: 0.5rem 0.9rem;
-  font-family: var(--font-serif);
+  border: 1px solid var(--line);
+  background: var(--paper);
+  padding: 0.35rem 0.55rem 0.4rem;
+  font-family: var(--font-display);
   font-size: clamp(1.65rem, 4.5vw, 2.5rem);
+  font-weight: 560;
   line-height: 1;
   letter-spacing: -0.03em;
-  color: color-mix(in srgb, var(--crimson) 82%, transparent);
+  color: var(--crimson);
   font-variant-numeric: tabular-nums;
 }
 
 @layer components {
   .icon-btn {
-    @apply inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-line bg-surface text-ink transition-colors;
+    @apply inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm border border-line bg-surface text-ink transition-colors;
   }
 
   .icon-btn:hover {
@@ -380,7 +406,7 @@ html.dark.contrast-more {
   }
 
   .input-field {
-    @apply min-h-11 w-full rounded-xl border border-line bg-surface px-3 py-2.5 text-base text-ink placeholder:text-muted transition-colors;
+    @apply min-h-11 w-full rounded-sm border border-line bg-surface px-3 py-2.5 text-base text-ink placeholder:text-muted transition-colors;
   }
 
   .input-field:hover {
@@ -395,29 +421,60 @@ html.dark.contrast-more {
     @apply font-medium text-crimson underline decoration-crimson/35 underline-offset-4 transition-colors hover:decoration-crimson;
   }
 
+  .timeline-window {
+    overflow-anchor: none;
+  }
+
   .event-card {
     border: 1px solid var(--line);
     background: var(--surface);
-    box-shadow: var(--elev-card);
-    transition:
-      box-shadow 180ms ease,
-      border-color 180ms ease;
+    transition: border-color 180ms ease;
   }
 
   .event-card:hover {
-    border-color: color-mix(in srgb, var(--control) 65%, var(--line));
-    box-shadow: var(--elev-card-hover);
+    border-color: var(--control);
+  }
+
+  .event-card-standard {
+    padding: 1rem 3.25rem 1rem 1rem;
+  }
+
+  .event-card-rich {
+    padding: 1.35rem 3.25rem 1.5rem 1.15rem;
+    border-left: 3px solid var(--crimson);
+    background: var(--surface);
+  }
+
+  .event-card-brief {
+    padding: 0.7rem 3rem 0.7rem 0.85rem;
+    background: transparent;
   }
 
   .masthead-rule {
-    height: 3px;
+    height: 8px;
     width: 100%;
-    background: var(--crimson);
+    background:
+      linear-gradient(var(--crimson), var(--crimson)) 0 0 / 100% 3px no-repeat,
+      linear-gradient(var(--crimson), var(--crimson)) 0 100% / 100% 1px no-repeat;
   }
 
   .skeleton {
     background: var(--chip-strong);
     animation: skeleton-pulse 1.6s ease-in-out infinite;
+  }
+}
+
+@media (min-width: 640px) {
+  .event-card-standard {
+    padding: 1.35rem 4rem 1.35rem 1.5rem;
+  }
+
+  .event-card-rich {
+    padding: 1.75rem 4rem 2rem 1.5rem;
+  }
+
+  .event-card-brief {
+    padding: 0.85rem 3.75rem 0.85rem 1rem;
   }
 }
 

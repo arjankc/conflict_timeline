@@ -1,12 +1,16 @@
 import { readFileSync } from 'node:fs'
-import { describe, expect, it } from 'vitest'
-import { parseCsvEvents } from './loadEvents'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { PARSE_BATCH_SIZE, parseCsvEvents, parseCsvEventsProgressive } from './loadEvents'
 
 const SAMPLE = `,Date,Detail,Keywords,Category,Organizations
 ,4/2/96,"Forty-point demand",Maoist, dialogue,CPN
 ,2/13/96,"People's war launched","Holeri, Rolpa", conflict,
 ,March 1996,"All-party meeting",state,,
 `
+
+afterEach(() => {
+  vi.unstubAllGlobals()
+})
 
 describe('parseCsvEvents', () => {
   it('skips the empty leading column and sorts chronologically', () => {
@@ -27,21 +31,39 @@ describe('parseCsvEvents', () => {
     const csv = readFileSync('public/data/mastersheet.csv', 'utf8')
     const events = parseCsvEvents(csv)
 
-    expect(events).toHaveLength(2173)
+    expect(events).toHaveLength(2150)
     const sortKeys = events.map((event) => event.sortKey)
     expect(sortKeys).toEqual([...sortKeys].sort((a, b) => a - b))
     expect(events[0]?.rawDate).toBe('11/1/95')
+    expect(events[0]?.id).toBe('NCT-0001')
+    expect(new Set(events.map((event) => event.id)).size).toBe(events.length)
     expect(events.every((event) => event.categories.length > 0)).toBe(true)
     expect(events.some((event) => event.organizations.length > 0)).toBe(true)
+
+    const romeo = events.filter((event) => /romeo/i.test(event.detail))
+    expect(romeo).toHaveLength(1)
+    expect(romeo[0]?.id).toBe('NCT-0001')
+    expect(romeo[0]?.detail).toMatch(/organised police crackdown/i)
+
+    const [header, firstRow] = csv.split(/\r?\n/)
+    expect(header).toBe(
+      'Event_ID,Date,Detail,Keywords,Category,Organizations',
+    )
+    expect(firstRow?.startsWith('NCT-0001,11/1/95,')).toBe(true)
+    expect(firstRow).toMatch(/Operation Romeo commenced/)
   })
 
   it('ignores extra Sources and Confidence columns on the archival CSV', () => {
     const csv = readFileSync('public/data/mastersheet_with_sources.csv', 'utf8')
     const events = parseCsvEvents(csv)
 
-    expect(events).toHaveLength(2173)
+    expect(events).toHaveLength(2150)
+    expect(events[0]?.id).toBe('NCT-0001')
     expect(events[0]?.rawDate).toBe('11/1/95')
     expect(events.every((event) => event.categories.length > 0)).toBe(true)
+    expect(csv.split(/\r?\n/, 1)[0]).toBe(
+      'Event_ID,Date,Detail,Keywords,Category,Organizations,Sources,Confidence',
+    )
   })
 
   it('parses semicolon-delimited Organizations in archival rows without splitting comma-bearing names', () => {
@@ -56,11 +78,81 @@ describe('parseCsvEvents', () => {
     ])
   })
 
+  it('keeps the first row when Event_ID is duplicated and does not merge the incidents', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const events = parseCsvEvents(`Event_ID,Date,Detail,Keywords,Category,Organizations
+NCT-0001,1/1/96,First Romeo narrative,Rolpa,disappearance,Nepal Police
+NCT-0001,6/2/96,A different later incident,Kathmandu,protest,
+NCT-0002,3/3/96,Separate event,Rolpa,combat,
+`)
+
+    expect(events.map((event) => event.id)).toEqual(['NCT-0001', 'NCT-0002'])
+    expect(events.map((event) => event.detail)).toEqual([
+      'First Romeo narrative',
+      'Separate event',
+    ])
+    expect(warn).toHaveBeenCalledWith(
+      'Duplicate Event_ID NCT-0001 skipped; keeping the first row.',
+    )
+    warn.mockRestore()
+  })
+
+  it('parses in batches and finishes with every row', async () => {
+    const lines = ['Event_ID,Date,Detail']
+    const count = PARSE_BATCH_SIZE + 25
+    for (let index = 1; index <= count; index += 1) {
+      lines.push(`NCT-${String(index).padStart(4, '0')},1/1/96,Event ${index}`)
+    }
+    const sizes: number[] = []
+    const events = await new Promise<ReturnType<typeof parseCsvEvents>>((resolve) => {
+      parseCsvEventsProgressive(lines.join('\n'), (batch, done) => {
+        sizes.push(batch.length)
+        if (done) resolve(batch)
+      })
+    })
+
+    expect(sizes[0]).toBe(PARSE_BATCH_SIZE)
+    expect(sizes.at(-1)).toBe(count)
+    expect(sizes.length).toBeGreaterThan(1)
+    expect(events[0]?.id).toBe('NCT-0001')
+    expect(events).toHaveLength(count)
+  })
+
   it('drops rows without a date or detail', () => {
     const events = parseCsvEvents(`Date,Detail
 ,missing date
 2001-01-01,
 `)
     expect(events).toHaveLength(0)
+  })
+})
+
+describe('loadEvents', () => {
+  it('waits for cached parsing to finish when the network refresh fails', async () => {
+    vi.resetModules()
+    const count = PARSE_BATCH_SIZE + 5
+    const lines = ['Event_ID,Date,Detail']
+    for (let index = 1; index <= count; index += 1) {
+      lines.push(`NCT-${String(index).padStart(4, '0')},1/1/96,Event ${index}`)
+    }
+    const body = lines.join('\n')
+    vi.stubGlobal('localStorage', {
+      getItem: () => JSON.stringify({ etag: null, body }),
+    })
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')))
+
+    const { loadEvents } = await import('./loadEvents')
+    const events = await loadEvents()
+
+    expect(events).toHaveLength(count)
+  })
+
+  it('replays a terminal error without throwing during subscription', async () => {
+    vi.resetModules()
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')))
+    const { loadEvents } = await import('./loadEvents')
+
+    await expect(loadEvents()).rejects.toThrow('offline')
+    await expect(loadEvents()).rejects.toThrow('offline')
   })
 })

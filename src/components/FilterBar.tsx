@@ -78,7 +78,7 @@ export function FilterBar({
     <nav aria-label="Filter the timeline">
       <div
         ref={stickyRef}
-        className="sticky top-0 z-30 border-b border-line/80 bg-paper/90 pt-[env(safe-area-inset-top)] shadow-[0_1px_0_var(--line)] backdrop-blur-md"
+        className="sticky top-0 z-30 border-b border-line bg-paper pt-[env(safe-area-inset-top)]"
       >
         <div className="mx-auto flex max-w-5xl flex-col gap-2 px-5 py-3 sm:px-8">
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
@@ -136,7 +136,7 @@ export function FilterBar({
                 {filters.keyword ? ` tagged ${filters.keyword}` : ''}
               </p>
               <p
-                className="inline-flex min-h-8 min-w-0 items-center truncate rounded-full bg-chip px-2.5 text-sm text-muted"
+                className="inline-flex min-h-8 min-w-0 items-center truncate text-sm text-muted"
                 aria-hidden="true"
               >
                 <span className="sm:hidden">
@@ -152,7 +152,7 @@ export function FilterBar({
                   aria-pressed="true"
                   aria-label={`${filters.keyword}, selected. Activate to remove filter.`}
                   onClick={() => onKeywordClick(filters.keyword)}
-                  className="inline-flex min-h-11 max-w-[10rem] shrink-0 items-center truncate rounded-full border border-crimson bg-crimson-soft px-3 text-sm font-medium text-crimson"
+                  className="inline-flex min-h-11 max-w-[10rem] shrink-0 items-center truncate rounded-sm border border-crimson bg-crimson-soft px-3 text-sm font-medium text-crimson"
                 >
                   {filters.keyword}
                 </button>

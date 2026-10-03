@@ -1,4 +1,5 @@
 import type { ConflictEvent } from '../types/event'
+import { eventSearchIndex } from './eventSearch'
 
 export type TimelineFilters = {
   search: string
@@ -14,43 +15,25 @@ export const EMPTY_FILTERS: TimelineFilters = {
   keyword: '',
 }
 
-function hasTag(tags: string[], selected: string): boolean {
-  const needle = selected.toLowerCase()
-  return tags.some((tag) => tag.toLowerCase() === needle)
-}
-
-function eventMatchesSearch(event: ConflictEvent, needle: string): boolean {
-  if (event.detail.toLowerCase().includes(needle)) return true
-  if (event.dateLabel.toLowerCase().includes(needle)) return true
-  if (event.year != null && String(event.year).includes(needle)) return true
-  return (
-    event.keywords.some((tag) => tag.toLowerCase().includes(needle)) ||
-    event.categories.some((tag) => tag.toLowerCase().includes(needle)) ||
-    event.organizations.some((tag) => tag.toLowerCase().includes(needle))
-  )
-}
-
-/** Case-insensitive search of narrative, date, year, and tags; empty fields mean “no filter”. */
+/**
+ * Case-insensitive search of indexed Event_ID, date, narrative, and tags.
+ * The index is built once per event object — keystrokes do not re-parse the CSV.
+ */
 export function filterEvents(
   events: ConflictEvent[],
   filters: TimelineFilters,
 ): ConflictEvent[] {
   const needle = filters.search.trim().toLowerCase()
+  const category = filters.category.toLowerCase()
+  const organization = filters.organization.toLowerCase()
+  const keyword = filters.keyword.toLowerCase()
 
   return events.filter((event) => {
-    if (needle && !eventMatchesSearch(event, needle)) return false
-    if (filters.category && !hasTag(event.categories, filters.category)) {
-      return false
-    }
-    if (
-      filters.organization &&
-      !hasTag(event.organizations, filters.organization)
-    ) {
-      return false
-    }
-    if (filters.keyword && !hasTag(event.keywords, filters.keyword)) {
-      return false
-    }
+    const index = eventSearchIndex(event)
+    if (needle && !index.searchText.includes(needle)) return false
+    if (category && !index.categories.has(category)) return false
+    if (organization && !index.organizations.has(organization)) return false
+    if (keyword && !index.keywords.has(keyword)) return false
     return true
   })
 }

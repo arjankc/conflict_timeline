@@ -25,10 +25,6 @@ type ChronologyExplorerProps = {
   onReset?: () => void
 }
 
-function prefersReducedMotion(): boolean {
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
-}
-
 export function ChronologyExplorer({
   events,
   focusYear,
@@ -50,8 +46,14 @@ export function ChronologyExplorer({
     focusYear ?? groups[0]?.year ?? null,
   )
   const [cueOpen, setCueOpen] = useState(false)
-  const didFocus = useRef(false)
-  const didHashFocus = useRef(false)
+  const [anchorRequest, setAnchorRequest] = useState<
+    { id: string; sequence: number } | undefined
+  >(() => {
+    const fromHash = readEventHash(window.location.hash)
+    if (fromHash) return { id: fromHash, sequence: 0 }
+    if (focusYear != null) return { id: yearSectionId(focusYear), sequence: 0 }
+    return undefined
+  })
   const cueArmed = useRef(false)
   const cueHideTimer = useRef(0)
   const cueHold = useRef(false)
@@ -118,68 +120,29 @@ export function ChronologyExplorer({
   }, [])
 
   useEffect(() => {
-    const id = readEventHash(window.location.hash)
-    if (!id || didHashFocus.current) return
-    const node = document.getElementById(id)
-    if (!node) return
-    didHashFocus.current = true
-    node.scrollIntoView({
-      block: 'start',
-      behavior: prefersReducedMotion() ? 'auto' : 'smooth',
-    })
-  }, [groups])
-
-  useEffect(() => {
-    if (didFocus.current || focusYear == null) return
-    // A card permalink is more specific than ?year=; do not override it.
-    if (readEventHash(window.location.hash)) return
-    const section = document.getElementById(yearSectionId(focusYear))
-    if (!section) return
-    didFocus.current = true
-    section.scrollIntoView({
-      block: 'start',
-      behavior: prefersReducedMotion() ? 'auto' : 'smooth',
-    })
-    setActiveYear(focusYear)
-  }, [focusYear, groups])
-
-  useEffect(() => {
-    const sections = groups
-      .map((group) => document.getElementById(yearSectionId(group.year)))
-      .filter((section): section is HTMLElement => section != null)
-
-    if (sections.length === 0) return
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)
-        const id = visible[0]?.target.id
-        if (!id) return
-        if (id === 'year-undated') {
-          setActiveYear(null)
-          return
-        }
-        const parsed = Number(id.replace('year-', ''))
-        if (!Number.isNaN(parsed)) setActiveYear(parsed)
-      },
-      { rootMargin: '-20% 0px -65% 0px', threshold: 0 },
-    )
-
-    for (const section of sections) observer.observe(section)
-    return () => observer.disconnect()
-  }, [groups])
+    function onHashChange() {
+      const id = readEventHash(window.location.hash)
+      if (id) {
+        setAnchorRequest((current) => ({
+          id,
+          sequence: (current?.sequence ?? 0) + 1,
+        }))
+      }
+    }
+    window.addEventListener('hashchange', onHashChange)
+    return () => window.removeEventListener('hashchange', onHashChange)
+  }, [])
 
   function scrollToYear(year: number | null) {
-    const section = document.getElementById(yearSectionId(year))
-    const heading = document.getElementById(`${yearSectionId(year)}-heading`)
-    section?.scrollIntoView({
-      behavior: prefersReducedMotion() ? 'auto' : 'smooth',
-      block: 'start',
-    })
-    heading?.focus({ preventScroll: true })
+    setAnchorRequest((current) => ({
+      id: yearSectionId(year),
+      sequence: (current?.sequence ?? 0) + 1,
+    }))
     updateActiveYear(year, true)
+  }
+
+  function onYearInView(year: number | null) {
+    setActiveYear((current) => (current === year ? current : year))
   }
 
   function onNavigatorCue(year: number | null | undefined) {
@@ -231,6 +194,8 @@ export function ChronologyExplorer({
           onCategoryClick={onCategoryClick}
           onOrganizationClick={onOrganizationClick}
           onReset={onReset}
+          anchorRequest={anchorRequest}
+          onYearInView={onYearInView}
         />
       </div>
       <YearCue year={cueYear} open={cueOpen} />

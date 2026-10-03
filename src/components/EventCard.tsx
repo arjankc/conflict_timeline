@@ -8,6 +8,7 @@ import {
   DESKTOP_TAG_LIMIT,
   DESKTOP_TEASER_MIN_WIDTH_PX,
   MOBILE_TAG_LIMIT,
+  eventDensity,
   metadataPills,
   pickVisiblePills,
   type MetaPill,
@@ -50,7 +51,8 @@ function Pill({
   onClick?: () => void
 }) {
   const className = [
-    'inline-flex min-h-11 items-center rounded-full border px-3.5 py-2 text-xs leading-snug tracking-wide transition-colors',
+    'inline-flex min-h-11 items-center rounded-sm border px-2.5 py-1.5 text-[0.8125rem] leading-snug transition-colors',
+    kind === 'category' ? 'text-[0.7rem] tracking-[0.08em] uppercase' : '',
     pressed
       ? 'border-crimson bg-crimson-soft font-medium text-crimson'
       : `${PILL_STYLES[kind]} hover:border-control`,
@@ -150,7 +152,7 @@ function PermalinkControl({
           ? `Link to event on ${dateLabel} copied`
           : `Copy link to event on ${dateLabel}`
       }
-      className="absolute top-2.5 end-2.5 z-10 inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl text-muted transition-colors hover:bg-chip hover:text-crimson"
+      className="absolute top-2 end-2 z-10 inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm text-muted transition-colors hover:bg-chip hover:text-crimson"
     >
       {copied ? <CheckIcon /> : <LinkIcon />}
     </a>
@@ -214,11 +216,21 @@ function ChevronIcon({ expanded }: { expanded: boolean }) {
   )
 }
 
+function EventIdMark({ id }: { id: string }) {
+  if (!id.startsWith('NCT-')) return null
+  return (
+    <span className="mt-1 block font-sans text-[0.65rem] tracking-[0.12em] text-muted uppercase">
+      {id}
+    </span>
+  )
+}
+
 function MobileDateBadge({ event }: { event: ConflictEvent }) {
   if (event.precision === 'unknown') {
     return (
-      <span className="font-serif text-lg leading-tight text-crimson">
+      <span className="font-display text-lg leading-tight text-crimson">
         {event.dateLabel}
+        <EventIdMark id={event.id} />
       </span>
     )
   }
@@ -228,18 +240,23 @@ function MobileDateBadge({ event }: { event: ConflictEvent }) {
   const day = badgeDay(event)
 
   return (
-    <span className="inline-flex items-baseline gap-2 rounded-lg border border-crimson/15 bg-crimson-soft px-2.5 py-1 text-crimson">
-      {monthLabel ? (
-        <span className="text-xs font-semibold tracking-[0.08em] uppercase">
-          {monthLabel}
-        </span>
-      ) : null}
-      {day ? (
-        <span className="font-serif text-xl leading-none tabular-nums">{day}</span>
-      ) : null}
-      {event.year != null ? (
-        <span className="text-xs tabular-nums">{event.year}</span>
-      ) : null}
+    <span className="block border-s-2 border-crimson ps-2">
+      <span className="inline-flex items-baseline gap-2 text-crimson">
+        {day ? (
+          <span className="font-display text-[1.65rem] leading-none tabular-nums">
+            {day}
+          </span>
+        ) : null}
+        {monthLabel ? (
+          <span className="text-[0.7rem] font-semibold tracking-[0.12em] uppercase">
+            {monthLabel}
+          </span>
+        ) : null}
+        {event.year != null ? (
+          <span className="text-xs tabular-nums text-ink">{event.year}</span>
+        ) : null}
+      </span>
+      <EventIdMark id={event.id} />
     </span>
   )
 }
@@ -247,8 +264,9 @@ function MobileDateBadge({ event }: { event: ConflictEvent }) {
 function DateStack({ event }: { event: ConflictEvent }) {
   if (event.precision === 'unknown') {
     return (
-      <span className="w-[4.75rem] shrink-0 px-1.5 text-center font-serif text-sm leading-snug text-crimson">
+      <span className="w-[5.25rem] shrink-0 border-s-2 border-crimson ps-2 font-display text-sm leading-snug text-crimson">
         {event.dateLabel}
+        <EventIdMark id={event.id} />
       </span>
     )
   }
@@ -258,21 +276,22 @@ function DateStack({ event }: { event: ConflictEvent }) {
   const day = badgeDay(event)
 
   return (
-    <span className="flex w-[4.75rem] shrink-0 flex-col items-center rounded-xl border border-crimson/15 bg-crimson-soft px-1.5 py-2.5 text-crimson">
-      <span className="text-xs font-semibold tracking-[0.08em] uppercase">
-        {monthLabel}
-      </span>
+    <span className="flex w-[5.25rem] shrink-0 flex-col items-start border-s-2 border-crimson ps-2 text-crimson">
       {day ? (
         <span
           className={[
-            'mt-1.5 font-serif leading-none tabular-nums',
-            day.length > 2 ? 'text-lg tracking-tight' : 'text-2xl',
+            'font-display leading-none tabular-nums',
+            day.length > 2 ? 'text-lg tracking-tight' : 'text-[1.85rem]',
           ].join(' ')}
         >
           {day}
         </span>
       ) : null}
-      <span className="mt-1.5 text-xs tabular-nums text-crimson">{event.year}</span>
+      <span className="mt-1 text-[0.7rem] font-semibold tracking-[0.14em] uppercase">
+        {monthLabel}
+      </span>
+      <span className="mt-0.5 text-xs tabular-nums text-ink">{event.year}</span>
+      <EventIdMark id={event.id} />
     </span>
   )
 }
@@ -316,6 +335,7 @@ export function EventCard({
   const wide = useWideTeaser()
   const tagLimit = wide ? DESKTOP_TAG_LIMIT : MOBILE_TAG_LIMIT
   const searching = search.trim() !== ''
+  const density = eventDensity(event.detail)
   const [expanded, setExpanded] = useState(false)
   const [textOverflows, setTextOverflows] = useState(false)
   const textRef = useRef<HTMLParagraphElement>(null)
@@ -378,10 +398,16 @@ export function EventCard({
     <article
       id={cardId}
       className={[
-        'event-card relative scroll-mt-[calc(var(--filter-h)+0.35rem)] rounded-2xl p-4 pe-14 sm:p-6 sm:pe-16',
+        'event-card relative scroll-mt-[calc(var(--filter-h)+0.35rem)]',
+        density === 'rich'
+          ? 'event-card-rich'
+          : density === 'brief'
+            ? 'event-card-brief'
+            : 'event-card-standard',
         canExpand ? 'cursor-pointer' : '',
       ].join(' ')}
       aria-labelledby={dateHeadingId}
+      tabIndex={-1}
       onClick={onArticleClick}
     >
       <PermalinkControl cardId={cardId} dateLabel={event.dateLabel} />
@@ -402,8 +428,19 @@ export function EventCard({
             <p
               ref={textRef}
               className={[
-                'max-w-[65ch] break-words text-pretty text-base leading-[1.75] text-ink',
-                isExpanded ? '' : 'line-clamp-3 sm:line-clamp-4',
+                'max-w-[65ch] break-words text-pretty text-ink',
+                density === 'rich'
+                  ? 'font-serif text-[1.05rem] leading-[1.7] sm:text-lg sm:leading-[1.65]'
+                  : density === 'brief'
+                    ? 'text-sm leading-snug'
+                    : 'text-base leading-[1.7]',
+                isExpanded
+                  ? ''
+                  : density === 'rich'
+                    ? 'line-clamp-6 sm:line-clamp-8'
+                    : density === 'brief'
+                      ? 'line-clamp-2'
+                      : 'line-clamp-3 sm:line-clamp-4',
               ].join(' ')}
             >
               {highlightChunks.map((chunk, index) =>

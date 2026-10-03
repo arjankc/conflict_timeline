@@ -45,26 +45,28 @@ Copy [`.env.example`](.env.example) to `.env` only if you need `VITE_DATA_URL` o
 
 The runtime dataset is [`public/data/mastersheet.csv`](public/data/mastersheet.csv). See [DATA.md](DATA.md) for the column schema, date formats, event IDs (used in permalinks), and how to refresh the file from Google Sheets.
 
-The current sheet has **2173 events**. Keywords, Category, and Organizations are populated (Category on every row; Organizations on about 900). Search, keyword pills, category and organization filters, typeahead, and the year navigator all work against this data. The filter bar shows the 16 most frequent keywords; the rest remain on event cards. An archival CSV with Sources and Confidence is at [`public/data/mastersheet_with_sources.csv`](public/data/mastersheet_with_sources.csv); the live app does not load it.
+The current sheet has **2150 events** with a stable `Event_ID` (`NCT-0001` … `NCT-2150`; Romeo is `NCT-0001`). Card permalinks are `#event-NCT-0001`. Keywords, Category, and Organizations are populated (Category on every row; Organizations on about 900). Search, keyword pills, category and organization filters, typeahead, and the year navigator all work against this data. The filter bar shows the 16 most frequent keywords; the rest remain on event cards. An archival CSV with Sources and Confidence is at [`public/data/mastersheet_with_sources.csv`](public/data/mastersheet_with_sources.csv); the live app does not load it. Schema: [`docs/EVENT_SCHEMA.md`](docs/EVENT_SCHEMA.md).
 
 ## Architecture
 
 ```
-public/data/mastersheet.csv  →  PapaParse  →  parseDate / parseTags
-                                           →  chronological ConflictEvent[]
-                                           →  FilterBar + ChronologyExplorer
-                                                (year groups, cards, year navigator)
+public/data/mastersheet.csv  →  one fetch (localStorage + If-None-Match)
+                             →  PapaParse in batches of 80
+                             →  parseDate / parseTags / Event_ID
+                             →  chronological ConflictEvent[]
+                             →  indexed filter (no re-parse on keystroke)
+                             →  windowed ChronologyExplorer
 ```
 
 There is no backend and no React Router. The product is a single page so it can later be wrapped with Capacitor without a routing rewrite. Fetch URLs are relative (`import.meta.env.BASE_URL`) on purpose.
 
-List virtualization is not used yet. The sheet is now in the thousands of rows; add virtualization if the feed feels slow.
+The header paints before the CSV is parsed. Rows are published in batches so the first events appear without waiting for the full sheet. A `localStorage` copy plus `If-None-Match` avoids a second download when the file is unchanged, and the page only starts one fetch. The feed mounts a window of rows around the scroll position (custom windowing, no list library) so 2,000 cards are not in the DOM at once. Search is debounced and matched against an index built once per event (`Event_ID`, date, detail, keywords, category, organizations).
 
 ### Source map
 
 | Path | Role |
 | --- | --- |
-| [`src/lib/loadEvents.ts`](src/lib/loadEvents.ts) | Fetch and parse CSV into `ConflictEvent` rows |
+| [`src/lib/loadEvents.ts`](src/lib/loadEvents.ts) | One CSV fetch, local cache, batched PapaParse |
 | [`src/lib/parseDate.ts`](src/lib/parseDate.ts) | Normalize mixed date strings; `M/D/YY` in, `2 March 1996` out |
 | [`src/lib/parseTags.ts`](src/lib/parseTags.ts) | Split metadata fields into filterable tags |
 | [`src/lib/filterEvents.ts`](src/lib/filterEvents.ts) | Search (narrative, date, year, tags), filters, year/month grouping |
@@ -79,7 +81,7 @@ List virtualization is not used yet. The sheet is now in the thousands of rows; 
 | [`src/lib/seo.ts`](src/lib/seo.ts) | Document title, share text, filtered share URL |
 | [`src/lib/site.ts`](src/lib/site.ts) | Site name, description, `%SITE_URL%` substitution |
 | [`src/components/ChronologyExplorer.tsx`](src/components/ChronologyExplorer.tsx) | Year-grouped feed + dock/rail |
-| [`src/components/TimelineFeed.tsx`](src/components/TimelineFeed.tsx) | Cards on a year spine |
+| [`src/components/TimelineFeed.tsx`](src/components/TimelineFeed.tsx) | Windowed cards on a year spine |
 | [`src/components/EventCard.tsx`](src/components/EventCard.tsx) | Teaser card, expand, permalink |
 | [`src/components/YearNavigator.tsx`](src/components/YearNavigator.tsx) | Jump-to-year density rail or mobile dock (scrub strip + year chips) |
 | [`src/components/YearCue.tsx`](src/components/YearCue.tsx) | Brief year overlay while scrolling or scrubbing |
@@ -115,24 +117,24 @@ The address bar is the only “route”. Query parameters describe the **current
 | `category` | `?category=…` | Category filter |
 | `org` | `?org=…` | Organization filter |
 | `year` | `?year=2001` | Scroll the feed to that year on load |
-| hash | `#event-row-12-20010608` | Scroll to one card after the CSV loads |
+| hash | `#event-NCT-0001` | Scroll to one card after the CSV loads. Romeo is `NCT-0001`. |
 
-Filter changes use `history.replaceState` and **keep** an existing hash. Search is debounced (150ms) before it is written to the URL and applied to the list.
+Filter changes use `history.replaceState` and **keep** an existing hash. Search is debounced (200ms) before it is written to the URL and applied to the list. The list filters an in-memory index; it does not parse the CSV again.
 
 Two different copy actions:
 
 - **Share** (header) copies or native-shares the **current view**, including `?q=&tag=&year=`.
 - **Card link icon** copies a **permalink** of `origin + pathname + #event-…` with **no query string**, so filters cannot hide the event when someone opens the link later.
 
-Card ids include the CSV row index. Inserting or reordering rows changes those hashes. See [DATA.md](DATA.md#event-identifiers).
+Card hashes are `event-` plus the CSV `Event_ID`. They stay put when rows are inserted, as long as that id is not reused. See [DATA.md](DATA.md#event-identifiers).
 
-Opening `#event-…` (including a pasted permalink) waits until events are on the page, then scrolls the card into view below the sticky search, and outlines it (`:target`). Clicking the card’s link icon copies that permalink and does **not** scroll. A `?year=` jump is skipped when a card hash is present, so the two do not fight.
+Opening `#event-…` (including a pasted permalink) waits until that `Event_ID` has been parsed, then scrolls the card into view below the sticky search and outlines it (`:target`). The rest of the feed stays windowed. Clicking the card’s link icon copies that permalink and does **not** scroll. A `?year=` jump is skipped when a card hash is present, so the two do not fight.
 
 ## Appearance
 
 The header **Reading and display** toolbar cycles **System → Light → Dark**, **Default → Large → Larger** text, and a high-contrast palette. Choices are stored as `localStorage.appearance`, `text-size`, and `contrast`. A blocking script in [`index.html`](index.html) applies the classes **before React loads**, so a system-dark or larger-text visitor does not flash the default palette. `color-scheme` and `theme-color` follow the resolved colours so scrollbars and the browser chrome match.
 
-Native form controls pick up `color-scheme`. Tokens live in [`src/index.css`](src/index.css) (`--paper`, `--ink`, `--muted`, `--crimson`, `--surface`, and chip colours). Light crimson is `#7f1d1d`; dark mode uses a lighter crimson so date text still meets contrast on the dark paper. Titles, years, and date stacks use **Source Serif 4**; UI and event narratives use **Source Sans 3**. Both are self-hosted from the Google Fonts catalog (Fontsource, OFL, Latin and Latin-extended) so the page never calls `fonts.googleapis.com`. Devanagari falls back to the system UI font. Event narratives sit in a ~65-character measure with 1.75 line-height. Search hits are wrapped in `<mark>` as React text nodes, not as HTML from the CSV. Permalink and view-share confirmations use a short toast.
+Native form controls pick up `color-scheme`. Tokens live in [`src/index.css`](src/index.css) (`--paper`, `--ink`, `--muted`, `--crimson`, `--surface`, and chip colours). Light vermillion is `#8b1e12` on paper `#f3eee4` (text contrast above 7:1); dark mode uses `#ffb59a` on `#13110f`. Titles, years, and date stacks use **Fraunces**; UI chrome and shorter event notes use **Source Sans 3**; long narratives use **Source Serif 4**. All three are self-hosted from Fontsource (OFL, Latin and Latin-extended) so the page never calls `fonts.googleapis.com`. Devanagari falls back to the system UI font. Short notes stay compact; longer Detail text gets more measure, serif type, and a vermillion rule. Search hits are wrapped in `<mark>` as React text nodes, not as HTML from the CSV. Permalink and view-share confirmations use a short toast. Motion is limited to colour and a year label fade, and `prefers-reduced-motion` collapses it.
 
 ## Sharing and SEO
 
@@ -185,7 +187,7 @@ Keep these constraints when adding a native shell:
 
 - Continue loading data with relative URLs or `VITE_DATA_URL`
 - Do not introduce a required backend
-- Fonts are bundled (Source Sans 3 / Source Serif 4); the WebView does not need `fonts.google.com`
+- Fonts are bundled (Fraunces / Source Sans 3 / Source Serif 4); the WebView does not need `fonts.google.com`
 - Clipboard permalinks and `navigator.share` need a secure context (HTTPS or localhost)
 
 ## Contributing
@@ -194,6 +196,6 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md). This archive describes political
 
 ## License
 
-Application code is licensed under the [MIT License](LICENSE). Source Sans 3 and Source Serif 4 are © Google Inc. / Adobe, licensed under the [SIL Open Font License 1.1](https://scripts.sil.org/OFL).
+Application code is licensed under the [MIT License](LICENSE). Fraunces is © The Fraunces Project Authors. Source Sans 3 and Source Serif 4 are © Google Inc. / Adobe. All three are licensed under the [SIL Open Font License 1.1](https://scripts.sil.org/OFL).
 
 **Event narratives in the CSV are not automatically covered by that license.** Their provenance sits with the researchers and organizations who compiled the sheet. Do not republish the text under MIT until maintainers confirm the data license. See [DATA.md](DATA.md).

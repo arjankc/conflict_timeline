@@ -23,6 +23,9 @@ type FilterBarProps = {
   totalCount: number
   compact: boolean
   savedViews: SavedView[]
+  matchIndex: number
+  matchTotal: number
+  showMatches: boolean
   onSearchChange: (value: string) => void
   onToggleKeyword: (keyword: string) => void
   onToggleCategory: (category: string) => void
@@ -35,6 +38,8 @@ type FilterBarProps = {
   onFromChange: (value: string) => void
   onToChange: (value: string) => void
   onCompactChange: (value: boolean) => void
+  onNextMatch: () => void
+  onPrevMatch: () => void
   onSaveView: (name: string) => void
   onApplyView: (view: SavedView) => void
   onDeleteView: (id: string) => void
@@ -158,6 +163,11 @@ export function FilterBar({
   onExportCsv,
   onExportJson,
   onReset,
+  matchIndex,
+  matchTotal,
+  showMatches,
+  onNextMatch,
+  onPrevMatch,
 }: FilterBarProps) {
   const stickyRef = useRef<HTMLDivElement>(null)
   const hasKeywords = keywords.length > 0
@@ -348,6 +358,7 @@ export function FilterBar({
               <p role="status" aria-atomic="true" className="sr-only">
                 Showing {resultCount} of {totalCount} events
                 {filters.keywords.length > 0 ? ` tagged ${filters.keywords.join(', ')}` : ''}
+                {showMatches && matchTotal > 0 ? ` Match ${matchIndex + 1} of ${matchTotal}.` : ''}
               </p>
               <p
                 className="inline-flex min-h-8 min-w-0 items-center truncate text-sm text-muted"
@@ -360,6 +371,33 @@ export function FilterBar({
                   {resultCount} of {totalCount} events
                 </span>
               </p>
+              {showMatches && matchTotal > 0 ? (
+                <div role="group" aria-label="Step through search matches" className="flex shrink-0 items-center gap-1">
+                  <span aria-hidden="true" className="text-xs whitespace-nowrap text-muted tabular-nums">
+                    {matchIndex + 1}/{matchTotal}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={onPrevMatch}
+                    aria-label="Previous matching event"
+                    className="icon-btn min-h-9 min-w-9 px-1.5"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-4" aria-hidden="true">
+                      <path d="m18 15-6-6-6 6" />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onNextMatch}
+                    aria-label="Next matching event"
+                    className="icon-btn min-h-9 min-w-9 px-1.5"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-4" aria-hidden="true">
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </button>
+                </div>
+              ) : null}
               {hasActiveFilters ? (
                 <button
                   type="button"

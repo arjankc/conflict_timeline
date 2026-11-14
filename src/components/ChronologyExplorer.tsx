@@ -20,6 +20,7 @@ type ChronologyExplorerProps = {
   activeOrganizations: string[]
   activeDistricts: string[]
   compact?: boolean
+  matchAnchor?: { id: string; sequence: number }
   onKeywordClick: (keyword: string) => void
   onCategoryClick: (category: string) => void
   onOrganizationClick: (organization: string) => void
@@ -37,6 +38,7 @@ export function ChronologyExplorer({
   activeOrganizations,
   activeDistricts,
   compact = false,
+  matchAnchor,
   onKeywordClick,
   onCategoryClick,
   onOrganizationClick,
@@ -66,6 +68,13 @@ export function ChronologyExplorer({
   const activeYearRef = useRef(activeYear)
 
   activeYearRef.current = activeYear
+
+  // Programmatic match navigation reuses the same anchor pipeline as permalinks.
+  useEffect(() => {
+    if (matchAnchor) {
+      setAnchorRequest({ id: matchAnchor.id, sequence: matchAnchor.sequence })
+    }
+  }, [matchAnchor])
 
   function revealYear(year: number | null, hold = false) {
     if (!cueArmed.current) return

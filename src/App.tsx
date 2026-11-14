@@ -11,6 +11,8 @@ import { ReadingControls } from './components/ReadingControls'
 import { Toast } from './components/Toast'
 import { showToast } from './lib/toast'
 import { EMPTY_FILTERS, filterEvents, normalizeFilters, type TimelineFilters } from './lib/filterEvents'
+import { eventCardId } from './lib/eventAnchor'
+import { cycleMatchIndex } from './lib/matchNav'
 import { subscribeTimelineLoad } from './lib/loadEvents'
 import { countTags, KEYWORD_CLOUD_LIMIT, uniqueTags } from './lib/parseTags'
 import { buildSearchIndex } from './lib/searchSuggest'
@@ -54,6 +56,8 @@ export default function App() {
   )
   const [compact, setCompact] = useState(false)
   const [savedViews, setSavedViews] = useState<SavedView[]>(() => loadSavedViews())
+  const [matchIndex, setMatchIndex] = useState(0)
+  const [matchAnchor, setMatchAnchor] = useState<{ id: string; sequence: number } | undefined>()
   const debouncedSearch = useDebouncedValue(filters.search, SEARCH_DEBOUNCE_MS)
 
   useEffect(() => {
@@ -150,6 +154,29 @@ export default function App() {
         : [],
     [loadState, appliedFilters],
   )
+
+  const searching = appliedFilters.search.trim() !== ''
+  // Every filtered event contains the needle, so the feed order is the match order.
+  const matchTotal = searching ? filteredEvents.length : 0
+
+  // Restart match navigation whenever the result set changes.
+  useEffect(() => {
+    setMatchIndex(0)
+    setMatchAnchor(undefined)
+  }, [appliedFilters])
+
+  function stepMatch(delta: 1 | -1) {
+    if (matchTotal === 0) return
+    const next = cycleMatchIndex(matchIndex, delta, matchTotal)
+    setMatchIndex(next)
+    const id = filteredEvents[next]?.id
+    if (id) {
+      setMatchAnchor((current) => ({
+        id: eventCardId(id),
+        sequence: (current?.sequence ?? 0) + 1,
+      }))
+    }
+  }
 
   const collectionMeta = useMemo(() => {
     if (loadState.events.length === 0) return null
@@ -321,6 +348,11 @@ export default function App() {
           onFromChange={(value) => updateFilter('from', value)}
           onToChange={(value) => updateFilter('to', value)}
           onCompactChange={setCompact}
+          matchIndex={matchIndex}
+          matchTotal={matchTotal}
+          showMatches={searching && matchTotal > 0}
+          onNextMatch={() => stepMatch(1)}
+          onPrevMatch={() => stepMatch(-1)}
           onSaveView={(name) =>
             setSavedViews(saveView(name, appliedFilters, focusYear))
           }
@@ -403,6 +435,7 @@ export default function App() {
             activeOrganizations={filters.organizations}
             activeDistricts={filters.districts}
             compact={compact}
+            matchAnchor={matchAnchor}
             onYearChange={(year) => setFocusYear(year ?? undefined)}
             onKeywordClick={(keyword) => toggleListFilter('keywords', keyword)}
             onCategoryClick={(category) => toggleListFilter('categories', category)}

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { TagCount } from '../lib/parseTags'
 
 type DistrictOverviewProps = {
@@ -6,18 +7,29 @@ type DistrictOverviewProps = {
   onToggleDistrict: (district: string) => void
 }
 
+const COLLAPSED_COUNT = 8
+
 /** Place view: inferred-district ranking with filter toggles. Not a choropleth. */
 export function DistrictOverview({
   districtCounts,
   activeDistricts,
   onToggleDistrict,
 }: DistrictOverviewProps) {
-  const top = districtCounts.slice(0, 24)
-  const max = Math.max(1, ...top.map((d) => d.count))
+  const [expanded, setExpanded] = useState(false)
+  const max = Math.max(1, ...districtCounts.map((d) => d.count))
   const activeSet = new Set(activeDistricts.map((d) => d.toLowerCase()))
   const covered = districtCounts.reduce((sum, d) => sum + d.count, 0)
+  // Always keep selected districts visible, even outside the collapsed top slice.
+  const shown = expanded
+    ? districtCounts
+    : [
+        ...districtCounts.slice(0, COLLAPSED_COUNT),
+        ...districtCounts
+          .slice(COLLAPSED_COUNT)
+          .filter((d) => activeSet.has(d.label.toLowerCase())),
+      ]
 
-  if (top.length === 0) return null
+  if (districtCounts.length === 0) return null
 
   return (
     <section
@@ -33,7 +45,7 @@ export function DistrictOverview({
           </p>
         </div>
         <ul className="mt-3 grid grid-cols-1 gap-1 sm:grid-cols-2">
-          {top.map((d) => {
+          {shown.map((d) => {
             const pressed = activeSet.has(d.label.toLowerCase())
             return (
               <li key={d.label}>
@@ -72,6 +84,18 @@ export function DistrictOverview({
             )
           })}
         </ul>
+        {districtCounts.length > COLLAPSED_COUNT ? (
+          <button
+            type="button"
+            onClick={() => setExpanded((current) => !current)}
+            aria-expanded={expanded}
+            className="btn-text-accent mt-2 text-sm"
+          >
+            {expanded
+              ? 'Show fewer districts'
+              : `Show all ${districtCounts.length} districts`}
+          </button>
+        ) : null}
         <p className="mt-3 text-xs leading-relaxed text-muted">
           Methodology: keyword exact/alias match first (incl. Kavre→Kavrepalanchok,
           Nepalgunj→Banke), else word-boundary match in Detail. A true SVG

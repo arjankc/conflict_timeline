@@ -25,6 +25,9 @@ All notable changes to data handling and the app. Dates are release dates (UTC).
   disclosure; the year-dock density strip is now a real `slider`
   (arrow/Home/End keys, blur releases the year cue); expanded cards get a
   bottom “Show less”; the Undated section explains itself.
+- District overview shows the top 8 with “show all” (selected districts always
+  visible); search-match navigation (`src/lib/matchNav.ts`) steps through hits
+  via the anchor pipeline, with position announced to screen readers.
 - Fact-checking: `npm run link:check` (`scripts/link-check.mjs`) verifies
   Sources URLs (2026-11-14 run: 104/116 ok, 6 blocked, 6 dead — see
   `docs/FACTCHECK.md`); `data-lint` asserts doc claims and warns on raw

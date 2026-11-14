@@ -31,6 +31,9 @@ All notable changes to data handling and the app. Dates are release dates (UTC).
 - District overview shows the top 8 with “show all” (selected districts always
   visible); search-match navigation (`src/lib/matchNav.ts`) steps through hits
   via the anchor pipeline, with position announced to screen readers.
+- Timeline-first layout: search, counts, match stepping, pills, and one
+  Filters toggle stay visible; themes, facets, district ranking, range, sort,
+  saved views, and export moved into the drawer.
 - Fact-checking: `npm run link:check` (`scripts/link-check.mjs`) verifies
   Sources URLs (2026-11-14 run: 104/116 ok, 6 blocked, 6 dead — see
   `docs/FACTCHECK.md`); `data-lint` asserts doc claims and warns on raw

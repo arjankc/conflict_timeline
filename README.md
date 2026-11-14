@@ -13,8 +13,8 @@ This is an open-source project. Event data currently ships as a static CSV expor
 - Per-card permalink (link icon copies `#event-…`; a toast confirms; the feed does not jump)
 - Side year navigator with a month-density heatmap; click or drag to scrub
 - Theme chips (most frequent 16) plus a searchable “Browse all themes” index, confidence filter, and shareable URL filters (`?q=&tag=&year=&confidence=`)
-- Multi-select categories/organizations/themes/districts (OR within, AND across; optional `?match=all` for AND-within), date range (`from`/`to` YYYY-MM), sort (oldest/newest/by category), density toggle, and browser-local saved views (legacy views auto-migrated)
-- District view (inferred from keywords/detail — 75 legacy districts, top-24 ranking with counts), per-year share pages (`/year/YYYY/` with year meta + sitemap), filtered CSV/JSON export (incl. enrichment columns)
+- Multi-select categories/organizations/themes/districts (OR within, AND across; optional `?match=all` for AND-within), date range (`from`/`to` YYYY-MM), sort (oldest/newest/by category), density toggle, saved views, and export — all behind one Filters toggle so the timeline leads
+- District view (inferred from keywords/detail — 75 legacy districts, top-8 ranking with counts, inside the Filters drawer), per-year share pages (`/year/YYYY/` with year meta + sitemap), filtered CSV/JSON export (incl. enrichment columns)
 - Offline mirror `dist/data/events.json` (raw row mirror, generated at build) doubles as a CSV-fetch fallback for field use; enrichment columns + `docs/CHANGELOG.md`
 - Typeahead covers Event_IDs (`NCT-…` jumps to one card), districts, tags, years, terms; `data:lint` reports district keyword coverage (~56%)
 - Archive overview: event counts, source coverage, confidence split, and a per-year histogram that jumps to a year
@@ -106,7 +106,7 @@ The header paints before the CSV is parsed. Rows are published in batches so the
 | [`src/components/YearCue.tsx`](src/components/YearCue.tsx) | Brief year overlay while scrolling or scrubbing |
 | [`src/components/ScrollFade.tsx`](src/components/ScrollFade.tsx) | Edge fade when a horizontal scroller can still move |
 | [`src/lib/scrollOverflow.ts`](src/lib/scrollOverflow.ts) | Start/end overflow flags for those fades |
-| [`src/components/FilterBar.tsx`](src/components/FilterBar.tsx) | Sticky search row: multi-facets, sort, match mode, range, density, saved views, export; publishes `--filter-h` |
+| [`src/components/FilterBar.tsx`](src/components/FilterBar.tsx) | Sticky search row + Filters toggle; drawer holds themes, facets, districts, range, sort, saved views, export; publishes `--filter-h` |
 | [`src/components/KeywordCloud.tsx`](src/components/KeywordCloud.tsx) | Theme chips under search (scroll away with the page) |
 | [`src/components/SearchSuggest.tsx`](src/components/SearchSuggest.tsx) | Combobox typeahead for search |
 | [`src/components/ReadingControls.tsx`](src/components/ReadingControls.tsx) | Text size, high contrast, graphic-detail blur |

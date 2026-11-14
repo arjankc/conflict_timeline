@@ -5,6 +5,8 @@ type DistrictOverviewProps = {
   districtCounts: TagCount[]
   activeDistricts: string[]
   onToggleDistrict: (district: string) => void
+  /** Render inline without the page-level section wrapper (for the filter drawer). */
+  bare?: boolean
 }
 
 const COLLAPSED_COUNT = 8
@@ -14,6 +16,7 @@ export function DistrictOverview({
   districtCounts,
   activeDistricts,
   onToggleDistrict,
+  bare = false,
 }: DistrictOverviewProps) {
   const [expanded, setExpanded] = useState(false)
   const max = Math.max(1, ...districtCounts.map((d) => d.count))
@@ -31,19 +34,23 @@ export function DistrictOverview({
 
   if (districtCounts.length === 0) return null
 
-  return (
-    <section
-      aria-label="Districts"
-      className="mx-auto max-w-5xl px-5 pt-2 sm:px-8"
-    >
-      <div className="rounded-sm border border-line bg-surface p-4 sm:p-5">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="font-display text-lg text-ink">Districts</h2>
-          <p className="text-xs text-muted">
-            Inferred from keywords + detail ({districtCounts.length} districts,{' '}
-            {covered} assignments). No sheet District column yet.
-          </p>
-        </div>
+  const heading = bare ? (
+    <p className="text-[0.7rem] font-medium tracking-[0.16em] text-muted uppercase">
+      Districts
+    </p>
+  ) : (
+    <h2 className="font-display text-lg text-ink">Districts</h2>
+  )
+
+  const body = (
+    <div className="rounded-sm border border-line bg-surface p-4 sm:p-5">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        {heading}
+        <p className="text-xs text-muted">
+          Inferred from keywords + detail ({districtCounts.length} districts,{' '}
+          {covered} assignments). No sheet District column yet.
+        </p>
+      </div>
         <ul className="mt-3 grid grid-cols-1 gap-1 sm:grid-cols-2">
           {shown.map((d) => {
             const pressed = activeSet.has(d.label.toLowerCase())
@@ -103,6 +110,18 @@ export function DistrictOverview({
           honest interim.
         </p>
       </div>
+  )
+
+  if (bare) {
+    return <section aria-label="Districts">{body}</section>
+  }
+
+  return (
+    <section
+      aria-label="Districts"
+      className="mx-auto max-w-5xl px-5 pt-2 sm:px-8"
+    >
+      {body}
     </section>
   )
 }

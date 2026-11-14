@@ -3,7 +3,6 @@ import { AboutArchive } from './components/AboutArchive'
 import { ArchiveOverview } from './components/ArchiveOverview'
 import { BackToTop } from './components/BackToTop'
 import { ChronologyExplorer } from './components/ChronologyExplorer'
-import { DistrictOverview } from './components/DistrictOverview'
 import { FilterBar } from './components/FilterBar'
 import { ShareButton } from './components/ShareButton'
 import { ThemeToggle } from './components/ThemeToggle'
@@ -386,11 +385,6 @@ export default function App() {
               span={collectionMeta.span}
               focusYear={focusYear}
               onYearSelect={(year) => setFocusYear(year ?? undefined)}
-            />
-            <DistrictOverview
-              districtCounts={districtCounts}
-              activeDistricts={filters.districts}
-              onToggleDistrict={(district) => toggleListFilter('districts', district)}
             />
             <AboutArchive />
           </div>

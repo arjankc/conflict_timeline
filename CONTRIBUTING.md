@@ -35,6 +35,7 @@ Please do not commit `node_modules/`, `dist/`, or `.env` files.
 | Fact-check review queue | `scripts/factcheck-candidates.mjs`, log in `docs/FACTCHECK.md` |
 | Archive overview / histogram | `src/components/ArchiveOverview.tsx`, `src/components/AboutArchive.tsx` |
 | Search, filters, year grouping | `src/lib/filterEvents.ts` (OR-within/AND-across, `?match=all` option, sort, YYYY-MM range, districts; `normalizeFilters` migrates legacy shapes) |
+| Filter bar layout | `src/components/FilterBar.tsx` (sticky search + Filters toggle; drawer holds themes, facets, districts, range, sort, saved views, export) |
 | Districts (inferred) | `src/lib/districts.ts`, `src/lib/eventGeography.ts`, `src/components/DistrictOverview.tsx` |
 | Export filtered view | `src/lib/exportView.ts` (CSV/JSON download in FilterBar) |
 | Year share pages | `scripts/year-pages.mjs` (runs in `npm run build`, appends `/year/YYYY/` to sitemap) |

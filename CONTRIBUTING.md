@@ -38,6 +38,7 @@ Please do not commit `node_modules/`, `dist/`, or `.env` files.
 | Districts (inferred) | `src/lib/districts.ts`, `src/lib/eventGeography.ts`, `src/components/DistrictOverview.tsx` |
 | Export filtered view | `src/lib/exportView.ts` (CSV/JSON download in FilterBar) |
 | Year share pages | `scripts/year-pages.mjs` (runs in `npm run build`, appends `/year/YYYY/` to sitemap) |
+| Offline mirror + dist smoke test | `scripts/events-json.mjs`, `scripts/smoke-dist.mjs` (`npm run smoke:dist` runs in deploy after build) |
 | Saved views (localStorage) | `src/lib/savedViews.ts`, `src/components/FilterBar.tsx` |
 | Search typeahead (fills `q` only) | `src/lib/searchSuggest.ts`, `src/components/SearchSuggest.tsx` (Event_ID + district + tag + year + term) |
 | Search highlighting (`<mark>` text nodes) | `src/lib/highlight.ts` |

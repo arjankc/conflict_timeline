@@ -44,6 +44,7 @@ npm test        # parsers, filters, search, permalinks, reading prefs, teasers, 
 npm run data:lint # CSV structure, keyword variants, org cells, confidence coverage, doc-claim assertions
 npm run link:check # Sources URL health (report only; --strict fails on dead links)
 npm run build   # typecheck + production bundle (year pages + events.json)
+npm run smoke:dist # verify dist artifacts (year pages, sitemap, events.json)
 npm run preview # serve the production build locally
 npm run lint    # oxlint
 ```

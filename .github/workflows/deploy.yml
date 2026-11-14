@@ -44,6 +44,9 @@ jobs:
           # Override with repo variable SITE_URL for a custom domain.
           VITE_SITE_URL: ${{ vars.SITE_URL || format('https://{0}.github.io/{1}', github.repository_owner, github.event.repository.name) }}
 
+      - name: Smoke-test dist artifacts
+        run: npm run smoke:dist
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

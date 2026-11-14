@@ -13,6 +13,7 @@
     "lint": "oxlint",
     "data:lint": "node scripts/data-lint.mjs",
     "link:check": "node scripts/link-check.mjs",
+    "smoke:dist": "node scripts/smoke-dist.mjs",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest"

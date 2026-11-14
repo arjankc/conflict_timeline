@@ -1,15 +1,27 @@
 import { useEffect, useMemo, useState } from 'react'
+import { AboutArchive } from './components/AboutArchive'
+import { ArchiveOverview } from './components/ArchiveOverview'
 import { BackToTop } from './components/BackToTop'
 import { ChronologyExplorer } from './components/ChronologyExplorer'
+import { DistrictOverview } from './components/DistrictOverview'
 import { FilterBar } from './components/FilterBar'
 import { ShareButton } from './components/ShareButton'
 import { ThemeToggle } from './components/ThemeToggle'
 import { ReadingControls } from './components/ReadingControls'
 import { Toast } from './components/Toast'
-import { EMPTY_FILTERS, filterEvents, type TimelineFilters } from './lib/filterEvents'
+import { showToast } from './lib/toast'
+import { EMPTY_FILTERS, filterEvents, normalizeFilters, type TimelineFilters } from './lib/filterEvents'
 import { subscribeTimelineLoad } from './lib/loadEvents'
 import { countTags, KEYWORD_CLOUD_LIMIT, uniqueTags } from './lib/parseTags'
 import { buildSearchIndex } from './lib/searchSuggest'
+import { effectiveDistricts } from './lib/eventGeography'
+import { downloadFile, eventsToCsv, eventsToJson } from './lib/exportView'
+import {
+  deleteView,
+  loadSavedViews,
+  saveView,
+  type SavedView,
+} from './lib/savedViews'
 import { pageDescription, pageTitle } from './lib/seo'
 import { DATA_DOC_URL, SITE_NAME } from './lib/site'
 import { readExplorerQuery, writeExplorerQuery } from './lib/urlState'
@@ -35,11 +47,13 @@ export default function App() {
     events: [],
   })
   const [filters, setFilters] = useState<TimelineFilters>(
-    () => readExplorerQuery().filters,
+    () => normalizeFilters(readExplorerQuery().filters),
   )
   const [focusYear, setFocusYear] = useState<number | undefined>(
     () => readExplorerQuery().year,
   )
+  const [compact, setCompact] = useState(false)
+  const [savedViews, setSavedViews] = useState<SavedView[]>(() => loadSavedViews())
   const debouncedSearch = useDebouncedValue(filters.search, SEARCH_DEBOUNCE_MS)
 
   useEffect(() => {
@@ -81,10 +95,44 @@ export default function App() {
     [loadState],
   )
 
+  const categoryCounts = useMemo(
+    () =>
+      loadState.events.length > 0
+        ? countTags(loadState.events.map((event) => event.categories))
+        : [],
+    [loadState],
+  )
+
+  const organizationCounts = useMemo(
+    () =>
+      loadState.events.length > 0
+        ? countTags(loadState.events.map((event) => event.organizations))
+        : [],
+    [loadState],
+  )
+
+  const districtCounts = useMemo(
+    () =>
+      loadState.events.length > 0
+        ? countTags(loadState.events.map((event) => effectiveDistricts(event)))
+        : [],
+    [loadState],
+  )
+
+  const districts = useMemo(() => districtCounts.map((d) => d.label), [districtCounts])
+
   const keywordCounts = useMemo(
     () =>
       loadState.events.length > 0
         ? countTags(loadState.events.map((event) => event.keywords), KEYWORD_CLOUD_LIMIT)
+        : [],
+    [loadState],
+  )
+
+  const allKeywordCounts = useMemo(
+    () =>
+      loadState.events.length > 0
+        ? countTags(loadState.events.map((event) => event.keywords))
         : [],
     [loadState],
   )
@@ -114,14 +162,28 @@ export default function App() {
         : Math.min(...years) === Math.max(...years)
           ? String(Math.min(...years))
           : `${Math.min(...years)}–${Math.max(...years)}`
-    return { count: loadState.events.length, span }
+    const withSources = loadState.events.filter(
+      (event) => event.sources.length > 0,
+    ).length
+    const confidence = {
+      high: loadState.events.filter((event) => event.confidence === 'high').length,
+      medium: loadState.events.filter((event) => event.confidence === 'medium').length,
+      low: loadState.events.filter((event) => event.confidence === 'low').length,
+    }
+    return { count: loadState.events.length, span, withSources, confidence }
   }, [loadState])
 
   const hasActiveFilters =
     filters.search.trim() !== '' ||
-    filters.category !== '' ||
-    filters.organization !== '' ||
-    filters.keyword !== ''
+    filters.keywords.length > 0 ||
+    filters.categories.length > 0 ||
+    filters.organizations.length > 0 ||
+    filters.districts.length > 0 ||
+    filters.confidence !== '' ||
+    filters.sort !== 'chronological' ||
+    filters.match !== 'any' ||
+    filters.from !== '' ||
+    filters.to !== ''
 
   // Browser tab title only. Open Graph / Twitter tags in index.html stay on the homepage copy.
   useEffect(() => {
@@ -141,6 +203,23 @@ export default function App() {
     value: TimelineFilters[K],
   ) {
     setFilters((current) => ({ ...current, [key]: value }))
+  }
+
+  function toggleListFilter(
+    key: 'keywords' | 'categories' | 'organizations' | 'districts',
+    value: string,
+  ) {
+    setFilters((current) => {
+      const list = current[key]
+      const k = value.toLowerCase()
+      const exists = list.some((item) => item.toLowerCase() === k)
+      return {
+        ...current,
+        [key]: exists
+          ? list.filter((item) => item.toLowerCase() !== k)
+          : [...list, value],
+      }
+    })
   }
 
   return (
@@ -176,7 +255,9 @@ export default function App() {
                 <span className="mx-2 text-muted" aria-hidden="true">
                   ·
                 </span>
-                <span className="tracking-[0.12em] text-muted">1995–2006</span>
+                <span className="tracking-[0.12em] text-muted">
+                  {collectionMeta?.span ?? '1995–2026'}
+                </span>
               </p>
               <h1 className="mt-2.5 text-balance font-display text-[2rem] leading-[1.05] tracking-tight text-ink sm:text-5xl sm:leading-[1.08]">
                 {SITE_NAME}
@@ -196,8 +277,9 @@ export default function App() {
           </div>
           <p className="mt-4 max-w-prose text-pretty text-sm leading-[1.75] text-muted sm:mt-6 sm:text-base">
             A chronological record of Nepal&apos;s internal armed conflict
-            (1996–2006), compiled for transitional justice civil society. The
-            archive currently opens with pre-conflict events from 1995.
+            (1996–2006) — from pre-conflict Operation Romeo (1995) through
+            transitional-justice aftermath (2026) — compiled for transitional
+            justice civil society.
           </p>
           {collectionMeta ? (
             <p className="mt-4 text-xs font-medium tracking-[0.12em] text-muted uppercase">
@@ -214,27 +296,73 @@ export default function App() {
           filters={filters}
           categories={categories}
           organizations={organizations}
+          districts={districts}
+          categoryCounts={categoryCounts}
+          organizationCounts={organizationCounts}
+          districtCounts={districtCounts}
           keywords={keywordCounts}
+          allKeywords={allKeywordCounts}
           searchIndex={searchIndex}
           resultCount={filteredEvents.length}
           totalCount={loadState.events.length}
+          compact={compact}
+          savedViews={savedViews}
           onSearchChange={(value) => updateFilter('search', value)}
-          onCategoryChange={(value) => updateFilter('category', value)}
-          onOrganizationChange={(value) => updateFilter('organization', value)}
-          onKeywordClick={(keyword) =>
-            updateFilter(
-              'keyword',
-              filters.keyword.toLowerCase() === keyword.toLowerCase()
-                ? ''
-                : keyword,
-            )
+          onToggleKeyword={(keyword) => toggleListFilter('keywords', keyword)}
+          onToggleCategory={(category) => toggleListFilter('categories', category)}
+          onToggleOrganization={(organization) =>
+            toggleListFilter('organizations', organization)
           }
+          onToggleDistrict={(district) => toggleListFilter('districts', district)}
+          onClearFacet={(facet) => updateFilter(facet, [])}
+          onConfidenceChange={(value) => updateFilter('confidence', value)}
+          onSortChange={(value) => updateFilter('sort', value)}
+          onMatchChange={(value) => updateFilter('match', value)}
+          onFromChange={(value) => updateFilter('from', value)}
+          onToChange={(value) => updateFilter('to', value)}
+          onCompactChange={setCompact}
+          onSaveView={(name) =>
+            setSavedViews(saveView(name, appliedFilters, focusYear))
+          }
+          onApplyView={(view) => {
+            setFilters(normalizeFilters(view.filters))
+            setFocusYear(view.year)
+          }}
+          onDeleteView={(id) => setSavedViews(deleteView(id))}
+          onExportCsv={() => {
+            downloadFile('nepal-conflict-timeline.csv', 'text/csv', eventsToCsv(filteredEvents))
+            showToast(`Exported ${filteredEvents.length} events as CSV`)
+          }}
+          onExportJson={() => {
+            downloadFile('nepal-conflict-timeline.json', 'application/json', eventsToJson(filteredEvents))
+            showToast(`Exported ${filteredEvents.length} events as JSON`)
+          }}
           onReset={() => setFilters(EMPTY_FILTERS)}
         />
       ) : null}
 
       <main id="timeline" tabIndex={-1} className="pt-5 outline-none sm:pt-8">
         {loadState.status === 'loading' ? <ArchiveSkeleton /> : null}
+
+        {loadState.events.length > 0 && collectionMeta ? (
+          <div className="pb-5">
+            <ArchiveOverview
+              events={loadState.events}
+              totalCount={collectionMeta.count}
+              withSources={collectionMeta.withSources}
+              confidence={collectionMeta.confidence}
+              span={collectionMeta.span}
+              focusYear={focusYear}
+              onYearSelect={(year) => setFocusYear(year ?? undefined)}
+            />
+            <DistrictOverview
+              districtCounts={districtCounts}
+              activeDistricts={filters.districts}
+              onToggleDistrict={(district) => toggleListFilter('districts', district)}
+            />
+            <AboutArchive />
+          </div>
+        ) : null}
 
         {loadState.status === 'parsing' ? (
           <p
@@ -270,34 +398,18 @@ export default function App() {
             events={filteredEvents}
             focusYear={focusYear}
             search={appliedFilters.search}
-            activeKeyword={filters.keyword}
-            activeCategory={filters.category}
-            activeOrganization={filters.organization}
+            activeKeywords={filters.keywords}
+            activeCategories={filters.categories}
+            activeOrganizations={filters.organizations}
+            activeDistricts={filters.districts}
+            compact={compact}
             onYearChange={(year) => setFocusYear(year ?? undefined)}
-            onKeywordClick={(keyword) =>
-              updateFilter(
-                'keyword',
-                filters.keyword.toLowerCase() === keyword.toLowerCase()
-                  ? ''
-                  : keyword,
-              )
-            }
-            onCategoryClick={(category) =>
-              updateFilter(
-                'category',
-                filters.category.toLowerCase() === category.toLowerCase()
-                  ? ''
-                  : category,
-              )
-            }
+            onKeywordClick={(keyword) => toggleListFilter('keywords', keyword)}
+            onCategoryClick={(category) => toggleListFilter('categories', category)}
             onOrganizationClick={(organization) =>
-              updateFilter(
-                'organization',
-                filters.organization.toLowerCase() === organization.toLowerCase()
-                  ? ''
-                  : organization,
-              )
+              toggleListFilter('organizations', organization)
             }
+            onDistrictClick={(district) => toggleListFilter('districts', district)}
             onReset={
               hasActiveFilters ? () => setFilters(EMPTY_FILTERS) : undefined
             }

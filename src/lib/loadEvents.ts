@@ -2,6 +2,13 @@ import { parse, type Parser } from 'papaparse'
 import type { ConflictEvent, RawCsvRow } from '../types/event'
 import { warmEventSearch } from './eventSearch'
 import { parseDate } from './parseDate'
+import {
+  parseCount,
+  parseDistrictOverride,
+  parsePerpetrators,
+  parseRelatedIds,
+} from './enrichment'
+import { parseConfidence, parseSources } from './provenance'
 import { parseOrganizations, parseTags } from './parseTags'
 
 /** Relative URL so GitHub Pages (`/conflict_timeline/`) and a later Capacitor shell both resolve. */
@@ -35,9 +42,11 @@ export function rowToEvent(row: RawCsvRow, sourceIndex: number): ConflictEvent |
   if (!detail || !rawDate) return null
 
   const parsed = parseDate(rawDate)
+  const confidence = parseConfidence(cell(row, 'Confidence'))
+  const id = eventIdForRow(row, sourceIndex)
 
   return {
-    id: eventIdForRow(row, sourceIndex),
+    id,
     rawDate,
     sortKey: parsed.sortKey,
     dateLabel: parsed.dateLabel,
@@ -48,6 +57,17 @@ export function rowToEvent(row: RawCsvRow, sourceIndex: number): ConflictEvent |
     keywords: parseTags(cell(row, 'Keywords')),
     categories: parseTags(cell(row, 'Category')),
     organizations: parseOrganizations(cell(row, 'Organizations')),
+    sources: parseSources(cell(row, 'Sources')),
+    confidence: confidence.level,
+    confidenceNote: confidence.note,
+    districtOverride: parseDistrictOverride(cell(row, 'District')),
+    victims: {
+      killed: parseCount(cell(row, 'Victims_Killed')),
+      injured: parseCount(cell(row, 'Victims_Injured')),
+      disappeared: parseCount(cell(row, 'Victims_Disappeared')),
+    },
+    perpetrators: parsePerpetrators(cell(row, 'Perpetrator_Alleged')),
+    relatedIds: parseRelatedIds(cell(row, 'Related_Events'), id),
   }
 }
 
@@ -215,6 +235,43 @@ async function fetchCsv(): Promise<{ body: string; etag: string | null; notModif
   }
 }
 
+/**
+ * Offline/field fallback: `dist/data/events.json` (raw row mirror from
+ * `scripts/events-json.mjs`). Only tried for the default path when the CSV
+ * fetch fails. Returns CSV text so the progressive parser stays single-path.
+ */
+async function fetchJsonFallback(): Promise<string | null> {
+  if (import.meta.env.VITE_DATA_URL) return null
+  const url = `${import.meta.env.BASE_URL}data/events.json`
+  try {
+    const response = await fetch(url)
+    if (!response.ok) return null
+    const rows = (await response.json()) as RawCsvRow[]
+    if (!Array.isArray(rows) || rows.length === 0) return null
+    const header = 'Event_ID,Date,Detail,Keywords,Category,Organizations,Sources,Confidence'
+    const esc = (value: string | undefined): string => {
+      const flat = (value ?? '').replace(/\r?\n/g, ' ')
+      if (/[",\n]/.test(flat)) return `"${flat.replace(/"/g, '""')}"`
+      return flat
+    }
+    const lines = rows.map((row) =>
+      [
+        esc(row['Event_ID']),
+        esc(row['Date']),
+        esc(row['Detail']),
+        esc(row['Keywords']),
+        esc(row['Category']),
+        esc(row['Organizations']),
+        esc(row['Sources']),
+        esc(row['Confidence']),
+      ].join(','),
+    )
+    return [header, ...lines].join('\n')
+  } catch {
+    return null
+  }
+}
+
 async function runTimelineLoad() {
   const stored = readStoredCsv()
   let generation = 0
@@ -239,6 +296,16 @@ async function runTimelineLoad() {
     writeStoredCsv({ etag: result.etag, body: result.body })
     startParse(result.body)
   } catch (error) {
+    // Field fallback: events.json mirror (no Sources/Confidence) when CSV is unreachable.
+    try {
+      const fallback = await fetchJsonFallback()
+      if (fallback) {
+        startParse(fallback)
+        return
+      }
+    } catch {
+      /* fall through to the error below */
+    }
     if (parsingBody) return
     if (published && published.events.length > 0) {
       publish({ events: published.events, done: true })

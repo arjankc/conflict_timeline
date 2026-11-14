@@ -76,6 +76,33 @@ describe('parseCsvEvents', () => {
       'Ministry of Law, Justice and Parliamentary Affairs',
       'CIEDP',
     ])
+    expect(events[0]?.sources).toEqual([
+      { citation: 'example source', urls: [] },
+    ])
+    expect(events[0]?.confidence).toBe('high')
+  })
+
+  it('parses Sources urls and Confidence rationale from the archival CSV', () => {
+    const csv = readFileSync('public/data/mastersheet_with_sources.csv', 'utf8')
+    const events = parseCsvEvents(csv)
+    const romeo = events.find((event) => event.id === 'NCT-0001')
+    expect(romeo?.confidence).toBe('high')
+    expect(romeo?.confidenceNote).toMatch(/Operation Romeo/i)
+    expect(romeo?.sources.length).toBeGreaterThan(0)
+    expect(romeo?.sources[0]?.urls[0]).toMatch(/^https?:/)
+  })
+
+  it('parses optional enrichment columns when present, defaults when absent', () => {
+    const events = parseCsvEvents(`Event_ID,Date,Detail,Keywords,Category,Organizations,District,Victims_Killed,Victims_Injured,Victims_Disappeared,Perpetrator_Alleged,Related_Events
+NCT-0001,1/1/96,First,Rolpa,combat,Nepal Police,Rolpa; Kavre,13,2,,Nepal Army,NCT-0002
+NCT-0002,2/1/96,Second,Kathmandu,other,,Kathmandu,,,,,
+`)
+    expect(events[0]?.victims).toEqual({ killed: 13, injured: 2, disappeared: null })
+    expect(events[0]?.perpetrators).toEqual(['Nepal Army'])
+    expect(events[0]?.relatedIds).toEqual(['NCT-0002'])
+    expect(events[0]?.districtOverride).toEqual(['Rolpa', 'Kavrepalanchok'])
+    expect(events[1]?.victims).toEqual({ killed: null, injured: null, disappeared: null })
+    expect(events[1]?.relatedIds).toEqual([])
   })
 
   it('keeps the first row when Event_ID is duplicated and does not merge the incidents', () => {
@@ -145,6 +172,32 @@ describe('loadEvents', () => {
     const events = await loadEvents()
 
     expect(events).toHaveLength(count)
+  })
+
+  it('falls back to events.json when the CSV fetch fails', async () => {
+    vi.resetModules()
+    vi.stubGlobal('localStorage', { getItem: () => null })
+    const rows = [
+      { Event_ID: 'NCT-0001', Date: '1/1/96', Detail: 'Fallback event' },
+    ]
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockImplementation((url: string) => {
+        if (String(url).endsWith('events.json')) {
+          return Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve(rows),
+          })
+        }
+        return Promise.reject(new Error('csv offline'))
+      }),
+    )
+
+    const { loadEvents } = await import('./loadEvents')
+    const events = await loadEvents()
+
+    expect(events).toHaveLength(1)
+    expect(events[0]?.id).toBe('NCT-0001')
   })
 
   it('replays a terminal error without throwing during subscription', async () => {

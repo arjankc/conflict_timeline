@@ -1,6 +1,7 @@
 /** localStorage keys. Must match the blocking script in `index.html`. */
 export const TEXT_SIZE_STORAGE_KEY = 'text-size'
 export const CONTRAST_STORAGE_KEY = 'contrast'
+export const BLUR_STORAGE_KEY = 'nct-blur-detail'
 
 export type TextSize = 'default' | 'large' | 'larger'
 export type ContrastPreference = 'default' | 'more'
@@ -58,12 +59,39 @@ export function writeContrast(preference: ContrastPreference): void {
   }
 }
 
-/** Apply `text-size-*` and `contrast-more` on `<html>`. */
-export function applyReading(size: TextSize, contrast: ContrastPreference): void {
+/** Apply `text-size-*`, `contrast-more`, and `blur-detail` on `<html>`. */
+export function applyReading(
+  size: TextSize,
+  contrast: ContrastPreference,
+  blurDetail = false,
+): void {
   const root = document.documentElement
   root.classList.toggle('text-size-large', size === 'large')
   root.classList.toggle('text-size-larger', size === 'larger')
   root.classList.toggle('contrast-more', contrast === 'more')
+  root.classList.toggle('blur-detail', blurDetail)
+}
+
+export function readBlurDetail(): boolean {
+  try {
+    return localStorage.getItem(BLUR_STORAGE_KEY) === 'on'
+  } catch {
+    return false
+  }
+}
+
+export function writeBlurDetail(on: boolean): void {
+  try {
+    localStorage.setItem(BLUR_STORAGE_KEY, on ? 'on' : 'off')
+  } catch {
+    /* private mode */
+  }
+}
+
+export function blurLabel(on: boolean): string {
+  return on
+    ? 'Reduce graphic detail: On. Switch off'
+    : 'Reduce graphic detail: Off. Switch on'
 }
 
 export function textSizeLabel(size: TextSize): string {

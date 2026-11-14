@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
 import {
   eventCardId,
   eventPermalink,
@@ -14,6 +14,7 @@ import {
   type MetaPill,
   type MetaPillKind,
 } from '../lib/eventCardTeaser'
+import { effectiveDistricts } from '../lib/eventGeography'
 import { splitHighlight } from '../lib/highlight'
 import { MONTH_SHORT } from '../lib/parseDate'
 import { showToast } from '../lib/toast'
@@ -24,19 +25,23 @@ import type { ConflictEvent } from '../types/event'
 type EventCardProps = {
   event: ConflictEvent
   search?: string
-  activeKeyword: string
-  activeCategory: string
-  activeOrganization: string
+  activeKeywords: string[]
+  activeCategories: string[]
+  activeOrganizations: string[]
+  activeDistricts: string[]
+  compact?: boolean
   dateHeadingLevel?: 'h3' | 'h4'
   onKeywordClick: (keyword: string) => void
   onCategoryClick: (category: string) => void
   onOrganizationClick: (organization: string) => void
+  onDistrictClick: (district: string) => void
 }
 
 const PILL_STYLES: Record<MetaPillKind, string> = {
   keyword: 'border-control bg-chip text-ink',
   category: 'border-control bg-chip-strong text-ink',
   organization: 'border-control bg-chip-rose text-ink',
+  district: 'border-control bg-surface text-ink',
 }
 
 function Pill({
@@ -319,23 +324,27 @@ function useWideTeaser(): boolean {
 export function EventCard({
   event,
   search = '',
-  activeKeyword,
-  activeCategory,
-  activeOrganization,
+  activeKeywords,
+  activeCategories,
+  activeOrganizations,
+  activeDistricts,
+  compact = false,
   dateHeadingLevel = 'h4',
   onKeywordClick,
   onCategoryClick,
   onOrganizationClick,
+  onDistrictClick,
 }: EventCardProps) {
   const dateHeadingId = `${event.id}-date`
   const cardId = eventCardId(event.id)
   const DateHeading = dateHeadingLevel
   const highlightChunks = splitHighlight(event.detail, search)
-  const pills = metadataPills(event)
+  const districts = useMemo(() => effectiveDistricts(event), [event])
+  const pills = metadataPills({ ...event, districts })
   const wide = useWideTeaser()
-  const tagLimit = wide ? DESKTOP_TAG_LIMIT : MOBILE_TAG_LIMIT
+  const tagLimit = compact ? 2 : wide ? DESKTOP_TAG_LIMIT : MOBILE_TAG_LIMIT
   const searching = search.trim() !== ''
-  const density = eventDensity(event.detail)
+  const density = compact ? 'brief' : eventDensity(event.detail)
   const [expanded, setExpanded] = useState(false)
   const [textOverflows, setTextOverflows] = useState(false)
   const textRef = useRef<HTMLParagraphElement>(null)
@@ -344,7 +353,7 @@ export function EventCard({
     pills,
     tagLimit,
     isExpanded,
-    (pill) => pillIsSelected(pill, activeKeyword, activeCategory, activeOrganization),
+    (pill) => pillIsSelected(pill, activeKeywords, activeCategories, activeOrganizations, activeDistricts),
   )
   const canExpand = !searching && (textOverflows || pills.length > tagLimit)
 
@@ -391,12 +400,14 @@ export function EventCard({
   function onPillClick(pill: MetaPill) {
     if (pill.kind === 'keyword') onKeywordClick(pill.label)
     else if (pill.kind === 'category') onCategoryClick(pill.label)
+    else if (pill.kind === 'district') onDistrictClick(pill.label)
     else onOrganizationClick(pill.label)
   }
 
   return (
     <article
       id={cardId}
+      data-expanded={isExpanded ? 'true' : 'false'}
       className={[
         'event-card relative scroll-mt-[calc(var(--filter-h)+0.35rem)]',
         density === 'rich'
@@ -464,9 +475,10 @@ export function EventCard({
                     label={pill.label}
                     pressed={pillIsSelected(
                       pill,
-                      activeKeyword,
-                      activeCategory,
-                      activeOrganization,
+                      activeKeywords,
+                      activeCategories,
+                      activeOrganizations,
+                      activeDistricts,
                     )}
                     onClick={() => onPillClick(pill)}
                   />
@@ -496,6 +508,12 @@ export function EventCard({
               <ChevronIcon expanded={isExpanded} />
             </button>
           ) : null}
+          {isExpanded ? (
+            <>
+              <Enrichment event={event} />
+              <Provenance event={event} dateLabel={event.dateLabel} />
+            </>
+          ) : null}
         </div>
       </div>
     </article>
@@ -504,15 +522,166 @@ export function EventCard({
 
 function pillIsSelected(
   pill: MetaPill,
-  activeKeyword: string,
-  activeCategory: string,
-  activeOrganization: string,
+  activeKeywords: string[],
+  activeCategories: string[],
+  activeOrganizations: string[],
+  activeDistricts: string[],
 ): boolean {
+  const label = pill.label.toLowerCase()
   if (pill.kind === 'keyword') {
-    return pill.label.toLowerCase() === activeKeyword.toLowerCase()
+    return activeKeywords.some((value) => value.toLowerCase() === label)
   }
   if (pill.kind === 'category') {
-    return pill.label.toLowerCase() === activeCategory.toLowerCase()
+    return activeCategories.some((value) => value.toLowerCase() === label)
   }
-  return pill.label.toLowerCase() === activeOrganization.toLowerCase()
+  if (pill.kind === 'district') {
+    return activeDistricts.some((value) => value.toLowerCase() === label)
+  }
+  return activeOrganizations.some((value) => value.toLowerCase() === label)
+}
+
+const CONFIDENCE_STYLES: Record<string, string> = {
+  high: 'border-crimson bg-crimson-soft text-crimson',
+  medium: 'border-control bg-chip text-ink',
+  low: 'border-line bg-paper text-muted',
+}
+
+function Enrichment({ event }: { event: ConflictEvent }) {
+  const victims = event.victims
+  const hasVictims =
+    victims.killed != null || victims.injured != null || victims.disappeared != null
+  const hasPerps = event.perpetrators.length > 0
+  const hasRelated = event.relatedIds.length > 0
+  const hasExplicitDistrict = event.districtOverride.length > 0
+  if (!hasVictims && !hasPerps && !hasRelated && !hasExplicitDistrict) return null
+  return (
+    <dl className="mt-4 space-y-1.5 rounded-sm border border-line bg-paper/60 px-3 py-2.5 text-sm leading-relaxed">
+      {hasVictims ? (
+        <div className="flex gap-2">
+          <dt className="shrink-0 font-medium text-ink">Victims</dt>
+          <dd className="text-muted">
+            {[
+              victims.killed != null ? `${victims.killed} killed` : null,
+              victims.injured != null ? `${victims.injured} injured` : null,
+              victims.disappeared != null ? `${victims.disappeared} disappeared` : null,
+            ]
+              .filter(Boolean)
+              .join(' · ')}
+          </dd>
+        </div>
+      ) : null}
+      {hasPerps ? (
+        <div className="flex gap-2">
+          <dt className="shrink-0 font-medium text-ink">Alleged</dt>
+          <dd className="text-muted">{event.perpetrators.join('; ')}</dd>
+        </div>
+      ) : null}
+      {hasExplicitDistrict ? (
+        <div className="flex gap-2">
+          <dt className="shrink-0 font-medium text-ink">District</dt>
+          <dd className="text-muted">{event.districtOverride.join('; ')}</dd>
+        </div>
+      ) : null}
+      {hasRelated ? (
+        <div className="flex gap-2">
+          <dt className="shrink-0 font-medium text-ink">Related</dt>
+          <dd className="flex flex-wrap gap-1.5">
+            {event.relatedIds.map((id) => (
+              <a
+                key={id}
+                href={`#event-${id}`}
+                className="link-accent"
+                aria-label={`Go to related event ${id}`}
+              >
+                {id}
+              </a>
+            ))}
+          </dd>
+        </div>
+      ) : null}
+    </dl>
+  )
+}
+
+function Provenance({
+  event,
+  dateLabel,
+}: {
+  event: ConflictEvent
+  dateLabel: string
+}) {
+  const hasProvenance =
+    event.confidence != null || event.confidenceNote !== '' || event.sources.length > 0
+  if (!hasProvenance) return null
+  const citation = `${event.id} — Nepal Conflict Timeline. ${dateLabel}. ${event.detail} [${event.confidence ?? 'unrated'} confidence${event.confidenceNote ? `: ${event.confidenceNote}` : ''}]`
+
+  async function copyCitation() {
+    try {
+      await navigator.clipboard.writeText(citation)
+      showToast('Citation copied to the clipboard')
+    } catch {
+      showToast('Could not copy the citation')
+    }
+  }
+
+  return (
+    <details className="mt-4 rounded-sm border border-line bg-paper/60 px-3 py-2.5 text-sm leading-relaxed">
+      <summary className="cursor-pointer font-medium text-ink">
+        Sources & confidence{' '}
+        {event.confidence ? (
+          <span
+            className={[
+              'ml-1 inline-flex items-center rounded-sm border px-1.5 py-0.5 align-middle text-[0.7rem] tracking-wide uppercase',
+              CONFIDENCE_STYLES[event.confidence] ?? 'border-line text-muted',
+            ].join(' ')}
+          >
+            {event.confidence}
+          </span>
+        ) : null}
+      </summary>
+      {event.confidenceNote ? (
+        <p className="mt-2 text-muted">{event.confidenceNote}</p>
+      ) : null}
+      {event.sources.length > 0 ? (
+        <ul className="mt-2 space-y-1.5">
+          {event.sources.map((source, index) => (
+            <li key={index} className="break-words text-ink">
+              <span>{source.citation || 'Source'}</span>{' '}
+              {source.urls.map((url) => (
+                <a
+                  key={url}
+                  href={url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="link-accent break-all"
+                >
+                  {hostOf(url)}
+                </a>
+              ))}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-2 text-muted">
+          No source citation in the loaded file. See the archival CSV for the full record.
+        </p>
+      )}
+      <button
+        type="button"
+        onClick={copyCitation}
+        className="btn-text-accent mt-2 text-sm"
+        aria-label={`Copy citation for event on ${dateLabel}`}
+      >
+        Copy citation
+      </button>
+    </details>
+  )
+}
+
+function hostOf(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '')
+  } catch {
+    return 'link'
+  }
 }

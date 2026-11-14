@@ -5,6 +5,7 @@ import {
   groupEventsByYear,
   monthCountsForYear,
   groupEventsByMonth,
+  normalizeFilters,
   yearSectionId,
 } from './filterEvents'
 import type { ConflictEvent } from '../types/event'
@@ -20,6 +21,13 @@ function event(partial: Partial<ConflictEvent> & Pick<ConflictEvent, 'id' | 'det
     keywords: [],
     categories: [],
     organizations: [],
+    sources: [],
+    confidence: null,
+    confidenceNote: '',
+    districtOverride: [],
+    victims: { killed: null, injured: null, disappeared: null },
+    perpetrators: [],
+    relatedIds: [],
     ...partial,
   }
 }
@@ -76,16 +84,105 @@ describe('filterEvents', () => {
     ).toEqual(['2'])
   })
 
-  it('filters by keyword, category, and organization', () => {
+  it('filters by keyword, category, and organization (OR within, AND across)', () => {
     expect(
-      filterEvents(events, { ...EMPTY_FILTERS, keyword: 'Violence' }).map((item) => item.id),
+      filterEvents(events, { ...EMPTY_FILTERS, keywords: ['Violence'] }).map((item) => item.id),
     ).toEqual(['2'])
     expect(
-      filterEvents(events, { ...EMPTY_FILTERS, category: 'politics' }).map((item) => item.id),
+      filterEvents(events, { ...EMPTY_FILTERS, categories: ['politics'] }).map((item) => item.id),
     ).toEqual(['1'])
     expect(
-      filterEvents(events, { ...EMPTY_FILTERS, organization: 'maoist' }).map((item) => item.id),
+      filterEvents(events, { ...EMPTY_FILTERS, organizations: ['maoist'] }).map((item) => item.id),
     ).toEqual(['2'])
+    expect(
+      filterEvents(
+        events,
+        { ...EMPTY_FILTERS, keywords: ['violence', 'dialogue'] },
+      ).map((item) => item.id),
+    ).toEqual(['1', '2'])
+    expect(
+      filterEvents(
+        events,
+        { ...EMPTY_FILTERS, keywords: ['violence'], categories: ['politics'] },
+      ).map((item) => item.id),
+    ).toEqual([])
+  })
+
+  it('filters by confidence level', () => {
+    const withConfidence = [
+      event({ id: '1', detail: 'a', confidence: 'high', confidenceNote: 'solid' }),
+      event({ id: '2', detail: 'b', confidence: 'low', confidenceNote: 'thin' }),
+      event({ id: '3', detail: 'c', confidence: null, confidenceNote: '' }),
+    ]
+    expect(
+      filterEvents(withConfidence, { ...EMPTY_FILTERS, confidence: 'high' }).map(
+        (item) => item.id,
+      ),
+    ).toEqual(['1'])
+    expect(
+      filterEvents(withConfidence, { ...EMPTY_FILTERS, confidence: '' }).map(
+        (item) => item.id,
+      ),
+    ).toEqual(['1', '2', '3'])
+  })
+
+  it('filters by YYYY-MM range and sorts reverse / by category', () => {
+    const dated = [
+      event({ id: '1', detail: 'a', year: 2001, sortKey: 20010115, precision: 'day' as const, categories: ['killing'] }),
+      event({ id: '2', detail: 'b', year: 2001, sortKey: 20010608, precision: 'day' as const, categories: ['combat'] }),
+      event({ id: '3', detail: 'c', year: 2002, sortKey: 20020201, precision: 'day' as const, categories: ['combat'] }),
+    ]
+    expect(
+      filterEvents(dated, { ...EMPTY_FILTERS, from: '2001-03', to: '2001-12' }).map((item) => item.id),
+    ).toEqual(['2'])
+    expect(
+      filterEvents(dated, { ...EMPTY_FILTERS, sort: 'reverse' }).map((item) => item.id),
+    ).toEqual(['3', '2', '1'])
+  })
+
+  it('filters by inferred district', () => {
+    const placed = [
+      event({ id: '1', detail: 'Attack in Rolpa', keywords: ['Maoist', 'Rolpa'] }),
+      event({ id: '2', detail: 'Talks in Kathmandu', keywords: ['dialogue'] }),
+    ]
+    expect(
+      filterEvents(placed, { ...EMPTY_FILTERS, districts: ['Rolpa'] }).map((item) => item.id),
+    ).toEqual(['1'])
+  })
+
+  it('supports match-all within a facet', () => {
+    const placed = [
+      event({ id: '1', detail: 'Attack in Rolpa', keywords: ['Maoist', 'Rolpa'] }),
+      event({ id: '2', detail: 'Talks in Kathmandu', keywords: ['Maoist', 'dialogue'] }),
+    ]
+    expect(
+      filterEvents(
+        placed,
+        { ...EMPTY_FILTERS, keywords: ['Maoist', 'Rolpa'], match: 'all' },
+      ).map((item) => item.id),
+    ).toEqual(['1'])
+    expect(
+      filterEvents(
+        placed,
+        { ...EMPTY_FILTERS, keywords: ['Maoist', 'Rolpa'], match: 'any' },
+      ).map((item) => item.id),
+    ).toEqual(['1', '2'])
+  })
+})
+
+describe('normalizeFilters', () => {
+  it('coerces legacy single-string filters to arrays', () => {
+    expect(
+      normalizeFilters({ keyword: 'Maoist', category: 'combat', search: 'x' }),
+    ).toEqual({ ...EMPTY_FILTERS, keywords: ['Maoist'], categories: ['combat'], search: 'x' })
+  })
+
+  it('falls back to defaults for garbage', () => {
+    expect(normalizeFilters(undefined)).toEqual(EMPTY_FILTERS)
+    expect(normalizeFilters({ sort: 'bogus', confidence: 'extreme', from: 'nope' })).toEqual(
+      EMPTY_FILTERS,
+    )
+    expect(normalizeFilters({ match: 'all' }).match).toBe('all')
   })
 })
 

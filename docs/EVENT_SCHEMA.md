@@ -15,4 +15,15 @@ Target columns (user format + swarm requirements):
 
 The GitHub Pages app loads the slim CSV at [`public/data/mastersheet.csv`](../public/data/mastersheet.csv) (`Event_ID` through `Organizations` only). The full schema, including `Sources` and `Confidence`, is in [`public/data/mastersheet_with_sources.csv`](../public/data/mastersheet_with_sources.csv). The live parser uses `Event_ID` for card permalinks (`#event-NCT-0001`).
 
+## Appendix — forward-compatible optional columns (not in the sheet)
+
+Parsed by `src/lib/enrichment.ts` when present; absent columns default to empty. Do not add these to the Sheet without maintainer sign-off:
+
+| Column | Type | Notes |
+|--------|------|-------|
+| District | `;`-separated | Canonical district names (`src/lib/districts.ts`); overrides inference |
+| Victims_Killed / Victims_Injured / Victims_Disappeared | non-negative integer | Blank = unknown, never 0-by-default |
+| Perpetrator_Alleged | `;`-separated | Attribution, not verdict |
+| Related_Events | `NCT-…` ids | `;`/`,`/space separated, self excluded, max 12 |
+
 Machine-readable copy: [`event_schema.json`](event_schema.json). Runtime column notes for this repo: [`DATA.md`](../DATA.md).

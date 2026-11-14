@@ -20,6 +20,13 @@ function event(
     keywords: [],
     categories: [],
     organizations: [],
+    sources: [],
+    confidence: null,
+    confidenceNote: '',
+    districtOverride: [],
+    victims: { killed: null, injured: null, disappeared: null },
+    perpetrators: [],
+    relatedIds: [],
     ...partial,
   }
 }
@@ -39,15 +46,15 @@ describe('shouldOfferSuggestions', () => {
 describe('suggestSearch', () => {
   const index = buildSearchIndex([
     event({
-      id: '1',
+      id: 'NCT-0001',
       detail: 'Maoist leader Baburam Bhattarai submitted demands in Kathmandu.',
       keywords: ['Maoist', '40-point demand'],
       year: 1996,
     }),
     event({
-      id: '2',
+      id: 'NCT-0002',
       detail: 'Police crackdown in Rolpa.',
-      keywords: ['Maoist', 'Rolpa'],
+      keywords: ['Maoist'],
       year: 1996,
     }),
   ])
@@ -69,6 +76,18 @@ describe('suggestSearch', () => {
     ).toBe(true)
   })
 
+  it('suggests Event_IDs so typing NCT- narrows to one card', () => {
+    const labels = suggestSearch(index, 'NCT-').map((item) => item.label)
+    expect(labels).toContain('NCT-0001')
+  })
+
+  it('suggests inferred districts by name', () => {
+    const found = suggestSearch(index, 'rolp')
+    expect(found.some((item) => item.label === 'Rolpa' && item.kind === 'district')).toBe(
+      true,
+    )
+  })
+
   it('returns nothing until the query is long enough', () => {
     expect(suggestSearch(index, 'm')).toEqual([])
   })
@@ -77,6 +96,8 @@ describe('suggestSearch', () => {
 describe('suggestionKindLabel', () => {
   it('names each suggestion kind for the listbox', () => {
     expect(suggestionKindLabel('theme')).toBe('Theme')
+    expect(suggestionKindLabel('district')).toBe('District')
+    expect(suggestionKindLabel('event')).toBe('Event ID')
     expect(suggestionKindLabel('term')).toBe('In events')
     expect(suggestionKindLabel('year')).toBe('Year')
   })

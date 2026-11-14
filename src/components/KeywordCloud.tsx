@@ -7,20 +7,21 @@ import { ScrollFade } from './ScrollFade'
 
 type KeywordCloudProps = {
   tags: TagCount[]
-  activeKeyword: string
+  activeKeywords: string[]
   onKeywordClick: (keyword: string) => void
 }
 
 export function KeywordCloud({
   tags,
-  activeKeyword,
+  activeKeywords,
   onKeywordClick,
 }: KeywordCloudProps) {
   const listRef = useRef<HTMLUListElement>(null)
   const overflow = useScrollOverflow(listRef)
+  const activeKey = activeKeywords.join('|').toLowerCase()
 
   useEffect(() => {
-    if (!activeKeyword) return
+    if (activeKey.length === 0) return
     const selected = listRef.current?.querySelector('[aria-pressed="true"]')
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     selected?.scrollIntoView({
@@ -28,7 +29,7 @@ export function KeywordCloud({
       block: 'nearest',
       behavior: reduce ? 'auto' : 'smooth',
     })
-  }, [activeKeyword])
+  }, [activeKey])
 
   if (tags.length === 0) return null
 
@@ -40,7 +41,9 @@ export function KeywordCloud({
         aria-label="Filter by theme"
       >
         {tags.map((tag) => {
-          const pressed = tag.label.toLowerCase() === activeKeyword.toLowerCase()
+          const pressed = activeKeywords.some(
+            (value) => value.toLowerCase() === tag.label.toLowerCase(),
+          )
           return (
             <li key={tag.label.toLowerCase()} className="shrink-0">
               <button

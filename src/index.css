@@ -298,6 +298,14 @@ html.dark.contrast-more {
     select {
       border: 1px solid ButtonText;
     }
+
+    /* Histogram / district bars are decorative spans; keep an outline so
+       relative magnitudes stay perceivable in high-contrast themes. */
+    [aria-label='Events per year'] span[aria-hidden='true'],
+    section[aria-label='Districts'] span[aria-hidden='true'] {
+      forced-color-adjust: auto;
+      outline: 1px solid CanvasText;
+    }
   }
 }
 
@@ -493,5 +501,60 @@ html.dark.contrast-more {
   .year-cue {
     inset-inline-end: 11.5rem;
     bottom: 1.5rem;
+  }
+}
+
+/*
+  Trauma-informed blur. Narratives stay blurred until the card is expanded
+  (or hovered/focused for preview). Respects reduced-motion/transparency
+  by using an instant, opaque treatment there.
+*/
+html.blur-detail article.event-card:not([data-expanded='true']) p {
+  filter: blur(5px);
+  user-select: none;
+}
+
+html.blur-detail article.event-card:not([data-expanded='true']):hover p,
+html.blur-detail article.event-card:not([data-expanded='true']):focus-within p {
+  filter: none;
+  user-select: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.blur-detail article.event-card p {
+    transition: none;
+  }
+}
+
+@media print {
+  .masthead-rule,
+  nav[aria-label='Filter the timeline'],
+  nav[aria-label^='Jump to a year'],
+  #years,
+  .year-cue,
+  button,
+  .event-teaser-fade,
+  .scroll-fade-start,
+  .scroll-fade-end {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+    color: #000;
+  }
+
+  .event-card {
+    border: 1px solid #999;
+    break-inside: avoid;
+  }
+
+  article {
+    scroll-margin-top: 0;
+  }
+
+  p, li {
+    orphans: 3;
+    widows: 3;
   }
 }

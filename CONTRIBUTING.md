@@ -26,9 +26,20 @@ Please do not commit `node_modules/`, `dist/`, or `.env` files.
 | --- | --- |
 | Event text, dates, tags | `public/data/mastersheet.csv` (or the Google Sheet, then re-export — see DATA.md) |
 | Date formats the app should accept | `src/lib/parseDate.ts` **and** `src/lib/parseDate.test.ts` |
-| Fetch / CSV mapping / event ids | `src/lib/loadEvents.ts` (ids feed permalinks; see DATA.md) |
-| Search, filters, year grouping | `src/lib/filterEvents.ts` |
-| Search typeahead (fills `q` only) | `src/lib/searchSuggest.ts`, `src/components/SearchSuggest.tsx` |
+| Fetch / CSV mapping / event ids | `src/lib/loadEvents.ts` (ids feed permalinks; CSV-first with `events.json` fallback; see DATA.md) |
+| Sources & Confidence | `src/lib/provenance.ts`, expanded card in `src/components/EventCard.tsx` |
+| Enrichment columns (District, Victims, Perpetrator, Related) | `src/lib/enrichment.ts`, `src/types/event.ts`, expanded card + `exportView.ts` |
+| Reading prefs (text size, contrast, blur) | `src/lib/reading.ts`, `src/components/ReadingControls.tsx`, boot script in `index.html` |
+| Data lint | `scripts/data-lint.mjs` (`npm run data:lint`), taxonomy notes in `docs/TAXONOMY.md` |
+| Link rot | `scripts/link-check.mjs` (`npm run link:check`), log in `docs/FACTCHECK.md` |
+| Fact-check review queue | `scripts/factcheck-candidates.mjs`, log in `docs/FACTCHECK.md` |
+| Archive overview / histogram | `src/components/ArchiveOverview.tsx`, `src/components/AboutArchive.tsx` |
+| Search, filters, year grouping | `src/lib/filterEvents.ts` (OR-within/AND-across, `?match=all` option, sort, YYYY-MM range, districts; `normalizeFilters` migrates legacy shapes) |
+| Districts (inferred) | `src/lib/districts.ts`, `src/lib/eventGeography.ts`, `src/components/DistrictOverview.tsx` |
+| Export filtered view | `src/lib/exportView.ts` (CSV/JSON download in FilterBar) |
+| Year share pages | `scripts/year-pages.mjs` (runs in `npm run build`, appends `/year/YYYY/` to sitemap) |
+| Saved views (localStorage) | `src/lib/savedViews.ts`, `src/components/FilterBar.tsx` |
+| Search typeahead (fills `q` only) | `src/lib/searchSuggest.ts`, `src/components/SearchSuggest.tsx` (Event_ID + district + tag + year + term) |
 | Search highlighting (`<mark>` text nodes) | `src/lib/highlight.ts` |
 | Card teasers (line/tag limits) | `src/lib/eventCardTeaser.ts`, `src/components/EventCard.tsx` |
 | Keyword chip cap (top 16) | `KEYWORD_CLOUD_LIMIT` in `src/lib/parseTags.ts` |
@@ -36,7 +47,7 @@ Please do not commit `node_modules/`, `dist/`, or `.env` files.
 | Card permalinks | `src/lib/eventAnchor.ts`, `src/components/EventCard.tsx` |
 | Copy / share confirmations | `src/lib/toast.ts`, `src/components/Toast.tsx` |
 | Light / dark appearance | `src/lib/appearance.ts`, `src/index.css`, boot script in `index.html` |
-| Text size and high contrast | `src/lib/reading.ts`, `src/components/ReadingControls.tsx` |
+| Text size, high contrast, and graphic-detail blur | `src/lib/reading.ts`, `src/components/ReadingControls.tsx` |
 | Site name, OG substitution | `src/lib/site.ts`, `index.html`, `vite.site-url.ts` |
 | Layout and theming | `src/components/*`, `src/index.css` |
 | Docs | `README.md`, `DATA.md`, this file |

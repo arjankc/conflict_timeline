@@ -1,4 +1,5 @@
 import type { ConflictEvent } from '../types/event'
+import { effectiveDistricts } from './eventGeography'
 
 export type EventSearchIndex = {
   /** Lowercased Event_ID, dates, narrative, and tags. Built once per event object. */
@@ -6,6 +7,7 @@ export type EventSearchIndex = {
   keywords: Set<string>
   categories: Set<string>
   organizations: Set<string>
+  districts: Set<string>
 }
 
 const cache = new WeakMap<ConflictEvent, EventSearchIndex>()
@@ -17,6 +19,7 @@ function lowerSet(values: string[]): Set<string> {
 }
 
 function buildIndex(event: ConflictEvent): EventSearchIndex {
+  const districts = effectiveDistricts(event)
   return {
     searchText: [
       event.id,
@@ -27,12 +30,18 @@ function buildIndex(event: ConflictEvent): EventSearchIndex {
       event.keywords.join('\n'),
       event.categories.join('\n'),
       event.organizations.join('\n'),
+      (event.perpetrators ?? []).join('\n'),
+      event.confidence ?? '',
+      event.confidenceNote ?? '',
+      (event.sources ?? []).map((source) => source.citation).join('\n'),
+      districts.join('\n'),
     ]
       .join('\n')
       .toLowerCase(),
     keywords: lowerSet(event.keywords),
     categories: lowerSet(event.categories),
     organizations: lowerSet(event.organizations),
+    districts: lowerSet(districts),
   }
 }
 

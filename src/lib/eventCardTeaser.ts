@@ -15,7 +15,7 @@ export const MOBILE_TAG_LIMIT = 3
 export const DESKTOP_TAG_LIMIT = 5
 export const DESKTOP_TEASER_MIN_WIDTH_PX = 640
 
-export type MetaPillKind = 'keyword' | 'category' | 'organization'
+export type MetaPillKind = 'keyword' | 'category' | 'organization' | 'district'
 
 export type MetaPill = {
   kind: MetaPillKind
@@ -26,11 +26,13 @@ export function metadataPills(event: {
   keywords: string[]
   categories: string[]
   organizations: string[]
+  districts?: string[]
 }): MetaPill[] {
   return [
     ...event.keywords.map((label) => ({ kind: 'keyword' as const, label })),
     ...event.categories.map((label) => ({ kind: 'category' as const, label })),
     ...event.organizations.map((label) => ({ kind: 'organization' as const, label })),
+    ...(event.districts ?? []).map((label) => ({ kind: 'district' as const, label })),
   ]
 }
 

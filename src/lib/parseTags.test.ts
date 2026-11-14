@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { KEYWORD_CLOUD_LIMIT, countTags, parseOrganizations, parseTags, uniqueTags } from './parseTags'
+import { KEYWORD_CLOUD_LIMIT, canonicalKeyword, countTags, parseOrganizations, parseTags, uniqueTags } from './parseTags'
 
 describe('parseTags', () => {
   it('splits, trims, and drops empty fragments', () => {
@@ -12,6 +12,11 @@ describe('parseTags', () => {
 
   it('de-duplicates case-insensitively while keeping first casing', () => {
     expect(parseTags('State, state, STATE')).toEqual(['State'])
+  })
+
+  it('canonicalizes trailing-punctuation variants', () => {
+    expect(parseTags('Maoist/, Maoist., Maoist')).toEqual(['Maoist'])
+    expect(canonicalKeyword('Nepal police')).toBe('police')
   })
 
   it('returns an empty array for missing values', () => {
@@ -31,6 +36,12 @@ describe('parseOrganizations', () => {
       'Ministry of Law, Justice and Parliamentary Affairs',
       'CIEDP',
     ])
+  })
+
+  it('falls back to commas for legacy rows without semicolons', () => {
+    expect(
+      parseOrganizations('Royal Nepal Army, Nepal Army, Armed Police Force'),
+    ).toEqual(['Royal Nepal Army', 'Nepal Army', 'Armed Police Force'])
   })
 })
 

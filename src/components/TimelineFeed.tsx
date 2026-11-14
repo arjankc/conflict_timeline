@@ -24,12 +24,15 @@ const OVERSCAN_PX = 720
 type TimelineFeedProps = {
   groups: YearGroup[]
   search?: string
-  activeKeyword: string
-  activeCategory: string
-  activeOrganization: string
+  activeKeywords: string[]
+  activeCategories: string[]
+  activeOrganizations: string[]
+  activeDistricts: string[]
+  compact?: boolean
   onKeywordClick: (keyword: string) => void
   onCategoryClick: (category: string) => void
   onOrganizationClick: (organization: string) => void
+  onDistrictClick: (district: string) => void
   onReset?: () => void
   /** `event-NCT-0001` or `year-1996`, with a sequence for repeat requests. */
   anchorRequest?: { id: string; sequence: number }
@@ -76,12 +79,15 @@ function listDocumentTop(node: HTMLElement): number {
 export function TimelineFeed({
   groups,
   search = '',
-  activeKeyword,
-  activeCategory,
-  activeOrganization,
+  activeKeywords,
+  activeCategories,
+  activeOrganizations,
+  activeDistricts,
+  compact = false,
   onKeywordClick,
   onCategoryClick,
   onOrganizationClick,
+  onDistrictClick,
   onReset,
   anchorRequest,
   onYearInView,
@@ -116,12 +122,15 @@ export function TimelineFeed({
       anchorRequest={anchorRequest}
       onYearInView={onYearInView}
       search={search}
-      activeKeyword={activeKeyword}
-      activeCategory={activeCategory}
-      activeOrganization={activeOrganization}
+      activeKeywords={activeKeywords}
+      activeCategories={activeCategories}
+      activeOrganizations={activeOrganizations}
+      activeDistricts={activeDistricts}
+      compact={compact}
       onKeywordClick={onKeywordClick}
       onCategoryClick={onCategoryClick}
       onOrganizationClick={onOrganizationClick}
+      onDistrictClick={onDistrictClick}
     />
   )
 }
@@ -132,24 +141,30 @@ function WindowedRows({
   anchorRequest,
   onYearInView,
   search,
-  activeKeyword,
-  activeCategory,
-  activeOrganization,
+  activeKeywords,
+  activeCategories,
+  activeOrganizations,
+  activeDistricts,
+  compact,
   onKeywordClick,
   onCategoryClick,
   onOrganizationClick,
+  onDistrictClick,
 }: {
   rows: TimelineRow[]
   indexByKey: Map<string, number>
   anchorRequest?: { id: string; sequence: number }
   onYearInView?: (year: number | null) => void
   search: string
-  activeKeyword: string
-  activeCategory: string
-  activeOrganization: string
+  activeKeywords: string[]
+  activeCategories: string[]
+  activeOrganizations: string[]
+  activeDistricts: string[]
+  compact?: boolean
   onKeywordClick: (keyword: string) => void
   onCategoryClick: (category: string) => void
   onOrganizationClick: (organization: string) => void
+  onDistrictClick: (district: string) => void
 }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const heightsRef = useRef(new Map<string, number>())
@@ -324,12 +339,15 @@ function WindowedRows({
             <TimelineRowView
               row={row}
               search={search}
-              activeKeyword={activeKeyword}
-              activeCategory={activeCategory}
-              activeOrganization={activeOrganization}
+              activeKeywords={activeKeywords}
+              activeCategories={activeCategories}
+              activeOrganizations={activeOrganizations}
+              activeDistricts={activeDistricts}
+              compact={compact}
               onKeywordClick={onKeywordClick}
               onCategoryClick={onCategoryClick}
               onOrganizationClick={onOrganizationClick}
+              onDistrictClick={onDistrictClick}
               isFirstRow={index === 0}
             />
           </MeasuredRow>
@@ -374,22 +392,28 @@ function MeasuredRow({
 function TimelineRowView({
   row,
   search,
-  activeKeyword,
-  activeCategory,
-  activeOrganization,
+  activeKeywords,
+  activeCategories,
+  activeOrganizations,
+  activeDistricts,
+  compact,
   onKeywordClick,
   onCategoryClick,
   onOrganizationClick,
+  onDistrictClick,
   isFirstRow,
 }: {
   row: TimelineRow
   search: string
-  activeKeyword: string
-  activeCategory: string
-  activeOrganization: string
+  activeKeywords: string[]
+  activeCategories: string[]
+  activeOrganizations: string[]
+  activeDistricts: string[]
+  compact?: boolean
   onKeywordClick: (keyword: string) => void
   onCategoryClick: (category: string) => void
   onOrganizationClick: (organization: string) => void
+  onDistrictClick: (district: string) => void
   isFirstRow: boolean
 }) {
   if (row.kind === 'year') {
@@ -421,13 +445,16 @@ function TimelineRowView({
       <EventCard
         event={row.event}
         search={search}
-        activeKeyword={activeKeyword}
-        activeCategory={activeCategory}
-        activeOrganization={activeOrganization}
+        activeKeywords={activeKeywords}
+        activeCategories={activeCategories}
+        activeOrganizations={activeOrganizations}
+        activeDistricts={activeDistricts}
+        compact={compact}
         dateHeadingLevel={row.dateHeadingLevel}
         onKeywordClick={onKeywordClick}
         onCategoryClick={onCategoryClick}
         onOrganizationClick={onOrganizationClick}
+        onDistrictClick={onDistrictClick}
       />
     </div>
   )

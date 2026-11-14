@@ -15,12 +15,15 @@ type ChronologyExplorerProps = {
   events: ConflictEvent[]
   focusYear?: number
   search?: string
-  activeKeyword: string
-  activeCategory: string
-  activeOrganization: string
+  activeKeywords: string[]
+  activeCategories: string[]
+  activeOrganizations: string[]
+  activeDistricts: string[]
+  compact?: boolean
   onKeywordClick: (keyword: string) => void
   onCategoryClick: (category: string) => void
   onOrganizationClick: (organization: string) => void
+  onDistrictClick: (district: string) => void
   onYearChange?: (year: number | null) => void
   onReset?: () => void
 }
@@ -29,12 +32,15 @@ export function ChronologyExplorer({
   events,
   focusYear,
   search = '',
-  activeKeyword,
-  activeCategory,
-  activeOrganization,
+  activeKeywords,
+  activeCategories,
+  activeOrganizations,
+  activeDistricts,
+  compact = false,
   onKeywordClick,
   onCategoryClick,
   onOrganizationClick,
+  onDistrictClick,
   onYearChange,
   onReset,
 }: ChronologyExplorerProps) {
@@ -187,12 +193,15 @@ export function ChronologyExplorer({
         <TimelineFeed
           groups={groups}
           search={search}
-          activeKeyword={activeKeyword}
-          activeCategory={activeCategory}
-          activeOrganization={activeOrganization}
+          activeKeywords={activeKeywords}
+          activeCategories={activeCategories}
+          activeOrganizations={activeOrganizations}
+          activeDistricts={activeDistricts}
+          compact={compact}
           onKeywordClick={onKeywordClick}
           onCategoryClick={onCategoryClick}
           onOrganizationClick={onOrganizationClick}
+          onDistrictClick={onDistrictClick}
           onReset={onReset}
           anchorRequest={anchorRequest}
           onYearInView={onYearInView}

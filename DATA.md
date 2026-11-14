@@ -2,13 +2,27 @@
 
 The Nepal Conflict Timeline reads a CSV at runtime. There is no database server. Google Sheets remains the editorial workspace; the committed CSV is what the website actually loads.
 
+Fact baseline: armed conflict 13 Feb 1996 – 21 Nov 2006 (Comprehensive Peace Accord).
+Dataset spans 1 Nov 1995 (NCT-0001 Operation Romeo) to 21 May 2026 (NCT-2150),
+**2150** rows: ~1 pre-conflict, ~958 conflict-era (1996–2006), ~1191
+transitional-justice aftermath (2007–2026).
+
 ## File location
 
 | Environment | Source |
 | --- | --- |
 | Default | [`public/data/mastersheet.csv`](public/data/mastersheet.csv) (**2150** events) |
 | Archive (not loaded) | [`public/data/mastersheet_with_sources.csv`](public/data/mastersheet_with_sources.csv) |
-| Override | `VITE_DATA_URL` (see `.env.example`) |
+| Offline mirror (build artifact) | `dist/data/events.json` (raw row mirror for field use; app still loads CSV first) |
+| Override | `VITE_DATA_URL` (see `.env.example`). When unset and the CSV fetch fails, the app falls back to `data/events.json` (raw row mirror, no Sources/Confidence) — useful for field/captive-portal use. |
+
+See [`docs/CHANGELOG.md`](docs/CHANGELOG.md) for data/app history.
+
+### Offline and field use
+
+- `npm run build` writes `dist/data/events.json` (2150 raw rows) alongside the 32 per-year share pages.
+- The runtime still fetches `mastersheet.csv` first (localStorage + `If-None-Match`); `events.json` is a fallback only, so provenance columns stay authoritative.
+- For fully offline work, use the filtered CSV/JSON download in the filter bar.
 
 `VITE_DATA_URL` is a documented hook for a later published Google Sheets CSV endpoint. This version does not fetch Sheets unless you set that variable at build time.
 
@@ -29,11 +43,17 @@ The shipped runtime CSV starts with a stable `Event_ID` (`NCT-0001` … `NCT-215
 | Event_ID | string | Required first column. Format `NCT-` + four-digit pad. Romeo (rich HRW row) is `NCT-0001`. Never reuse an id. Card permalinks use this value |
 | Date | string | Mixed human formats; see below |
 | Detail | string | Plain text event narrative. Rendered as text, never as HTML |
-| Keywords | comma-separated string | Theme tags; about **502** unique values in the current sheet |
+| Keywords | comma-separated string | Theme tags; ~**500** unique values after canonicalization (raw 502; see `docs/TAXONOMY.md`) |
 | Category | comma-separated string | Populated on every row (**13** values: `civil_society`, `combat`, `detention`, `disappearance`, `displacement`, `killing`, `media`, `other`, `peace_process`, `policy`, `protest`, `sexual_violence`, `transitional_justice`) |
-| Organizations | semicolon-separated string | Populated on **899** of **2150** rows (**79** unique values); commas inside organization names are preserved |
+| Organizations | semicolon-separated string (legacy comma fallback) | Populated on **899** of **2150** rows. Cells with `;` split on semicolons (comma-bearing names preserved); legacy cells without `;` split on commas (`Royal Nepal Army, Nepal Army` → two orgs). See `docs/TAXONOMY.md` |
+| Sources | `;`-separated string | Parsed from the archival CSV into citations + extracted URLs (`src/lib/provenance.ts`). Shown in the expanded card under “Sources & confidence”. Empty in the slim runtime CSV |
+| Confidence | `high` / `medium` / `low` + rationale | Parsed into level + note. Filterable via `?confidence=`. Current archival split: ~1167 high / 351 medium / 632 low |
+| District | `;`-separated string, optional | **Not in current sheet.** When present, canonicalized (`src/lib/districts.ts`) and overrides inference. Shown in expanded card. |
+| Victims_Killed / Victims_Injured / Victims_Disappeared | non-negative integer, optional | **Not in current sheet.** Null when blank; never 0-by-default. Shown in expanded card; included in CSV/JSON export. |
+| Perpetrator_Alleged | `;`-separated string, optional | **Not in current sheet.** Attribution, not verdict. Searchable; shown in expanded card. |
+| Related_Events | `NCT-…` ids, optional | **Not in current sheet.** `;`/`,`/space separated, self excluded, max 12. Rendered as `#event-NCT-…` links. |
 
-An archival export with the same rows plus `Sources` and `Confidence` lives at [`public/data/mastersheet_with_sources.csv`](public/data/mastersheet_with_sources.csv). The app does not fetch that file; extra columns are ignored if it is parsed.
+An archival export with the same rows plus `Sources` and `Confidence` lives at [`public/data/mastersheet_with_sources.csv`](public/data/mastersheet_with_sources.csv). The app parses those columns when present and ignores them when absent, so both CSVs load.
 
 Rows without both a Date and a Detail are dropped.
 
@@ -53,17 +73,22 @@ The sheet does not use one date format. `parseDate` accepts:
 
 Two-digit years: `00`–`49` → `2000`–`2049`; `50`–`99` → `1950`–`1999`. That maps this archive’s `95` → `1995` and `00`/`01` → `2000`/`2001`.
 
-Unrecognised dates keep the original label and sort last. The parser does not rewrite the CSV. Known editorial issues (a date that disagrees with the narrative, typos in keywords) stay in the sheet until editors fix them.
+Unrecognised dates keep the original label and sort last. The parser does not rewrite the CSV. Known editorial issues stay in the sheet until editors fix them:
+
+- NCT-0002: `Date` is `Between 1996` and `Detail` starts `and 2006, …` — a comma in “Between 1996, and 2006” split the export across columns. Read as 1996–2006 overview.
+- NCT-0008 vs NCT-0009: seed Date `March 2, 1996` conflicts with Scroll.in reporting 26 Feb 1996 for Dil Bahadur Ramtel — flagged, not auto-changed.
 
 Display labels use day-month-year (`2 March 1996`), which is the usual form in Nepali and British English archives.
 
 ## Metadata
 
-Keywords and Category are split on commas; Organizations are split on semicolons so names can still contain commas. Values are trimmed and de-duplicated case-insensitively. Filter dropdowns hide themselves when a column has no values. Category and Organizations now have values, so those filters appear alongside keyword pills.
+Keywords and Category are split on commas; Organizations split on semicolons when present and fall back to commas for legacy rows. Values are trimmed, canonicalized (`Maoist/` → `Maoist`, `Nepal police` → `police`; see `docs/TAXONOMY.md`), and de-duplicated case-insensitively. Filter dropdowns hide themselves when a column has no values. Category and Organizations now have values, so those filters appear alongside keyword pills.
 
-The filter bar shows the **16** most frequent keywords (`KEYWORD_CLOUD_LIMIT` in `src/lib/parseTags.ts`). The current sheet has about **502** unique keywords; the rest still appear on event cards.
+Districts are **inferred**, not a sheet column (see `src/lib/districts.ts`, `src/lib/eventGeography.ts`): keyword exact/alias match first (incl. `Kavre`→`Kavrepalanchok`, cities `Nepalgunj`→`Banke`), else word-boundary match in Detail. 75 legacy districts matching sheet usage (`Nawalparasi`, `Rukum` pre-split). Filter with `?district=Rolpa,Kathmandu`. A sheet `District` column + true SVG choropleth would replace inference; canonical names stay.
 
-Search (`?q=`) is case-insensitive and matches **Event_ID**, **Detail**, the raw date, the display date label, the year, and every tag field. The index is built once per loaded event. Typeahead suggestions come from an in-memory index of those tags, years, and narrative tokens of four or more letters. Picking a suggestion fills `q` only; it does not set `tag` or `year`.
+The filter bar shows the **16** most frequent keywords (`KEYWORD_CLOUD_LIMIT` in `src/lib/parseTags.ts`). “Browse all themes” exposes the full ~500-keyword index with search. Facets combine AND-across; within a facet the default is OR (`any`), with `?match=all` requiring every selected value. Run `npm run data:lint` for duplicate ids, keyword variants, legacy org cells, and confidence coverage.
+
+Search (`?q=`) is case-insensitive and matches **Event_ID**, **Detail**, the raw date, the display date label, the year, tags, alleged perpetrators, confidence notes, source citations, and inferred districts. The index is built once per loaded event. Typeahead suggestions cover Event_IDs (type `NCT-` to jump to one card), districts, tags, years, and narrative tokens of four or more letters. Picking a suggestion fills `q` only; it does not set `tag` or `year`.
 
 ## Event identifiers
 
@@ -93,3 +118,9 @@ If Sheets later adds an official published-CSV link, set `VITE_DATA_URL` to that
 ## License and provenance
 
 The application code is MIT licensed. The event texts are compiled research. Do not assume they are MIT. Record the sheet’s source, editors, and any agreed data license here when maintainers confirm it.
+
+## Fact-checking
+
+- `npm run link:check` verifies every `Sources` URL and maps failures to `Event_ID`s (see `docs/FACTCHECK.md` for the latest run: 104/116 ok, rest blocked/dead with remediation notes).
+- `npm run data:lint` asserts every hardcoded claim in these docs (row counts, categories, confidence split, span, keyword count) — update docs and script together on mismatch.
+- Research claims (tolls, dates, names) are reviewed by editors against cited sources per the protocol in `docs/FACTCHECK.md`. Never silently rewrite narratives; fix the Sheet and re-export.

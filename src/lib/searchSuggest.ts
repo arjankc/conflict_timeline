@@ -1,11 +1,14 @@
 import type { ConflictEvent } from '../types/event'
+import { effectiveDistricts } from './eventGeography'
 
 export type SuggestionKind =
   | 'theme'
   | 'category'
   | 'organization'
+  | 'district'
   | 'year'
   | 'term'
+  | 'event'
 
 export type SearchSuggestion = {
   id: string
@@ -54,19 +57,23 @@ const STOPWORDS = new Set([
 ])
 
 const KIND_BOOST: Record<SuggestionKind, number> = {
+  event: 8,
   year: 6,
   theme: 5,
+  district: 5,
   organization: 4,
   category: 4,
   term: 1,
 }
 
 const KIND_RANK: Record<SuggestionKind, number> = {
-  theme: 0,
-  organization: 1,
-  category: 2,
-  year: 3,
-  term: 4,
+  event: 0,
+  theme: 1,
+  district: 2,
+  organization: 3,
+  category: 4,
+  year: 5,
+  term: 6,
 }
 
 function addTerm(
@@ -107,9 +114,11 @@ export function buildSearchIndex(events: ConflictEvent[]): SearchSuggestion[] {
   const map = new Map<string, SearchSuggestion>()
 
   for (const event of events) {
+    addTerm(map, event.id.toUpperCase(), 'event')
     for (const tag of event.keywords) addTerm(map, tag, 'theme')
     for (const tag of event.categories) addTerm(map, tag, 'category')
     for (const tag of event.organizations) addTerm(map, tag, 'organization')
+    for (const district of effectiveDistricts(event)) addTerm(map, district, 'district')
     if (event.year != null) addTerm(map, String(event.year), 'year')
     for (const term of detailTerms(event.detail)) addTerm(map, term, 'term')
   }
@@ -163,6 +172,8 @@ export function suggestionKindLabel(kind: SuggestionKind): string {
   if (kind === 'theme') return 'Theme'
   if (kind === 'category') return 'Category'
   if (kind === 'organization') return 'Organization'
+  if (kind === 'district') return 'District'
   if (kind === 'year') return 'Year'
+  if (kind === 'event') return 'Event ID'
   return 'In events'
 }

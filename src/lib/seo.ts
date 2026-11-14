@@ -11,7 +11,14 @@ export function pageTitle(
   year?: number,
 ): string {
   const parts: string[] = []
-  if (filters.keyword) parts.push(filters.keyword)
+  if (filters.keywords.length > 0) parts.push(filters.keywords.slice(0, 2).join(' + '))
+  if (filters.categories.length > 0) parts.push(filters.categories.slice(0, 2).join(' + '))
+  if (filters.organizations.length > 0) parts.push(filters.organizations.slice(0, 2).join(' + '))
+  if (filters.districts.length > 0) parts.push(filters.districts.slice(0, 2).join(' + '))
+  if (filters.confidence) parts.push(`${filters.confidence} confidence`)
+  if (filters.from || filters.to) parts.push(`${filters.from || '…'}–${filters.to || '…'}`)
+  if (filters.sort !== 'chronological') parts.push(filters.sort)
+  if (filters.match !== 'any') parts.push('match all')
   if (year != null) parts.push(String(year))
   if (filters.search.trim()) parts.push(`“${filters.search.trim()}”`)
   return parts.length > 0 ? `${parts.join(' · ')} · ${SITE_NAME}` : SITE_NAME
@@ -24,7 +31,14 @@ export function pageDescription(
 ): string {
   const bits: string[] = []
   if (year != null) bits.push(`Year ${year}`)
-  if (filters.keyword) bits.push(`theme “${filters.keyword}”`)
+  if (filters.keywords.length > 0) bits.push(`themes “${filters.keywords.slice(0, 3).join(', ')}”`)
+  if (filters.categories.length > 0) bits.push(`categories “${filters.categories.slice(0, 3).join(', ')}”`)
+  if (filters.organizations.length > 0) bits.push(`organizations “${filters.organizations.slice(0, 3).join(', ')}”`)
+  if (filters.districts.length > 0) bits.push(`districts “${filters.districts.slice(0, 3).join(', ')}”`)
+  if (filters.confidence) bits.push(`${filters.confidence} confidence`)
+  if (filters.from || filters.to) bits.push(`date ${filters.from || '…'} to ${filters.to || '…'}`)
+  if (filters.sort !== 'chronological') bits.push(`sorted ${filters.sort}`)
+  if (filters.match !== 'any') bits.push('facets must all match')
   if (filters.search.trim()) bits.push(`search “${filters.search.trim()}”`)
   if (bits.length === 0) return SITE_DESCRIPTION
   const count =

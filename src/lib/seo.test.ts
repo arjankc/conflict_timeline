@@ -9,7 +9,7 @@ describe('pageTitle', () => {
 
   it('prepends theme, year, and search', () => {
     expect(
-      pageTitle({ ...EMPTY_FILTERS, keyword: 'Maoist', search: 'Rolpa' }, 2001),
+      pageTitle({ ...EMPTY_FILTERS, keywords: ['Maoist'], search: 'Rolpa' }, 2001),
     ).toBe('Maoist · 2001 · “Rolpa” · Nepal Conflict Timeline')
   })
 })
@@ -23,7 +23,7 @@ describe('shareText', () => {
 describe('pageDescription', () => {
   it('mentions active filters', () => {
     expect(
-      pageDescription({ ...EMPTY_FILTERS, keyword: 'Maoist' }, 2001, 12),
-    ).toContain('theme “Maoist”')
+      pageDescription({ ...EMPTY_FILTERS, keywords: ['Maoist'] }, 2001, 12),
+    ).toContain('Maoist')
   })
 })

@@ -14,6 +14,13 @@ function event(
     keywords: [],
     categories: [],
     organizations: [],
+    sources: [],
+    confidence: null,
+    confidenceNote: '',
+    districtOverride: [],
+    victims: { killed: null, injured: null, disappeared: null },
+    perpetrators: [],
+    relatedIds: [],
     ...partial,
   }
 }

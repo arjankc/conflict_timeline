@@ -1,6 +1,6 @@
 # Nepal Conflict Timeline
 
-An interactive, mobile-first digital archive of Nepal's internal armed conflict (1996–2006). The timeline is intended for transitional justice civil society: a chronological card explorer of events, filterable metadata, and a year-density navigator.
+An interactive, mobile-first digital archive of Nepal's internal armed conflict (1996–2006) and its transitional-justice aftermath through 2026. The timeline is intended for transitional justice civil society: a chronological card explorer of events, filterable metadata, and a year-density navigator. Dataset spans 1995 (Operation Romeo) to May 2026, 2150 events.
 
 This is an open-source project. Event data currently ships as a static CSV exported from a Google Sheet.
 
@@ -8,9 +8,16 @@ This is an open-source project. Event data currently ships as a static CSV expor
 
 - Chronological card explorer grouped by year and month
 - Event cards with a calendar date stack, a clamped narrative teaser (expand in place), and metadata pills
+- Expanded cards show Sources & confidence, a copyable citation, plus victims / alleged perpetrators / related events when the sheet provides them (forward-compatible optional columns)
+- Reading toolbar: System → Light → Dark, Default → Large → Larger text, high contrast, and Reduce graphic detail blur (persisted, unblurs on expand/hover)
 - Per-card permalink (link icon copies `#event-…`; a toast confirms; the feed does not jump)
 - Side year navigator with a month-density heatmap; click or drag to scrub
-- Theme chips (most frequent 16) and search with typeahead, shareable URL filters (`?q=&tag=&year=`), and highlighted matches
+- Theme chips (most frequent 16) plus a searchable “Browse all themes” index, confidence filter, and shareable URL filters (`?q=&tag=&year=&confidence=`)
+- Multi-select categories/organizations/themes/districts (OR within, AND across; optional `?match=all` for AND-within), date range (`from`/`to` YYYY-MM), sort (oldest/newest/by category), density toggle, and browser-local saved views (legacy views auto-migrated)
+- District view (inferred from keywords/detail — 75 legacy districts, top-24 ranking with counts), per-year share pages (`/year/YYYY/` with year meta + sitemap), filtered CSV/JSON export (incl. enrichment columns)
+- Offline mirror `dist/data/events.json` (raw row mirror, generated at build) doubles as a CSV-fetch fallback for field use; enrichment columns + `docs/CHANGELOG.md`
+- Typeahead covers Event_IDs (`NCT-…` jumps to one card), districts, tags, years, terms; `data:lint` reports district keyword coverage (~56%)
+- Archive overview: event counts, source coverage, confidence split, and a per-year histogram that jumps to a year
 - Light, dark, system appearance, text size, and high contrast, remembered in the browser
 - Share control (Web Share on supported devices, copy-link fallback)
 - Open Graph / Twitter preview cards, JSON-LD, robots.txt, and sitemap
@@ -33,8 +40,10 @@ npm run dev
 The app is served by Vite. Open the printed local URL. Because the production `base` path is `/conflict_timeline/`, Vite still resolves it correctly in development.
 
 ```bash
-npm test        # parsers, filters, search, permalinks, reading prefs, teasers
-npm run build   # typecheck + production bundle
+npm test        # parsers, filters, search, permalinks, reading prefs, teasers, provenance
+npm run data:lint # CSV structure, keyword variants, org cells, confidence coverage, doc-claim assertions
+npm run link:check # Sources URL health (report only; --strict fails on dead links)
+npm run build   # typecheck + production bundle (year pages + events.json)
 npm run preview # serve the production build locally
 npm run lint    # oxlint
 ```
@@ -45,14 +54,14 @@ Copy [`.env.example`](.env.example) to `.env` only if you need `VITE_DATA_URL` o
 
 The runtime dataset is [`public/data/mastersheet.csv`](public/data/mastersheet.csv). See [DATA.md](DATA.md) for the column schema, date formats, event IDs (used in permalinks), and how to refresh the file from Google Sheets.
 
-The current sheet has **2150 events** with a stable `Event_ID` (`NCT-0001` … `NCT-2150`; Romeo is `NCT-0001`). Card permalinks are `#event-NCT-0001`. Keywords, Category, and Organizations are populated (Category on every row; Organizations on about 900). Search, keyword pills, category and organization filters, typeahead, and the year navigator all work against this data. The filter bar shows the 16 most frequent keywords; the rest remain on event cards. An archival CSV with Sources and Confidence is at [`public/data/mastersheet_with_sources.csv`](public/data/mastersheet_with_sources.csv); the live app does not load it. Schema: [`docs/EVENT_SCHEMA.md`](docs/EVENT_SCHEMA.md).
+The current sheet has **2150 events** with a stable `Event_ID` (`NCT-0001` … `NCT-2150`; Romeo is `NCT-0001`). Card permalinks are `#event-NCT-0001`. Keywords, Category, and Organizations are populated (Category on every row; Organizations on about 900). Search, keyword pills, category, organization, and confidence filters, typeahead, and the year navigator all work against this data. The filter bar shows the 16 most frequent keywords; “Browse all themes” exposes the full ~500-keyword index. An archival CSV with Sources and Confidence is at [`public/data/mastersheet_with_sources.csv`](public/data/mastersheet_with_sources.csv); the app parses those columns when present. Schema: [`docs/EVENT_SCHEMA.md`](docs/EVENT_SCHEMA.md); taxonomy notes: [`docs/TAXONOMY.md`](docs/TAXONOMY.md).
 
 ## Architecture
 
 ```
-public/data/mastersheet.csv  →  one fetch (localStorage + If-None-Match)
+public/data/mastersheet.csv  →  one fetch (localStorage + If-None-Match; events.json fallback offline)
                              →  PapaParse in batches of 80
-                             →  parseDate / parseTags / Event_ID
+                             →  parseDate / parseTags / provenance / enrichment / Event_ID
                              →  chronological ConflictEvent[]
                              →  indexed filter (no re-parse on keystroke)
                              →  windowed ChronologyExplorer
@@ -60,37 +69,46 @@ public/data/mastersheet.csv  →  one fetch (localStorage + If-None-Match)
 
 There is no backend and no React Router. The product is a single page so it can later be wrapped with Capacitor without a routing rewrite. Fetch URLs are relative (`import.meta.env.BASE_URL`) on purpose.
 
-The header paints before the CSV is parsed. Rows are published in batches so the first events appear without waiting for the full sheet. A `localStorage` copy plus `If-None-Match` avoids a second download when the file is unchanged, and the page only starts one fetch. The feed mounts a window of rows around the scroll position (custom windowing, no list library) so 2,000 cards are not in the DOM at once. Search is debounced and matched against an index built once per event (`Event_ID`, date, detail, keywords, category, organizations).
+The header paints before the CSV is parsed. Rows are published in batches so the first events appear without waiting for the full sheet. A `localStorage` copy plus `If-None-Match` avoids a second download when the file is unchanged, and the page only starts one fetch (falling back to `data/events.json` offline). The feed mounts a window of rows around the scroll position (custom windowing, no list library) so 2,000 cards are not in the DOM at once. Search is debounced and matched against an index built once per event (`Event_ID`, date, detail, keywords, category, organizations, perpetrators, districts).
 
 ### Source map
 
 | Path | Role |
 | --- | --- |
-| [`src/lib/loadEvents.ts`](src/lib/loadEvents.ts) | One CSV fetch, local cache, batched PapaParse |
+| [`src/lib/loadEvents.ts`](src/lib/loadEvents.ts) | One CSV fetch (events.json fallback), local cache, batched PapaParse |
 | [`src/lib/parseDate.ts`](src/lib/parseDate.ts) | Normalize mixed date strings; `M/D/YY` in, `2 March 1996` out |
-| [`src/lib/parseTags.ts`](src/lib/parseTags.ts) | Split metadata fields into filterable tags |
-| [`src/lib/filterEvents.ts`](src/lib/filterEvents.ts) | Search (narrative, date, year, tags), filters, year/month grouping |
-| [`src/lib/searchSuggest.ts`](src/lib/searchSuggest.ts) | In-memory typeahead index (no search server) |
+| [`src/lib/parseTags.ts`](src/lib/parseTags.ts) | Split metadata fields into filterable tags (canonicalized) |
+| [`src/lib/provenance.ts`](src/lib/provenance.ts) | Parse `Sources` + `Confidence` |
+| [`src/lib/enrichment.ts`](src/lib/enrichment.ts) | Parse optional `District`/victims/perpetrator/related columns |
+| [`src/lib/districts.ts`](src/lib/districts.ts) | District gazetteer + aliases + provinces |
+| [`src/lib/eventGeography.ts`](src/lib/eventGeography.ts) | Infer districts (explicit override wins) |
+| [`src/lib/filterEvents.ts`](src/lib/filterEvents.ts) | Search (narrative, date, year, tags, districts), multi-facets, sort, range, `normalizeFilters` |
+| [`src/lib/searchSuggest.ts`](src/lib/searchSuggest.ts) | In-memory typeahead index: Event_ID, district, tag, year, term (no search server) |
 | [`src/lib/eventCardTeaser.ts`](src/lib/eventCardTeaser.ts) | Collapsed card: line/tag limits |
-| [`src/lib/urlState.ts`](src/lib/urlState.ts) | `?q=&tag=&year=` (filters) plus preserved `#hash` |
+| [`src/lib/urlState.ts`](src/lib/urlState.ts) | `?q=&tag=&category=&org=&district=&confidence=&sort=&match=&from=&to=&year=` (filters) plus preserved `#hash` |
 | [`src/lib/eventAnchor.ts`](src/lib/eventAnchor.ts) | Card element ids and filter-free permalinks |
 | [`src/lib/highlight.ts`](src/lib/highlight.ts) | Split search hits for `<mark>` (plain text only) |
 | [`src/lib/appearance.ts`](src/lib/appearance.ts) | Light / dark / system preference |
-| [`src/lib/reading.ts`](src/lib/reading.ts) | Text size and high-contrast preference |
+| [`src/lib/reading.ts`](src/lib/reading.ts) | Text size, high contrast, and graphic-detail blur preferences |
+| [`src/lib/savedViews.ts`](src/lib/savedViews.ts) | Browser-local saved views (legacy shapes normalized) |
+| [`src/lib/exportView.ts`](src/lib/exportView.ts) | Filtered CSV/JSON download |
 | [`src/lib/toast.ts`](src/lib/toast.ts) | Copy/share status messages |
 | [`src/lib/seo.ts`](src/lib/seo.ts) | Document title, share text, filtered share URL |
 | [`src/lib/site.ts`](src/lib/site.ts) | Site name, description, `%SITE_URL%` substitution |
 | [`src/components/ChronologyExplorer.tsx`](src/components/ChronologyExplorer.tsx) | Year-grouped feed + dock/rail |
+| [`src/components/ArchiveOverview.tsx`](src/components/ArchiveOverview.tsx) | Collection stats + per-year histogram |
+| [`src/components/DistrictOverview.tsx`](src/components/DistrictOverview.tsx) | Inferred-district ranking + filter |
+| [`src/components/AboutArchive.tsx`](src/components/AboutArchive.tsx) | About, methodology, how-to-cite |
 | [`src/components/TimelineFeed.tsx`](src/components/TimelineFeed.tsx) | Windowed cards on a year spine |
 | [`src/components/EventCard.tsx`](src/components/EventCard.tsx) | Teaser card, expand, permalink |
 | [`src/components/YearNavigator.tsx`](src/components/YearNavigator.tsx) | Jump-to-year density rail or mobile dock (scrub strip + year chips) |
 | [`src/components/YearCue.tsx`](src/components/YearCue.tsx) | Brief year overlay while scrolling or scrubbing |
 | [`src/components/ScrollFade.tsx`](src/components/ScrollFade.tsx) | Edge fade when a horizontal scroller can still move |
 | [`src/lib/scrollOverflow.ts`](src/lib/scrollOverflow.ts) | Start/end overflow flags for those fades |
-| [`src/components/FilterBar.tsx`](src/components/FilterBar.tsx) | Sticky search row; publishes `--filter-h` |
+| [`src/components/FilterBar.tsx`](src/components/FilterBar.tsx) | Sticky search row: multi-facets, sort, match mode, range, density, saved views, export; publishes `--filter-h` |
 | [`src/components/KeywordCloud.tsx`](src/components/KeywordCloud.tsx) | Theme chips under search (scroll away with the page) |
 | [`src/components/SearchSuggest.tsx`](src/components/SearchSuggest.tsx) | Combobox typeahead for search |
-| [`src/components/ReadingControls.tsx`](src/components/ReadingControls.tsx) | Text size and high contrast |
+| [`src/components/ReadingControls.tsx`](src/components/ReadingControls.tsx) | Text size, high contrast, graphic-detail blur |
 | [`src/components/ShareButton.tsx`](src/components/ShareButton.tsx) | Share current view |
 | [`src/components/ThemeToggle.tsx`](src/components/ThemeToggle.tsx) | System / light / dark |
 | [`src/components/Toast.tsx`](src/components/Toast.tsx) | Viewport copy confirmation |
@@ -113,9 +131,14 @@ The address bar is the only “route”. Query parameters describe the **current
 | Piece | Example | Purpose |
 | --- | --- | --- |
 | `q` | `?q=Rolpa` | Search in narrative, date label, year, and tags. Typeahead fills `q`; it does not set `tag` or `year`. |
-| `tag` | `?tag=Maoist` | Keyword / theme filter |
-| `category` | `?category=…` | Category filter |
-| `org` | `?org=…` | Organization filter |
+| `tag` | `?tag=Maoist,killing` | Keywords (OR within, AND across facets). Repeat `?tag=a&tag=b` also works; legacy single still loads. |
+| `category` | `?category=combat` | Categories (OR within, multi-select). |
+| `org` | `?org=Nepal+Army` | Organizations (OR within, multi-select). |
+| `district` | `?district=Rolpa,Kathmandu` | Districts inferred from keywords/detail (OR within). See `src/lib/districts.ts`, `src/lib/eventGeography.ts`. |
+| `confidence` | `?confidence=high` | `high`/`medium`/`low`. |
+| `sort` | `?sort=reverse` | `reverse`/`category` (`chronological` default omitted). |
+| `match` | `?match=all` | Within-facet `all` (AND) vs default `any` (OR). |
+| `from`/`to` | `?from=2001-06&to=2002-03` | Inclusive `YYYY-MM` range; undated excluded while active. |
 | `year` | `?year=2001` | Scroll the feed to that year on load |
 | hash | `#event-NCT-0001` | Scroll to one card after the CSV loads. Romeo is `NCT-0001`. |
 
@@ -123,7 +146,7 @@ Filter changes use `history.replaceState` and **keep** an existing hash. Search 
 
 Two different copy actions:
 
-- **Share** (header) copies or native-shares the **current view**, including `?q=&tag=&year=`.
+- **Share** (header) copies or native-shares the **current view**, including `?q=&tag=&category=&org=&confidence=&sort=&from=&to=&year=`.
 - **Card link icon** copies a **permalink** of `origin + pathname + #event-…` with **no query string**, so filters cannot hide the event when someone opens the link later.
 
 Card hashes are `event-` plus the CSV `Event_ID`. They stay put when rows are inserted, as long as that id is not reused. See [DATA.md](DATA.md#event-identifiers).
@@ -151,7 +174,7 @@ VITE_SITE_URL=https://YOUR-GITHUB-USERNAME.github.io/conflict_timeline npm run b
 npm run preview
 ```
 
-JSON-LD describes a `WebSite` and a `Dataset` with `temporalCoverage` `1995/2006` and `spatialCoverage` Nepal. Event texts are **not** marked MIT in that markup. Uncomment `twitter:site` in `index.html` when the project has an official account.
+JSON-LD describes a `WebSite` and a `Dataset` with `temporalCoverage` `1995/2026` and `spatialCoverage` Nepal. Event texts are **not** marked MIT in that markup. Uncomment `twitter:site` in `index.html` when the project has an official account.
 
 ## Accessibility
 

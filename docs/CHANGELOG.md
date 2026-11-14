@@ -21,6 +21,10 @@ All notable changes to data handling and the app. Dates are release dates (UTC).
   `?match=all` requires every selected value within a facet (default `any`);
   district inference memoized; facet dropdowns are exclusive accordions with
   Escape-to-close; legacy saved views auto-migrate on load.
+- Mobile filter bar collapses range/sort/facets behind a “Filters (n)”
+  disclosure; the year-dock density strip is now a real `slider`
+  (arrow/Home/End keys, blur releases the year cue); expanded cards get a
+  bottom “Show less”; the Undated section explains itself.
 - Fact-checking: `npm run link:check` (`scripts/link-check.mjs`) verifies
   Sources URLs (2026-11-14 run: 104/116 ok, 6 blocked, 6 dead — see
   `docs/FACTCHECK.md`); `data-lint` asserts doc claims and warns on raw

@@ -62,6 +62,11 @@ function YearHeading({
         {count} {count === 1 ? 'event' : 'events'}
       </span>
       <span aria-hidden="true" className="ms-1 h-px min-w-8 flex-1 bg-line" />
+      {year == null ? (
+        <span className="w-full font-sans text-xs font-normal leading-relaxed tracking-normal text-muted">
+          Dates unknown or year-only in the source sheet — listed here in sheet order.
+        </span>
+      ) : null}
     </h2>
   )
 }

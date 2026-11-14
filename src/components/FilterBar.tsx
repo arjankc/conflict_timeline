@@ -174,6 +174,17 @@ export function FilterBar({
     filters.from !== '' ||
     filters.to !== ''
 
+  // Non-search controls, for the mobile disclosure badge.
+  const filterCount =
+    filters.keywords.length +
+    filters.categories.length +
+    filters.organizations.length +
+    filters.districts.length +
+    (filters.confidence !== '' ? 1 : 0) +
+    (filters.sort !== 'chronological' ? 1 : 0) +
+    (filters.match !== 'any' ? 1 : 0) +
+    (filters.from !== '' || filters.to !== '' ? 1 : 0)
+
   useEffect(() => {
     const nav = stickyRef.current
     if (!nav) return
@@ -208,6 +219,10 @@ export function FilterBar({
     if (!viewName.trim()) return
     onSaveView(viewName.trim())
     setViewName('')
+  }
+
+  function closeOnEscape(event: ReactKeyboardEvent<HTMLElement>) {
+    if (event.key === 'Escape') event.currentTarget.removeAttribute('open')
   }
 
   return (
@@ -357,7 +372,7 @@ export function FilterBar({
             </div>
           </div>
 
-          <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <div className="hidden min-w-0 flex-wrap items-center gap-2 sm:flex">
             <label className="flex min-w-0 flex-1 items-center gap-2 text-xs text-muted sm:flex-none">
               From
               <input
@@ -382,55 +397,86 @@ export function FilterBar({
                 aria-label="Filter to month"
               />
             </label>
-            <div className="flex gap-2 sm:hidden">
-              <button
-                type="button"
-                aria-pressed={compact}
-                onClick={() => onCompactChange(!compact)}
-                className="icon-btn px-3 text-sm"
-              >
-                {compact ? 'Comfort' : 'Compact'}
-              </button>
-              <label className="sr-only" htmlFor="timeline-sort-mobile">
-                Sort order
-              </label>
-              <select
-                id="timeline-sort-mobile"
-                value={filters.sort}
-                onChange={(event) => onSortChange(event.target.value as SortMode)}
-                className="input-field"
-              >
-                <option value="chronological">Oldest</option>
-                <option value="reverse">Newest</option>
-                <option value="category">By category</option>
-              </select>
-              <div
-                role="group"
-                aria-label="Match mode within facets"
-                className="inline-flex items-center rounded-sm border border-line bg-surface"
-              >
-                {(['any', 'all'] as const).map((mode) => (
-                  <button
-                    key={mode}
-                    type="button"
-                    aria-pressed={filters.match === mode}
-                    onClick={() => onMatchChange(mode)}
-                    className={[
-                      'min-h-11 px-2.5 text-[0.8125rem] capitalize',
-                      filters.match === mode
-                        ? 'font-medium text-crimson'
-                        : 'text-muted',
-                    ].join(' ')}
-                  >
-                    {mode === 'any' ? 'Any' : 'All'}
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
 
-          <div className="flex min-w-0 flex-wrap gap-2 sm:hidden">
-            <details name="filter-facets" className="min-w-0 flex-1">
+          <details className="sm:hidden">
+            <summary className="input-field cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+              Filters{filterCount > 0 ? ` (${filterCount})` : ''}
+            </summary>
+            <div className="mt-2 flex flex-col gap-2">
+              <div className="flex min-w-0 flex-wrap items-center gap-2">
+                <label className="flex min-w-0 flex-1 items-center gap-2 text-xs text-muted">
+                  From
+                  <input
+                    type="month"
+                    value={filters.from}
+                    min="1995-01"
+                    max="2026-12"
+                    onChange={(event) => onFromChange(event.target.value)}
+                    className="input-field min-w-0 flex-1"
+                    aria-label="Filter from month"
+                  />
+                </label>
+                <label className="flex min-w-0 flex-1 items-center gap-2 text-xs text-muted">
+                  To
+                  <input
+                    type="month"
+                    value={filters.to}
+                    min="1995-01"
+                    max="2026-12"
+                    onChange={(event) => onToChange(event.target.value)}
+                    className="input-field min-w-0 flex-1"
+                    aria-label="Filter to month"
+                  />
+                </label>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  aria-pressed={compact}
+                  onClick={() => onCompactChange(!compact)}
+                  className="icon-btn px-3 text-sm"
+                >
+                  {compact ? 'Comfort' : 'Compact'}
+                </button>
+                <label className="sr-only" htmlFor="timeline-sort-mobile">
+                  Sort order
+                </label>
+                <select
+                  id="timeline-sort-mobile"
+                  value={filters.sort}
+                  onChange={(event) => onSortChange(event.target.value as SortMode)}
+                  className="input-field min-w-0 flex-1"
+                >
+                  <option value="chronological">Oldest</option>
+                  <option value="reverse">Newest</option>
+                  <option value="category">By category</option>
+                </select>
+                <div
+                  role="group"
+                  aria-label="Match mode within facets"
+                  className="inline-flex items-center rounded-sm border border-line bg-surface"
+                >
+                  {(['any', 'all'] as const).map((mode) => (
+                    <button
+                      key={mode}
+                      type="button"
+                      aria-pressed={filters.match === mode}
+                      onClick={() => onMatchChange(mode)}
+                      className={[
+                        'min-h-11 px-2.5 text-[0.8125rem] capitalize',
+                        filters.match === mode
+                          ? 'font-medium text-crimson'
+                          : 'text-muted',
+                      ].join(' ')}
+                    >
+                      {mode === 'any' ? 'Any' : 'All'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            <div className="flex min-w-0 flex-wrap gap-2">
+            <details name="filter-facets" className="min-w-0 flex-1" onKeyDown={closeOnEscape}>
               <summary className="input-field cursor-pointer list-none [&::-webkit-details-marker]:hidden">
                 Categories{filters.categories.length > 0 ? ` (${filters.categories.length})` : ''}
               </summary>
@@ -452,7 +498,7 @@ export function FilterBar({
                 ))}
               </ul>
             </details>
-            <details name="filter-facets" className="min-w-0 flex-1">
+            <details name="filter-facets" className="min-w-0 flex-1" onKeyDown={closeOnEscape}>
               <summary className="input-field cursor-pointer list-none [&::-webkit-details-marker]:hidden">
                 Orgs{filters.organizations.length > 0 ? ` (${filters.organizations.length})` : ''}
               </summary>
@@ -474,7 +520,7 @@ export function FilterBar({
                 ))}
               </ul>
             </details>
-            <details name="filter-facets" className="min-w-0 flex-1">
+            <details name="filter-facets" className="min-w-0 flex-1" onKeyDown={closeOnEscape}>
               <summary className="input-field cursor-pointer list-none [&::-webkit-details-marker]:hidden">
                 Districts{filters.districts.length > 0 ? ` (${filters.districts.length})` : ''}
               </summary>
@@ -511,7 +557,9 @@ export function FilterBar({
               <option value="medium">Medium</option>
               <option value="low">Low</option>
             </select>
+            </div>
           </div>
+          </details>
 
           {hasActiveFilters ? (
             <ul className="flex flex-wrap gap-2" aria-label="Active filters">

@@ -1,4 +1,4 @@
-import { useEffect, useRef, type PointerEvent as ReactPointerEvent } from 'react'
+import { useEffect, useMemo, useRef, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react'
 import { monthCountsForYear, type YearGroup } from '../lib/filterEvents'
 import { MONTH_SHORT } from '../lib/parseDate'
 import { useScrollOverflow } from '../lib/useScrollOverflow'
@@ -132,16 +132,77 @@ function YearDockScrub({
     onYearCue?.(undefined)
   }
 
+  const stops = useMemo(
+    () => [...datedGroups.map((group) => group.year), ...(undated ? [null] : [])],
+    [datedGroups, undated],
+  )
+  const stopIndex = Math.max(
+    0,
+    stops.findIndex((year) => year === activeYear),
+  )
+  const activeCount =
+    activeYear == null
+      ? (undated?.events.length ?? 0)
+      : (datedGroups.find((group) => group.year === activeYear)?.events.length ?? 0)
+
+  function stepYear(delta: -1 | 1) {
+    const next = stops[Math.min(stops.length - 1, Math.max(0, stopIndex + delta))]
+    if (next === undefined) return
+    onYearCue?.(next)
+    onYearSelect(next)
+  }
+
+  function onKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+      event.preventDefault()
+      stepYear(-1)
+    } else if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+      event.preventDefault()
+      stepYear(1)
+    } else if (event.key === 'Home') {
+      event.preventDefault()
+      const first = stops[0]
+      if (first !== undefined) {
+        onYearCue?.(first)
+        onYearSelect(first)
+      }
+    } else if (event.key === 'End') {
+      event.preventDefault()
+      const last = stops[stops.length - 1]
+      if (last !== undefined) {
+        onYearCue?.(last)
+        onYearSelect(last)
+      }
+    }
+  }
+
+  function onBlurCue() {
+    onYearCue?.(undefined)
+  }
+
   return (
     <div
       ref={scrubRef}
-      role="presentation"
-      aria-hidden="true"
+      role="slider"
+      tabIndex={0}
+      aria-label="Scrub years by event density"
+      aria-valuemin={datedGroups.length > 0 ? datedGroups[0].year : undefined}
+      aria-valuemax={
+        undated ? undefined : datedGroups.length > 0 ? datedGroups.at(-1)?.year : undefined
+      }
+      aria-valuenow={activeYear ?? undefined}
+      aria-valuetext={
+        activeYear == null
+          ? `Undated, ${activeCount} events`
+          : `${activeYear}, ${activeCount} events`
+      }
       className="mx-4 flex h-11 cursor-ew-resize touch-none items-stretch gap-px rounded-xl bg-chip px-1.5 pt-1.5 select-none"
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={endDrag}
       onPointerCancel={endDrag}
+      onKeyDown={onKeyDown}
+      onBlur={onBlurCue}
     >
       {datedGroups.map((group) => {
         const current = activeYear === group.year
@@ -150,6 +211,7 @@ function YearDockScrub({
           <div
             key={group.year}
             data-year={group.year}
+            aria-hidden="true"
             className="flex min-h-11 min-w-0 flex-1 flex-col justify-end"
           >
             <span
@@ -165,6 +227,7 @@ function YearDockScrub({
       {undated ? (
         <div
           data-year="undated"
+          aria-hidden="true"
           className="flex min-h-11 w-4 shrink-0 flex-col justify-end"
         >
           <span
@@ -268,6 +331,8 @@ export function YearNavigator({
   }
 
   // Drag-to-scrub is desktop-rail only; the dock uses the density strip above the chips.
+  // Keyboard parity comes from the year buttons themselves (Tab + Enter), so the
+  // drag surface stays a pointer-only shortcut with no ARIA role.
   function onPointerDown(event: ReactPointerEvent<HTMLDivElement>) {
     if (variant !== 'rail' || event.button !== 0) return
     draggingRef.current = true

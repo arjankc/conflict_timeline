@@ -512,6 +512,18 @@ export function EventCard({
             <>
               <Enrichment event={event} />
               <Provenance event={event} dateLabel={event.dateLabel} />
+              {canExpand ? (
+                <button
+                  type="button"
+                  aria-expanded="true"
+                  aria-label={`Show less, event on ${event.dateLabel}`}
+                  className="btn-text-accent mt-3 inline-flex items-center gap-1.5"
+                  onClick={onToggleExpand}
+                >
+                  Show less
+                  <ChevronIcon expanded />
+                </button>
+              ) : null}
             </>
           ) : null}
         </div>

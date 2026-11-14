@@ -72,6 +72,31 @@ describe('parseDate', () => {
     })
   })
 
+  it('parses day-first "D Month YYYY" used by most sheet rows', () => {
+    expect(parseDate('18 April 2011')).toMatchObject({
+      precision: 'day',
+      year: 2011,
+      sortKey: toSortKey(2011, 4, 18),
+      dateLabel: '18 April 2011',
+      dateTime: '2011-04-18',
+    })
+    expect(parseDate('13 February 1996')).toMatchObject({
+      precision: 'day',
+      year: 1996,
+      dateLabel: '13 February 1996',
+    })
+  })
+
+  it('parses day-first ranges using the start day for sort order', () => {
+    expect(parseDate('2–3 May 2002')).toMatchObject({
+      precision: 'range',
+      year: 2002,
+      sortKey: toSortKey(2002, 5, 2),
+      dateLabel: '2–3 May 2002',
+      dateTime: '2002-05-02',
+    })
+  })
+
   it('keeps unknown strings last and visible', () => {
     expect(parseDate('sometime in the 1990s')).toMatchObject({
       precision: 'unknown',

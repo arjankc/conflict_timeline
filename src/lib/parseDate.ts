@@ -149,6 +149,44 @@ export function parseDate(raw: string): ParsedDate {
     }
   }
 
+  // Day-first form used by most sheet rows (`18 April 2011`, no comma).
+  const dayMonthYearMatch = value.match(
+    new RegExp(`^(\\d{1,2})\\s+(${MONTH_PATTERN})\\s+(\\d{4})$`, 'i'),
+  )
+  if (dayMonthYearMatch) {
+    const day = Number(dayMonthYearMatch[1])
+    const month = MONTHS[dayMonthYearMatch[2].toLowerCase()]
+    const year = Number(dayMonthYearMatch[3])
+    return {
+      sortKey: toSortKey(year, month, day),
+      dateLabel: dayLabel(year, month, day),
+      dateTime: `${year}-${pad(month)}-${pad(day)}`,
+      year,
+      precision: 'day',
+    }
+  }
+
+  // Day-first range (`2–3 May 2002`): sorts on the start day, like month-first ranges.
+  const dayRangeMatch = value.match(
+    new RegExp(
+      `^(\\d{1,2})\\s*[-–—]\\s*(\\d{1,2})\\s+(${MONTH_PATTERN})\\s+(\\d{4})$`,
+      'i',
+    ),
+  )
+  if (dayRangeMatch) {
+    const startDay = Number(dayRangeMatch[1])
+    const endDay = Number(dayRangeMatch[2])
+    const month = MONTHS[dayRangeMatch[3].toLowerCase()]
+    const year = Number(dayRangeMatch[4])
+    return {
+      sortKey: toSortKey(year, month, startDay),
+      dateLabel: rangeLabel(year, month, startDay, endDay),
+      dateTime: `${year}-${pad(month)}-${pad(startDay)}`,
+      year,
+      precision: 'range',
+    }
+  }
+
   const monthYearMatch = value.match(
     new RegExp(`^(${MONTH_PATTERN})\\s+(\\d{4})$`, 'i'),
   )

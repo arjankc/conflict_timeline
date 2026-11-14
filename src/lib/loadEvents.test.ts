@@ -37,6 +37,8 @@ describe('parseCsvEvents', () => {
     expect(events[0]?.rawDate).toBe('11/1/95')
     expect(events[0]?.id).toBe('NCT-0001')
     expect(new Set(events.map((event) => event.id)).size).toBe(events.length)
+    // Day-first dates must parse: a parser regression would strand ~1800 rows as undated.
+    expect(events.filter((event) => event.year == null)).toHaveLength(54)
     expect(events.every((event) => event.categories.length > 0)).toBe(true)
     expect(events.some((event) => event.organizations.length > 0)).toBe(true)
 

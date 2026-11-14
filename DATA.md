@@ -65,11 +65,19 @@ The sheet does not use one date format. `parseDate` accepts:
 | --- | --- | --- |
 | `11/1/95` | day | 1 November 1995 (`M/D/YY`, two-digit years) |
 | `4/2/96` | day | 2 April 1996 |
+| `18 April 2011` | day | 18 April 2011 (day-first, no comma — most sheet rows) |
+| `13 February 1996` | day | 13 February 1996 |
+| `2–3 May 2002` | range | start day `2` (day-first range) |
 | `March 1996` | month | first of the month |
 | `March 2, 1996` | day | 2 March 1996 |
 | `June 04, 2001` | day | 4 June 2001 |
 | `October 4 2001` | day | 4 October 2001 (no comma) |
 | `September 13-14, 2001` | range | start day `13` |
+
+Still unparsed (sort last, label verbatim): year-only (`2012`), month ranges
+(`July–August 1997`), `Between 1996`, and count-led strings (`42 people 2015`).
+These stay in the sheet until editors normalize them; the parser’s job is to
+read formats, not to adjudicate facts.
 
 Two-digit years: `00`–`49` → `2000`–`2049`; `50`–`99` → `1950`–`1999`. That maps this archive’s `95` → `1995` and `00`/`01` → `2000`/`2001`.
 

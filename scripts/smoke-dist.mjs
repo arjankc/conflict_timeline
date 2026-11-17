@@ -20,6 +20,7 @@ function check(label, cond) {
 
 const indexHtml = join(dist, 'index.html')
 check('dist/index.html exists', existsSync(indexHtml))
+check('dist/presentation/index.html exists', existsSync(join(dist, 'presentation', 'index.html')))
 
 const sitemap = join(dist, 'sitemap.xml')
 const sitemapText = existsSync(sitemap) ? readFileSync(sitemap, 'utf8') : ''

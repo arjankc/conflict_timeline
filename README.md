@@ -11,9 +11,9 @@ This is an open-source project. Event data currently ships as a static CSV expor
 - Expanded cards show Sources & confidence, a copyable citation, plus victims / alleged perpetrators / related events when the sheet provides them (forward-compatible optional columns)
 - Reading toolbar: System → Light → Dark, Default → Large → Larger text, high contrast, and Reduce graphic detail blur (persisted, unblurs on expand/hover)
 - Per-card permalink (link icon copies `#event-…`; a toast confirms; the feed does not jump)
-- Side year navigator with a month-density heatmap; click or drag to scrub
-- Theme chips (most frequent 16) plus a searchable “Browse all themes” index, confidence filter, and shareable URL filters (`?q=&tag=&year=&confidence=`)
-- Multi-select categories/organizations/themes/districts (OR within, AND across; optional `?match=all` for AND-within), date range (`from`/`to` YYYY-MM), sort (oldest/newest/by category), density toggle, saved views, and export — all behind one Filters toggle so the timeline leads
+- Side year navigator with a month-density heatmap; click, drag, or arrow-key scrub (the mobile density strip is a real slider)
+- Theme chips (most frequent 16) plus a searchable “Browse all themes” index, confidence filter, and shareable URL filters (`?q=&tag=&year=&confidence=`), all inside the Filters drawer
+- Multi-select categories/organizations/themes/districts (OR within, AND across; optional `?match=all` for AND-within), date range (`from`/`to` YYYY-MM), sort (oldest/newest/by category), density toggle, saved views, and export — all behind one Filters toggle so the timeline leads; search-match stepping (next/previous with position announced) walks through hits
 - District view (inferred from keywords/detail — 75 legacy districts, top-8 ranking with counts, inside the Filters drawer), per-year share pages (`/year/YYYY/` with year meta + sitemap), filtered CSV/JSON export (incl. enrichment columns)
 - Offline mirror `dist/data/events.json` (raw row mirror, generated at build) doubles as a CSV-fetch fallback for field use; enrichment columns + `docs/CHANGELOG.md`
 - Typeahead covers Event_IDs (`NCT-…` jumps to one card), districts, tags, years, terms; `data:lint` reports district keyword coverage (~56%)
@@ -93,6 +93,7 @@ The header paints before the CSV is parsed. Rows are published in batches so the
 | [`src/lib/reading.ts`](src/lib/reading.ts) | Text size, high contrast, and graphic-detail blur preferences |
 | [`src/lib/savedViews.ts`](src/lib/savedViews.ts) | Browser-local saved views (legacy shapes normalized) |
 | [`src/lib/exportView.ts`](src/lib/exportView.ts) | Filtered CSV/JSON download |
+| [`src/lib/matchNav.ts`](src/lib/matchNav.ts) | Next/previous search-match cycling index |
 | [`src/lib/toast.ts`](src/lib/toast.ts) | Copy/share status messages |
 | [`src/lib/seo.ts`](src/lib/seo.ts) | Document title, share text, filtered share URL |
 | [`src/lib/site.ts`](src/lib/site.ts) | Site name, description, `%SITE_URL%` substitution |
@@ -107,7 +108,16 @@ The header paints before the CSV is parsed. Rows are published in batches so the
 | [`src/components/ScrollFade.tsx`](src/components/ScrollFade.tsx) | Edge fade when a horizontal scroller can still move |
 | [`src/lib/scrollOverflow.ts`](src/lib/scrollOverflow.ts) | Start/end overflow flags for those fades |
 | [`src/components/FilterBar.tsx`](src/components/FilterBar.tsx) | Sticky search row + Filters toggle; drawer holds themes, facets, districts, range, sort, saved views, export; publishes `--filter-h` |
-| [`src/components/KeywordCloud.tsx`](src/components/KeywordCloud.tsx) | Theme chips under search (scroll away with the page) |
+| [`src/components/KeywordCloud.tsx`](src/components/KeywordCloud.tsx) | Theme chips in the Filters drawer |
+| [`scripts/data-lint.mjs`](scripts/data-lint.mjs) | CSV structure checks + doc-claim assertions (`npm run data:lint`) |
+| [`scripts/link-check.mjs`](scripts/link-check.mjs) | Sources URL health check (`npm run link:check`) |
+| [`scripts/factcheck-candidates.mjs`](scripts/factcheck-candidates.mjs) | Figure-claim review queue seeding |
+| [`scripts/year-pages.mjs`](scripts/year-pages.mjs) | Per-year share pages + sitemap entries (runs in build) |
+| [`scripts/events-json.mjs`](scripts/events-json.mjs) | Offline `dist/data/events.json` mirror (runs in build) |
+| [`scripts/smoke-dist.mjs`](scripts/smoke-dist.mjs) | Post-build dist verification (`npm run smoke:dist`) |
+| [`docs/FACTCHECK.md`](docs/FACTCHECK.md) | Fact-check log: link results, known issues, review queue |
+| [`docs/TAXONOMY.md`](docs/TAXONOMY.md) | Keyword taxonomy notes |
+| [`docs/CHANGELOG.md`](docs/CHANGELOG.md) | Release history |
 | [`src/components/SearchSuggest.tsx`](src/components/SearchSuggest.tsx) | Combobox typeahead for search |
 | [`src/components/ReadingControls.tsx`](src/components/ReadingControls.tsx) | Text size, high contrast, graphic-detail blur |
 | [`src/components/ShareButton.tsx`](src/components/ShareButton.tsx) | Share current view |
@@ -119,11 +129,11 @@ The header paints before the CSV is parsed. Rows are published in batches so the
 
 ### Layout
 
-On viewports **narrower than `lg` (1024px)** the year navigator is a fixed bottom **dock**: a full-span density strip (tap or drag to jump) plus a horizontal year list. The list and the theme chips fade at the edges when there is more to scroll. Cards and the footer use `--dock-h` (measured from the dock) so content can scroll above it. On **`lg` and up** the navigator is a sticky **rail** on the right; the dock is not shown.
+The page leads with the timeline. The sticky bar holds only search, result count, match stepping, active filter pills, and one **Filters** toggle — everything else (themes, facets, district ranking, date range, sort, saved views, export) lives in the drawer, which opens below the bar and caps at 70% of viewport height.
 
-The search row is sticky. It writes `--filter-h` so skip-link targets and card permalinks sit below it. Year headings stay with their section and scroll away with the feed. While you scroll the timeline or swipe the year dock, a large year overlay appears for a moment and then fades (similar to a photos year scrubber). The dock or rail keeps marking the year in view. An active theme stays as a chip on that row (activate it again to clear). Theme chips sit under that row and scroll away with the page. Event cards start as a teaser (compact date badge, three lines with a fade, and three tags on narrow screens; date stack, four lines, and five tags from `sm` / 640px) and expand in place.
+On viewports **narrower than `lg` (1024px)** the year navigator is a fixed bottom **dock**: a full-span density strip (tap, drag, or arrow-key scrub — it is a real `slider`) plus a horizontal year list. The list fades at the edges when there is more to scroll. Cards and the footer use `--dock-h` (measured from the dock) so content can scroll above it. On **`lg` and up** the navigator is a sticky **rail** on the right; the dock is not shown.
 
-The year dock/rail still switches at **`lg` (1024px)** — that breakpoint is independent of the card teaser.
+It writes `--filter-h` so skip-link targets and card permalinks sit below the sticky bar, including while the drawer is open (height is re-measured). Year headings stay with their section and scroll away with the feed. While you scroll the timeline or scrub years, a large year overlay appears for a moment and then fades (similar to a photos year scrubber). The dock or rail keeps marking the year in view. An active filter stays visible as a pill (activate it again to clear). Event cards start as a teaser (compact date badge, three lines with a fade, and three tags on narrow screens; date stack, four lines, and five tags from `sm` / 640px) and expand in place, with a second “Show less” at the end of long expanded content.
 
 ## URL state
 
@@ -213,6 +223,21 @@ Keep these constraints when adding a native shell:
 - Do not introduce a required backend
 - Fonts are bundled (Fraunces / Source Sans 3 / Source Serif 4); the WebView does not need `fonts.google.com`
 - Clipboard permalinks and `navigator.share` need a secure context (HTTPS or localhost)
+
+## Status and roadmap
+
+Implemented: chronological explorer with windowed feed, multi-select filters behind one toggle (keywords, categories, organizations, inferred districts, confidence, `?match=all`, YYYY-MM range, sort, density), search with typeahead + next/previous match stepping, saved views, CSV/JSON export, per-year share pages, offline `events.json` with CSV-fetch fallback, Sources/Confidence provenance with citation copy, trauma-informed blur toggle, print stylesheet, and a fact-check pipeline (`data:lint` doc-claim assertions, `link:check`, `FACTCHECK.md` review queue). See [`docs/CHANGELOG.md`](docs/CHANGELOG.md) for history.
+
+Deferred — each needs a human decision, not more code:
+
+| Item | Blocked on |
+| --- | --- |
+| True district choropleth | A geojson source + license decision; the inferred ranking is the honest interim |
+| Nepali UI / `Lang_NE` column | Translations + review workflow |
+| Per-year PNG unfurls | A design asset (year pages already give crawlers year-specific meta) |
+| Sheet fixes (NCT-0002 split, org commas, `other` audit, district/victim columns) | Editor sign-off in the Sheet, then re-export — see [`docs/FACTCHECK.md`](docs/FACTCHECK.md) |
+| Data license confirmation | Maintainer sign-off; event texts are not MIT until then |
+| Full service worker | Deliberately not built: untestable here and risky on a Pages project path; the JSON fallback covers field use |
 
 ## Contributing
 

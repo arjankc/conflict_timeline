@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nepal Conflict Timeline — Presentation</title>
+  <meta name="description" content="Presenting the Nepal Conflict Timeline: an open-source digital archive of Nepal's internal armed conflict and its transitional-justice aftermath." />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css" />
+  <style>
+    :root {
+      --paper: #f3eee4;
+      --surface: #faf6ef;
+      --ink: #1b1613;
+      --muted: #3f3832;
+      --line: #c9bfb2;
+      --crimson: #8b1e12;
+      --crimson-soft: #f4e4dc;
+    }
+    .reveal {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Source Sans 3", ui-sans-serif, system-ui, sans-serif;
+    }
+    .reveal .slides section {
+      text-align: left;
+    }
+    .reveal h1, .reveal h2, .reveal h3 {
+      font-family: Georgia, "Times New Roman", serif;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      text-transform: none;
+    }
+    .reveal h1 { font-size: 2.2em; }
+    .reveal h2 { font-size: 1.5em; border-bottom: 3px solid var(--crimson); display: inline-block; padding-bottom: 0.1em; }
+    .reveal a { color: var(--crimson); }
+    .reveal .kicker {
+      font-size: 0.55em;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--crimson);
+    }
+    .reveal .lede { font-size: 0.95em; color: var(--muted); max-width: 32em; }
+    .reveal .stat-row { display: flex; flex-wrap: wrap; gap: 0.6em; margin-top: 0.8em; }
+    .reveal .stat {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 0.4em 0.7em;
+      min-width: 7em;
+    }
+    .reveal .stat b { display: block; font-size: 1.4em; color: var(--crimson); }
+    .reveal .stat span { font-size: 0.6em; color: var(--muted); }
+    .reveal ul { font-size: 0.85em; line-height: 1.55; }
+    .reveal li { margin-bottom: 0.35em; }
+    .reveal code {
+      font-size: 0.85em;
+      background: var(--crimson-soft);
+      padding: 0.05em 0.3em;
+      border-radius: 4px;
+    }
+    .reveal .pipe {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      margin-top: 1em;
+      font-size: 0.7em;
+      flex-wrap: wrap;
+    }
+    .reveal .pipe .node {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 0.5em 0.8em;
+      text-align: center;
+    }
+    .reveal .pipe .node b { display: block; }
+    .reveal .pipe .node span { color: var(--muted); font-size: 0.9em; }
+    .reveal .pipe .arrow {
+      align-self: center;
+      padding: 0 0.4em;
+      color: var(--crimson);
+      font-weight: bold;
+    }
+    .reveal .demo-url {
+      font-size: 1em;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 0.4em 0.6em;
+      word-break: break-all;
+    }
+    .reveal .two-col { display: flex; gap: 1.5em; flex-wrap: wrap; }
+    .reveal .two-col > div { flex: 1 1 12em; }
+    .reveal .check::before { content: "✓ "; color: var(--crimson); font-weight: bold; }
+    .reveal .todo::before { content: "○ "; color: var(--muted); font-weight: bold; }
+    .reveal .progress { background: rgba(139, 30, 18, 0.15); }
+    .reveal .progress span { background: var(--crimson); }
+    .reveal .controls { color: var(--crimson); }
+  </style>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- 1. Title -->
+<section>
+  <p class="kicker">Digital archive · 1995–2026</p>
+  <h1>Nepal Conflict Timeline</h1>
+  <p class="lede">An open-source, chronological archive of Nepal&rsquo;s internal armed conflict (1996–2006) and its transitional-justice aftermath — built for the people who need the record to be right.</p>
+  <div class="stat-row">
+    <div class="stat"><b>2,150</b><span>events, NCT-0001…NCT-2150</span></div>
+    <div class="stat"><b>1995–2026</b><span>pre-conflict → aftermath</span></div>
+    <div class="stat"><b>100%</b><span>static, no backend</span></div>
+  </div>
+  <aside class="notes">Hook: one sheet, 2150 rows, thirty years. This talk is the story of turning a spreadsheet into an archive people can cite. If you remember one thing, remember the span: the war ended in 2006, the record runs to 2026.</aside>
+</section>
+
+<!-- 2. Why -->
+<section>
+  <p class="kicker">Why it exists</p>
+  <h2>Built for transitional justice</h2>
+  <ul>
+    <li>Researchers, journalists, victims&rsquo; groups, and legal teams need a <em>shared, citable</em> chronology</li>
+    <li>Answers: what happened, when, where — with the source attached</li>
+    <li>Restrained by design: brief non-graphic narratives, a content-blur option, no sensational styling</li>
+  </ul>
+  <aside class="notes">The audience is not casual readers. Every design choice — permalinks, confidence labels, citations — serves someone building a case, writing a story, or seeking truth. Say the user groups out loud; someone here is one of them.</aside>
+</section>
+
+<!-- 3. Pipeline -->
+<section>
+  <p class="kicker">From spreadsheet to site</p>
+  <h2>One sheet in, one site out</h2>
+  <div class="pipe">
+    <div class="node"><b>Google Sheet</b><span>editorial workspace</span></div>
+    <div class="arrow">→</div>
+    <div class="node"><b>CSV export</b><span>committed to repo</span></div>
+    <div class="arrow">→</div>
+    <div class="node"><b>Parse + validate</b><span>tests + data-lint</span></div>
+    <div class="arrow">→</div>
+    <div class="node"><b>Static site</b><span>GitHub Pages</span></div>
+  </div>
+  <ul>
+    <li>No database, no backend, no router — a single page that later fits in a native shell</li>
+    <li>Every push runs tests, data checks, build, and deploy</li>
+  </ul>
+  <aside class="notes">The pipeline is the governance model: editors own the Sheet, the repo owns verification, CI owns deployment. Nothing reaches the public without passing tests. This is how a tiny team maintains a 2,150-row archive safely.</aside>
+</section>
+
+<!-- 4. Tour -->
+<section>
+  <p class="kicker">Tour (~3 min live)</p>
+  <h2>The timeline leads</h2>
+  <ul>
+    <li>Year-grouped feed on a spine; sticky year rail, bottom dock on phones</li>
+    <li>One <b>Filters</b> toggle: themes, categories, organizations, districts, confidence, date range, saved views, export</li>
+    <li>Cards: teaser → expand → sources, confidence, citation, permalink</li>
+  </ul>
+  <p class="demo-url">https://arjankc.github.io/conflict_timeline/</p>
+  <p class="lede">Demo script: search <code>Rolpa</code> → step through matches → open Filters → toggle a district → copy a card permalink.</p>
+  <aside class="notes">SWITCH TO THE LIVE TAB NOW. Do the exact script on screen: search Rolpa, step matches, open drawer, toggle district, copy permalink. Narrate the URL changing for shareable views vs filter-free permalinks. Keep it under three minutes; the deck continues on return.</aside>
+</section>
+
+<!-- 5. Trust -->
+<section>
+  <p class="kicker">Why you can cite it</p>
+  <h2>Trust is a feature</h2>
+  <ul>
+    <li>Stable <code>Event_ID</code>s (<code>NCT-0001…NCT-2150</code>) — links never rot when rows are added</li>
+    <li>Every expanded card shows <b>Sources &amp; Confidence</b> plus a copyable citation</li>
+    <li>One canonical taxonomy: <code>Maoist/</code> and <code>Maoist.</code> merge at parse time, never by editing history</li>
+  </ul>
+  <aside class="notes">Three mechanisms, each solving one failure mode of activist datasets: link rot, unsourced claims, and tag chaos. The parser normalizes; the sheet stays verbatim. Stress that citations are per-card, not per-site.</aside>
+</section>
+
+<!-- 6. Rigor -->
+<section>
+  <p class="kicker">Rigor, automated</p>
+  <h2>The build checks the facts</h2>
+  <ul>
+    <li><code>data-lint</code> asserts <b>11 doc claims</b> (row counts, categories, confidence split, span) — docs can&rsquo;t silently drift</li>
+    <li><code>link-check</code>: 116 source URLs verified — <b>104 ok</b>, 6 blocked, 6 dead with per-event remediation</li>
+    <li>War story: day-first dates (<code>18 April 2011</code>) weren&rsquo;t parsed — <b>1,793 rows</b> sat in “Undated” until a regression-guarded fix</li>
+  </ul>
+  <aside class="notes">Tell the Undated story with pride: a user said the section looked weird, we counted, found 1,793 misparsed rows, fixed the parser, and pinned the undated count at 54 in a test. This is the slide that convinces technical skeptics.</aside>
+</section>
+
+<!-- 7. Honesty -->
+<section>
+  <p class="kicker">Design honesty</p>
+  <h2>What we label, not hide</h2>
+  <ul>
+    <li>Districts are <b>inferred</b> (keywords → detail prose) and labeled as such — no fake choropleth</li>
+    <li>54 rows stay <b>Undated</b> with an on-page explanation instead of invented dates</li>
+    <li>Blur toggle, print stylesheet, forced-colors support: the archive adapts to the reader</li>
+  </ul>
+  <aside class="notes">Counterintuitive point: restraint is a feature. We could have drawn a pretty district map from guesses — we show a ranked list and say it is inference. In transitional justice, a false precision is worse than an honest gap.</aside>
+</section>
+
+<!-- 8. Roadmap -->
+<section>
+  <p class="kicker">What&rsquo;s next — invitations</p>
+  <h2>Open, on purpose</h2>
+  <div class="two-col">
+    <div>
+      <ul>
+        <li class="todo">True choropleth — needs a geojson decision</li>
+        <li class="todo">Nepali UI — needs translations + review</li>
+        <li class="todo">Per-year share images — needs a design asset</li>
+      </ul>
+    </div>
+    <div>
+      <ul>
+        <li class="todo">Sheet fixes — NCT-0002 split, org commas, <code>other</code> audit (editors only)</li>
+        <li class="todo">Data license confirmation</li>
+        <li class="check">Everything else on the plan is built and green</li>
+      </ul>
+    </div>
+  </div>
+  <aside class="notes">Frame gaps as invitations, each with a named unblocker. End this slide by asking the room: who here can unblock one row? That turns Q&A into recruitment.</aside>
+</section>
+
+<!-- 9. Cite -->
+<section>
+  <p class="kicker">Take it with you</p>
+  <h2>Cite &amp; contribute</h2>
+  <ul>
+    <li>Cards: link icon copies a filter-free permalink; “Copy citation” for footnotes</li>
+    <li>Views: Share button copies the filtered URL (<code>?tag=&amp;year=</code>)</li>
+    <li>Repo: <code>github.com/arjankc/conflict_timeline</code> — schema in <code>DATA.md</code>, fact-check log in <code>docs/FACTCHECK.md</code></li>
+  </ul>
+  <aside class="notes">Practical close: show one permalink copy and one filtered-view share. Point editors at DATA.md, skeptics at FACTCHECK.md. Keep the repo URL on screen during Q&A.</aside>
+</section>
+
+<!-- 10. Closing -->
+<section>
+  <p class="kicker">One thing to remember</p>
+  <h2>The war ended in 2006. The record runs to 2026.</h2>
+  <p class="lede">2,150 events. Every one citable, none invented. Thank you.</p>
+  <aside class="notes">Land the span line again — it opened the talk and it closes it. Then stop talking and take questions.</aside>
+</section>
+
+</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+<script>
+  Reveal.initialize({
+    hash: true,
+    slideNumber: true,
+    plugins: [RevealNotes]
+  });
+</script>
+</body>
+</html>

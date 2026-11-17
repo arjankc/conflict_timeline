@@ -39,6 +39,8 @@ All notable changes to data handling and the app. Dates are release dates (UTC).
   `docs/FACTCHECK.md`); `data-lint` asserts doc claims and warns on raw
   spaces in Sources URLs; `scripts/factcheck-candidates.mjs` seeds the
   figure-claim review queue.
+- Presentation: `presentation/index.html` (reveal.js, 10 slides, speaker
+  notes) covering story, tour, trust, rigor, honesty, and roadmap.
 
 ## 0.1.0 — 2026-11-14
 

@@ -7,98 +7,7 @@
   <meta name="description" content="Presenting the Nepal Conflict Timeline: an open-source digital archive of Nepal's internal armed conflict and its transitional-justice aftermath." />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css" />
-  <style>
-    :root {
-      --paper: #f3eee4;
-      --surface: #faf6ef;
-      --ink: #1b1613;
-      --muted: #3f3832;
-      --line: #c9bfb2;
-      --crimson: #8b1e12;
-      --crimson-soft: #f4e4dc;
-    }
-    .reveal {
-      background: var(--paper);
-      color: var(--ink);
-      font-family: "Source Sans 3", ui-sans-serif, system-ui, sans-serif;
-    }
-    .reveal .slides section {
-      text-align: left;
-    }
-    .reveal h1, .reveal h2, .reveal h3 {
-      font-family: Georgia, "Times New Roman", serif;
-      letter-spacing: -0.02em;
-      color: var(--ink);
-      text-transform: none;
-    }
-    .reveal h1 { font-size: 2.2em; }
-    .reveal h2 { font-size: 1.5em; border-bottom: 3px solid var(--crimson); display: inline-block; padding-bottom: 0.1em; }
-    .reveal a { color: var(--crimson); }
-    .reveal .kicker {
-      font-size: 0.55em;
-      font-weight: 600;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: var(--crimson);
-    }
-    .reveal .lede { font-size: 0.95em; color: var(--muted); max-width: 32em; }
-    .reveal .stat-row { display: flex; flex-wrap: wrap; gap: 0.6em; margin-top: 0.8em; }
-    .reveal .stat {
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      padding: 0.4em 0.7em;
-      min-width: 7em;
-    }
-    .reveal .stat b { display: block; font-size: 1.4em; color: var(--crimson); }
-    .reveal .stat span { font-size: 0.6em; color: var(--muted); }
-    .reveal ul { font-size: 0.85em; line-height: 1.55; }
-    .reveal li { margin-bottom: 0.35em; }
-    .reveal code {
-      font-size: 0.85em;
-      background: var(--crimson-soft);
-      padding: 0.05em 0.3em;
-      border-radius: 4px;
-    }
-    .reveal .pipe {
-      display: flex;
-      align-items: stretch;
-      gap: 0;
-      margin-top: 1em;
-      font-size: 0.7em;
-      flex-wrap: wrap;
-    }
-    .reveal .pipe .node {
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      padding: 0.5em 0.8em;
-      text-align: center;
-    }
-    .reveal .pipe .node b { display: block; }
-    .reveal .pipe .node span { color: var(--muted); font-size: 0.9em; }
-    .reveal .pipe .arrow {
-      align-self: center;
-      padding: 0 0.4em;
-      color: var(--crimson);
-      font-weight: bold;
-    }
-    .reveal .demo-url {
-      font-size: 1em;
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      padding: 0.4em 0.6em;
-      word-break: break-all;
-    }
-    .reveal .two-col { display: flex; gap: 1.5em; flex-wrap: wrap; }
-    .reveal .two-col > div { flex: 1 1 12em; }
-    .reveal .check::before { content: "✓ "; color: var(--crimson); font-weight: bold; }
-    .reveal .todo::before { content: "○ "; color: var(--muted); font-weight: bold; }
-    .reveal .progress { background: rgba(139, 30, 18, 0.15); }
-    .reveal .progress span { background: var(--crimson); }
-    .reveal .controls { color: var(--crimson); }
-  </style>
+  <link rel="stylesheet" href="./deck.css" />
 </head>
 <body>
 <div class="reveal">
@@ -106,140 +15,345 @@
 
 <!-- 1. Title -->
 <section>
-  <p class="kicker">Digital archive · 1995–2026</p>
-  <h1>Nepal Conflict Timeline</h1>
-  <p class="lede">An open-source, chronological archive of Nepal&rsquo;s internal armed conflict (1996–2006) and its transitional-justice aftermath — built for the people who need the record to be right.</p>
-  <div class="stat-row">
-    <div class="stat"><b>2,150</b><span>events, NCT-0001…NCT-2150</span></div>
-    <div class="stat"><b>1995–2026</b><span>pre-conflict → aftermath</span></div>
-    <div class="stat"><b>100%</b><span>static, no backend</span></div>
+  <div class="title-grid">
+    <div class="title-copy">
+      <p class="kicker">Digital archive · 1995–2026</p>
+      <h1>Nepal Conflict Timeline</h1>
+      <p class="lede">An open-source, chronological archive of Nepal&rsquo;s internal armed conflict (1996–2006) and its transitional-justice aftermath — built for the people who need the record to be right.</p>
+      <div class="stat-row">
+        <div class="stat"><b>2,150</b><span>events, NCT-0001…NCT-2150</span></div>
+        <div class="stat"><b>1995–2026</b><span>pre-conflict → aftermath</span></div>
+        <div class="stat"><b>100%</b><span>static, no backend</span></div>
+      </div>
+    </div>
+    <figure class="title-photo">
+      <img
+        src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Beautiful_Rolpa%2C_The_Head_Quarter_Liwang.jpg/1920px-Beautiful_Rolpa%2C_The_Head_Quarter_Liwang.jpg"
+        srcset="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Beautiful_Rolpa%2C_The_Head_Quarter_Liwang.jpg/1920px-Beautiful_Rolpa%2C_The_Head_Quarter_Liwang.jpg 1920w, https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Beautiful_Rolpa%2C_The_Head_Quarter_Liwang.jpg/3840px-Beautiful_Rolpa%2C_The_Head_Quarter_Liwang.jpg 3840w"
+        sizes="(max-width: 720px) 100vw, 46vw"
+        width="1920"
+        height="1080"
+        alt="Liwang, the district headquarters of Rolpa: a hillside town among forested ridges, with marigolds in the foreground."
+        referrerpolicy="no-referrer"
+      />
+      <figcaption class="credit"><a href="https://commons.wikimedia.org/wiki/File:Beautiful_Rolpa,_The_Head_Quarter_Liwang.jpg">Liwang, Rolpa</a> · Kashiram Dangi · <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a></figcaption>
+    </figure>
   </div>
   <aside class="notes">Hook: one sheet, 2150 rows, thirty years. This talk is the story of turning a spreadsheet into an archive people can cite. If you remember one thing, remember the span: the war ended in 2006, the record runs to 2026.</aside>
 </section>
 
 <!-- 2. Why -->
 <section>
-  <p class="kicker">Why it exists</p>
-  <h2>Built for transitional justice</h2>
-  <ul>
-    <li>Researchers, journalists, victims&rsquo; groups, and legal teams need a <em>shared, citable</em> chronology</li>
-    <li>Answers: what happened, when, where — with the source attached</li>
-    <li>Restrained by design: brief non-graphic narratives, a content-blur option, no sensational styling</li>
-  </ul>
+  <div class="frame">
+    <p class="kicker">Why it exists</p>
+    <h2>Built for transitional justice</h2>
+    <ul>
+      <li>Researchers, journalists, victims&rsquo; groups, and legal teams need a <em>shared, citable</em> chronology</li>
+      <li>Answers: what happened, when, where — with the source attached</li>
+      <li>Restrained by design: brief non-graphic narratives, a content-blur option, no sensational styling</li>
+    </ul>
+  </div>
   <aside class="notes">The audience is not casual readers. Every design choice — permalinks, confidence labels, citations — serves someone building a case, writing a story, or seeking truth. Say the user groups out loud; someone here is one of them.</aside>
 </section>
 
 <!-- 3. Pipeline -->
 <section>
-  <p class="kicker">From spreadsheet to site</p>
-  <h2>One sheet in, one site out</h2>
-  <div class="pipe">
-    <div class="node"><b>Google Sheet</b><span>editorial workspace</span></div>
-    <div class="arrow">→</div>
-    <div class="node"><b>CSV export</b><span>committed to repo</span></div>
-    <div class="arrow">→</div>
-    <div class="node"><b>Parse + validate</b><span>tests + data-lint</span></div>
-    <div class="arrow">→</div>
-    <div class="node"><b>Static site</b><span>GitHub Pages</span></div>
+  <div class="frame">
+    <p class="kicker">From spreadsheet to site</p>
+    <h2>One sheet in, one site out</h2>
+    <div class="pipe">
+      <div class="node"><b>Google Sheet</b><span>editorial workspace</span></div>
+      <div class="arrow" aria-hidden="true">→</div>
+      <div class="node"><b>CSV export</b><span>committed to repo</span></div>
+      <div class="arrow" aria-hidden="true">→</div>
+      <div class="node"><b>Parse + validate</b><span>tests + data-lint</span></div>
+      <div class="arrow" aria-hidden="true">→</div>
+      <div class="node"><b>Static site</b><span>GitHub Pages</span></div>
+    </div>
+    <ul>
+      <li>No database, no backend, no router — a single page that later fits in a native shell</li>
+      <li>Every push runs tests, data checks, build, and deploy</li>
+    </ul>
   </div>
-  <ul>
-    <li>No database, no backend, no router — a single page that later fits in a native shell</li>
-    <li>Every push runs tests, data checks, build, and deploy</li>
-  </ul>
   <aside class="notes">The pipeline is the governance model: editors own the Sheet, the repo owns verification, CI owns deployment. Nothing reaches the public without passing tests. This is how a tiny team maintains a 2,150-row archive safely.</aside>
 </section>
 
-<!-- 4. Tour -->
+<!-- 4. Place (image) -->
 <section>
-  <p class="kicker">Tour (~3 min live)</p>
-  <h2>The timeline leads</h2>
-  <ul>
-    <li>Year-grouped feed on a spine; sticky year rail, bottom dock on phones</li>
-    <li>One <b>Filters</b> toggle: themes, categories, organizations, districts, confidence, date range, saved views, export</li>
-    <li>Cards: teaser → expand → sources, confidence, citation, permalink</li>
-  </ul>
-  <p class="demo-url">https://arjankc.github.io/conflict_timeline/</p>
-  <p class="lede">Demo script: search <code>Rolpa</code> → step through matches → open Filters → toggle a district → copy a card permalink.</p>
+  <div class="frame">
+    <p class="kicker">Where the first row is</p>
+    <h2>Rolpa, not a heatmap</h2>
+    <p class="lede">Operation Romeo, November 1995, is NCT-0001. The live demo searches this district. The highlight is a locator — counts of events are on the chart, and they are inferred, not surveyed.</p>
+    <div class="place-grid">
+      <figure>
+        <img
+          class="map-img"
+          src="https://upload.wikimedia.org/wikipedia/commons/b/bb/Rolpa_District_in_Nepal_2015.svg"
+          width="1100"
+          height="721"
+          alt="Locator map of Nepal with Rolpa district filled in red. Neighbouring districts are outlined. This is not a map of event counts."
+          referrerpolicy="no-referrer"
+        />
+        <figcaption class="credit"><a href="https://commons.wikimedia.org/wiki/File:Rolpa_District_in_Nepal_2015.svg">Rolpa district, 2015 boundaries</a> · NordNordWest · <a href="https://creativecommons.org/licenses/by-sa/3.0/de/deed.en">CC BY-SA 3.0 DE</a></figcaption>
+      </figure>
+      <figure>
+        <img
+          src="https://upload.wikimedia.org/wikipedia/commons/3/37/Rolpa_Thabang_Village..jpg"
+          width="1399"
+          height="813"
+          alt="Thabang village in Rolpa: stone houses with slate roofs set among green terraced fields."
+          referrerpolicy="no-referrer"
+        />
+        <figcaption class="credit"><a href="https://commons.wikimedia.org/wiki/File:Rolpa_Thabang_Village..jpg">Thabang, Rolpa, 2009</a> · Sahilkashi · <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a></figcaption>
+      </figure>
+    </div>
+  </div>
+  <aside class="notes">This is a locator, not a casualty map. Rolpa is where Operation Romeo — the first row — happened, and it is the search in the live demo you are about to do. Thabang is the village in that district. Do not linger; the next slide is the product.</aside>
+</section>
+
+<!-- 5. Tour -->
+<section>
+  <div class="frame">
+    <div class="split">
+      <div class="split-copy">
+        <p class="kicker">Tour (~3 min live)</p>
+        <h2>The timeline leads</h2>
+        <ul>
+          <li>Year-grouped feed on a spine; sticky year rail, bottom dock on phones</li>
+          <li>One <b>Filters</b> toggle: themes, categories, organizations, districts, confidence, date range, saved views, export</li>
+          <li>Cards: teaser → expand → sources, confidence, citation, permalink</li>
+        </ul>
+        <p class="demo-url">https://arjankc.github.io/conflict_timeline/</p>
+        <p class="lede">Demo script: search <code>Rolpa</code> → step through matches → open Filters → toggle a district → copy a card permalink.</p>
+      </div>
+      <figure class="shots">
+        <img
+          class="shot-desktop"
+          src="./figures/app-rolpa-desktop.png"
+          width="1440"
+          height="900"
+          alt="The archive in a desktop browser, searched for Rolpa: the 1995 Operation Romeo card, the 1996 card, and the year rail."
+        />
+        <figcaption class="credit">Screenshot of this project, searching Rolpa. Local build.</figcaption>
+      </figure>
+    </div>
+  </div>
   <aside class="notes">SWITCH TO THE LIVE TAB NOW. Do the exact script on screen: search Rolpa, step matches, open drawer, toggle district, copy permalink. Narrate the URL changing for shareable views vs filter-free permalinks. Keep it under three minutes; the deck continues on return.</aside>
 </section>
 
-<!-- 5. Trust -->
+<!-- 6. Trust -->
 <section>
-  <p class="kicker">Why you can cite it</p>
-  <h2>Trust is a feature</h2>
-  <ul>
-    <li>Stable <code>Event_ID</code>s (<code>NCT-0001…NCT-2150</code>) — links never rot when rows are added</li>
-    <li>Every expanded card shows <b>Sources &amp; Confidence</b> plus a copyable citation</li>
-    <li>One canonical taxonomy: <code>Maoist/</code> and <code>Maoist.</code> merge at parse time, never by editing history</li>
-  </ul>
+  <div class="frame">
+    <p class="kicker">Why you can cite it</p>
+    <h2>Trust is a feature</h2>
+    <ul>
+      <li>Stable <code>Event_ID</code>s (<code>NCT-0001…NCT-2150</code>) — links never rot when rows are added</li>
+      <li>Every expanded card shows <b>Sources &amp; Confidence</b> plus a copyable citation</li>
+      <li>One canonical taxonomy: <code>Maoist/</code> and <code>Maoist.</code> merge at parse time, never by editing history</li>
+    </ul>
+  </div>
   <aside class="notes">Three mechanisms, each solving one failure mode of activist datasets: link rot, unsourced claims, and tag chaos. The parser normalizes; the sheet stays verbatim. Stress that citations are per-card, not per-site.</aside>
 </section>
 
-<!-- 6. Rigor -->
+<!-- 7. Rigor -->
 <section>
-  <p class="kicker">Rigor, automated</p>
-  <h2>The build checks the facts</h2>
-  <ul>
-    <li><code>data-lint</code> asserts <b>11 doc claims</b> (row counts, categories, confidence split, span) — docs can&rsquo;t silently drift</li>
-    <li><code>link-check</code>: 116 source URLs verified — <b>104 ok</b>, 6 blocked, 6 dead with per-event remediation</li>
-    <li>War story: day-first dates (<code>18 April 2011</code>) weren&rsquo;t parsed — <b>1,793 rows</b> sat in “Undated” until a regression-guarded fix</li>
-  </ul>
+  <div class="frame">
+    <p class="kicker">Rigor, automated</p>
+    <h2>The build checks the facts</h2>
+    <ul>
+      <li><code>data-lint</code> asserts <b>11 doc claims</b> (row counts, categories, confidence split, span) — docs can&rsquo;t silently drift</li>
+      <li><code>link-check</code>: 116 source URLs verified — <b>104 ok</b>, 6 blocked, 6 dead with per-event remediation</li>
+      <li>War story: day-first dates (<code>18 April 2011</code>) weren&rsquo;t parsed — <b>1,793 rows</b> sat in “Undated” until a regression-guarded fix</li>
+    </ul>
+  </div>
   <aside class="notes">Tell the Undated story with pride: a user said the section looked weird, we counted, found 1,793 misparsed rows, fixed the parser, and pinned the undated count at 54 in a test. This is the slide that convinces technical skeptics.</aside>
 </section>
 
-<!-- 7. Honesty -->
+<!-- 8. Chart from the sheet -->
 <section>
-  <p class="kicker">Design honesty</p>
-  <h2>What we label, not hide</h2>
-  <ul>
-    <li>Districts are <b>inferred</b> (keywords → detail prose) and labeled as such — no fake choropleth</li>
-    <li>54 rows stay <b>Undated</b> with an on-page explanation instead of invented dates</li>
-    <li>Blur toggle, print stylesheet, forced-colors support: the archive adapts to the reader</li>
-  </ul>
+  <div class="frame">
+    <p class="kicker">From the committed sheet</p>
+    <h2>What 2,150 rows look like</h2>
+    <p class="lede">Same date parser as the site. Fifty-four rows stay undated and are not drawn as bars. The shaded band is 1996–2006.</p>
+    <div class="year-plot" role="img" aria-label="Bar chart of dated events per year, 1995 to 2026. The tallest bar is 2007 with 238 events. 2003 has 230, 2005 has 229, and 2006 has 205. Fifty-four undated rows are not plotted.">
+      <div class="bar pre labeled" style="--n:1" title="1995: 1"><span>1995</span></div>
+      <div class="bar war" style="--n:8" title="1996: 8"></div>
+      <div class="bar war" style="--n:6" title="1997: 6"></div>
+      <div class="bar war" style="--n:3" title="1998: 3"></div>
+      <div class="bar war" style="--n:9" title="1999: 9"></div>
+      <div class="bar war labeled" style="--n:13" title="2000: 13"><span>2000</span></div>
+      <div class="bar war" style="--n:33" title="2001: 33"></div>
+      <div class="bar war" style="--n:62" title="2002: 62"></div>
+      <div class="bar war" style="--n:230" title="2003: 230"></div>
+      <div class="bar war" style="--n:149" title="2004: 149"></div>
+      <div class="bar war labeled" style="--n:229" title="2005: 229"><span>2005</span></div>
+      <div class="bar war" style="--n:205" title="2006: 205"></div>
+      <div class="bar after labeled" style="--n:238" title="2007: 238"><b>238</b><span>2007</span></div>
+      <div class="bar after" style="--n:130" title="2008: 130"></div>
+      <div class="bar after" style="--n:123" title="2009: 123"></div>
+      <div class="bar after labeled" style="--n:11" title="2010: 11"><span>2010</span></div>
+      <div class="bar after" style="--n:112" title="2011: 112"></div>
+      <div class="bar after" style="--n:67" title="2012: 67"></div>
+      <div class="bar after" style="--n:128" title="2013: 128"></div>
+      <div class="bar after" style="--n:73" title="2014: 73"></div>
+      <div class="bar after labeled" style="--n:8" title="2015: 8"><span>2015</span></div>
+      <div class="bar after" style="--n:48" title="2016: 48"></div>
+      <div class="bar after" style="--n:39" title="2017: 39"></div>
+      <div class="bar after" style="--n:17" title="2018: 17"></div>
+      <div class="bar after" style="--n:25" title="2019: 25"></div>
+      <div class="bar after labeled" style="--n:18" title="2020: 18"><span>2020</span></div>
+      <div class="bar after" style="--n:8" title="2021: 8"></div>
+      <div class="bar after" style="--n:9" title="2022: 9"></div>
+      <div class="bar after" style="--n:7" title="2023: 7"></div>
+      <div class="bar after" style="--n:12" title="2024: 12"></div>
+      <div class="bar after labeled" style="--n:48" title="2025: 48"><span>2025</span></div>
+      <div class="bar after" style="--n:27" title="2026: 27"></div>
+    </div>
+    <p class="legend">
+      <span><i class="swatch-pre"></i>1995 · 1</span>
+      <span><i class="swatch-war"></i>1996–2006 · 947</span>
+      <span><i class="swatch-after"></i>2007–2026 · 1,148</span>
+      <span>Undated, not plotted · 54</span>
+    </p>
+    <div class="chart-cols">
+      <div>
+        <h3>Category, one per row</h3>
+        <div class="hbar-list" aria-label="Events by category">
+          <div class="hbar"><span>Other</span><span class="track"><span style="width:100%"></span></span><b>449</b></div>
+          <div class="hbar"><span>Killing</span><span class="track"><span style="width:98.9%"></span></span><b>444</b></div>
+          <div class="hbar"><span>Combat</span><span class="track"><span style="width:81.7%"></span></span><b>367</b></div>
+          <div class="hbar"><span>Transitional justice</span><span class="track"><span style="width:57.2%"></span></span><b>257</b></div>
+          <div class="hbar"><span>Detention</span><span class="track"><span style="width:43.9%"></span></span><b>197</b></div>
+          <div class="hbar"><span>Peace process</span><span class="track"><span style="width:35.9%"></span></span><b>161</b></div>
+          <div class="hbar"><span>Protest</span><span class="track"><span style="width:19.8%"></span></span><b>89</b></div>
+          <div class="hbar"><span>Policy</span><span class="track"><span style="width:17.4%"></span></span><b>78</b></div>
+          <div class="hbar"><span>Media</span><span class="track"><span style="width:7.6%"></span></span><b>34</b></div>
+          <div class="hbar"><span>Sexual violence</span><span class="track"><span style="width:6.7%"></span></span><b>30</b></div>
+          <div class="hbar"><span>Civil society</span><span class="track"><span style="width:5.3%"></span></span><b>24</b></div>
+          <div class="hbar"><span>Disappearance</span><span class="track"><span style="width:3.3%"></span></span><b>15</b></div>
+          <div class="hbar"><span>Displacement</span><span class="track"><span style="width:1.1%"></span></span><b>5</b></div>
+        </div>
+      </div>
+      <div>
+        <h3>Inferred districts, top 8</h3>
+        <div class="hbar-list" aria-label="Top inferred district mentions">
+          <div class="hbar"><span>Kathmandu</span><span class="track"><span style="width:100%"></span></span><b>151</b></div>
+          <div class="hbar"><span>Banke</span><span class="track"><span style="width:41.7%"></span></span><b>63</b></div>
+          <div class="hbar"><span>Kailali</span><span class="track"><span style="width:33.1%"></span></span><b>50</b></div>
+          <div class="hbar"><span>Bara</span><span class="track"><span style="width:31.1%"></span></span><b>47</b></div>
+          <div class="hbar"><span>Bardiya</span><span class="track"><span style="width:29.8%"></span></span><b>45</b></div>
+          <div class="hbar"><span>Dang</span><span class="track"><span style="width:29.8%"></span></span><b>45</b></div>
+          <div class="hbar"><span>Rautahat</span><span class="track"><span style="width:27.8%"></span></span><b>42</b></div>
+          <div class="hbar"><span>Siraha</span><span class="track"><span style="width:27.8%"></span></span><b>42</b></div>
+        </div>
+        <p class="fine">Keyword and detail text, the same inference as the site — not a location field. Rolpa, the demo search, is 15th (30). Confidence on the archival sheet: 1,167 high · 351 medium · 632 low.</p>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">Do not read every bar. The conflict years climb through 2003 and stay high to 2006. The tallest bar is 2007, the first year after the peace accord, at 238. Fifty-four rows stay undated and are not plotted. Confidence on the archival sheet is 1,167 high, 351 medium, 632 low. The district bars are inferred from keywords and detail, the same method as the site — Kathmandu leads because that is where institutions are written down. Rolpa, which you will search, is 15th with 30 mentions. That is the bridge into the honesty slide.</aside>
+</section>
+
+<!-- 9. Honesty -->
+<section>
+  <div class="frame">
+    <p class="kicker">Design honesty</p>
+    <h2>What we label, not hide</h2>
+    <ul>
+      <li>Districts are <b>inferred</b> (keywords → detail prose) and labeled as such — no fake choropleth</li>
+      <li>54 rows stay <b>Undated</b> with an on-page explanation instead of invented dates</li>
+      <li>Blur toggle, print stylesheet, forced-colors support: the archive adapts to the reader</li>
+    </ul>
+  </div>
   <aside class="notes">Counterintuitive point: restraint is a feature. We could have drawn a pretty district map from guesses — we show a ranked list and say it is inference. In transitional justice, a false precision is worse than an honest gap.</aside>
 </section>
 
-<!-- 8. Roadmap -->
+<!-- 10. Roadmap -->
 <section>
-  <p class="kicker">What&rsquo;s next — invitations</p>
-  <h2>Open, on purpose</h2>
-  <div class="two-col">
-    <div>
-      <ul>
-        <li class="todo">True choropleth — needs a geojson decision</li>
-        <li class="todo">Nepali UI — needs translations + review</li>
-        <li class="todo">Per-year share images — needs a design asset</li>
-      </ul>
-    </div>
-    <div>
-      <ul>
-        <li class="todo">Sheet fixes — NCT-0002 split, org commas, <code>other</code> audit (editors only)</li>
-        <li class="todo">Data license confirmation</li>
-        <li class="check">Everything else on the plan is built and green</li>
-      </ul>
+  <div class="frame">
+    <p class="kicker">What&rsquo;s next — invitations</p>
+    <h2>Open, on purpose</h2>
+    <div class="two-col">
+      <div>
+        <ul>
+          <li class="todo">True choropleth — needs a geojson decision</li>
+          <li class="todo">Nepali UI — needs translations + review</li>
+          <li class="todo">Per-year share images — needs a design asset</li>
+        </ul>
+      </div>
+      <div>
+        <ul>
+          <li class="todo">Sheet fixes — NCT-0002 split, org commas, <code>other</code> audit (editors only)</li>
+          <li class="todo">Data license confirmation</li>
+          <li class="check">Everything else on the plan is built and green</li>
+        </ul>
+      </div>
     </div>
   </div>
   <aside class="notes">Frame gaps as invitations, each with a named unblocker. End this slide by asking the room: who here can unblock one row? That turns Q&A into recruitment.</aside>
 </section>
 
-<!-- 9. Cite -->
+<!-- 11. Aftermath (image) -->
 <section>
-  <p class="kicker">Take it with you</p>
-  <h2>Cite &amp; contribute</h2>
-  <ul>
-    <li>Cards: link icon copies a filter-free permalink; “Copy citation” for footnotes</li>
-    <li>Views: Share button copies the filtered URL (<code>?tag=&amp;year=</code>)</li>
-    <li>Repo: <code>github.com/arjankc/conflict_timeline</code> — schema in <code>DATA.md</code>, fact-check log in <code>docs/FACTCHECK.md</code></li>
-  </ul>
+  <div class="frame bleed">
+    <img
+      class="bleed-img"
+      src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/Nepalese_Constituent_Assembly_Building.jpg/1920px-Nepalese_Constituent_Assembly_Building.jpg"
+      srcset="https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/Nepalese_Constituent_Assembly_Building.jpg/1920px-Nepalese_Constituent_Assembly_Building.jpg 1920w, https://upload.wikimedia.org/wikipedia/commons/f/ff/Nepalese_Constituent_Assembly_Building.jpg 3578w"
+      sizes="100vw"
+      width="1920"
+      height="861"
+      alt="Birendra International Convention Centre in Kathmandu, a white hall with a Nepali roof and the national flag, seen through its front gate. The Constituent Assembly sat here."
+      referrerpolicy="no-referrer"
+    />
+    <div class="bleed-card">
+      <p class="kicker">After the accord</p>
+      <h2>The hall the later rows pass through</h2>
+      <p class="lede">The war ended in November 2006. The Constituent Assembly, and the years after it, are why the sheet does not stop there.</p>
+    </div>
+    <p class="credit"><a href="https://commons.wikimedia.org/wiki/File:Nepalese_Constituent_Assembly_Building.jpg">Birendra International Convention Centre, Kathmandu, 2011</a> · Tevaprapas (เทวประภาส มากคล้าย) · <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a></p>
+  </div>
+  <aside class="notes">The building is the Birendra International Convention Centre, which housed the Constituent Assembly. The point is the one you will land on the closing slide: the war ended in 2006 and the record keeps going. No casualty photograph on purpose. The photographer asks to be told when the picture is used off Wikimedia; the licence itself is CC BY-SA 3.0.</aside>
+</section>
+
+<!-- 12. Cite -->
+<section>
+  <div class="frame">
+    <p class="kicker">Take it with you</p>
+    <h2>Cite &amp; contribute</h2>
+    <ul>
+      <li>Cards: link icon copies a filter-free permalink; “Copy citation” for footnotes</li>
+      <li>Views: Share button copies the filtered URL (<code>?tag=&amp;year=</code>)</li>
+      <li>Repo: <code>github.com/arjankc/conflict_timeline</code> — schema in <code>DATA.md</code>, fact-check log in <code>docs/FACTCHECK.md</code></li>
+    </ul>
+  </div>
   <aside class="notes">Practical close: show one permalink copy and one filtered-view share. Point editors at DATA.md, skeptics at FACTCHECK.md. Keep the repo URL on screen during Q&A.</aside>
 </section>
 
-<!-- 10. Closing -->
+<!-- 13. Closing -->
 <section>
-  <p class="kicker">One thing to remember</p>
-  <h2>The war ended in 2006. The record runs to 2026.</h2>
-  <p class="lede">2,150 events. Every one citable, none invented. Thank you.</p>
+  <div class="frame">
+    <p class="kicker">One thing to remember</p>
+    <h2>The war ended in 2006. The record runs to 2026.</h2>
+    <p class="lede">2,150 events. Every one citable, none invented. Thank you.</p>
+  </div>
   <aside class="notes">Land the span line again — it opened the talk and it closes it. Then stop talking and take questions.</aside>
+</section>
+
+<!-- 14. Credits -->
+<section>
+  <div class="frame">
+    <p class="kicker">Sources for the pictures</p>
+    <h2>Credits</h2>
+    <ul class="credit-list">
+      <li><a href="https://commons.wikimedia.org/wiki/File:Beautiful_Rolpa,_The_Head_Quarter_Liwang.jpg">Liwang, Rolpa</a> — Kashiram Dangi, 2019. <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>. Hotlinked from upload.wikimedia.org (1,920px, and 3,840px on large screens).</li>
+      <li><a href="https://commons.wikimedia.org/wiki/File:Rolpa_District_in_Nepal_2015.svg">Rolpa district locator, 2015 boundaries</a> — NordNordWest. <a href="https://creativecommons.org/licenses/by-sa/3.0/de/deed.en">CC BY-SA 3.0 DE</a>. SVG hotlinked from upload.wikimedia.org. A locator, not an event map.</li>
+      <li><a href="https://commons.wikimedia.org/wiki/File:Rolpa_Thabang_Village..jpg">Thabang, Rolpa</a> — Sahilkashi, 2009. <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a>. Original file hotlinked from upload.wikimedia.org.</li>
+      <li><a href="https://commons.wikimedia.org/wiki/File:Nepalese_Constituent_Assembly_Building.jpg">Birendra International Convention Centre</a> — Tevaprapas (เทวประภาส มากคล้าย), 2011. <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a>. The photographer asks to be notified of use outside Wikimedia. Hotlinked from upload.wikimedia.org.</li>
+      <li>App screenshot — Nepal Conflict Timeline, this repository, searching <code>Rolpa</code>. Committed because it has no other host. The interface is MIT; the event texts are compiled research and are not MIT.</li>
+    </ul>
+    <p class="fine">Wikimedia Commons serves these files from upload.wikimedia.org and allows hotlinking. Thumbnail widths are ones Commons accepts (1,920 and 3,840). Chart counts were taken from <code>public/data/mastersheet.csv</code> and the archival sources sheet with this site’s date, category, and district parsers: 2,096 dated rows (1 in 1995, 947 in 1996–2006, 1,148 in 2007–2026) and 54 undated. Confidence is 1,167 high, 351 medium, 632 low.</p>
+  </div>
+  <aside class="notes">If someone asks about an image, the licence and the file page are on this slide. Photographs are hotlinked from Wikimedia, not copied into the repo. Counts on the chart are from the committed CSV, parsed the same way as the site. Offer to pass Tevaprapas’s notification request on if the room is reusing that photograph.</aside>
 </section>
 
 </div>
@@ -247,11 +361,42 @@
 <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
 <script>
-  Reveal.initialize({
+  // 16:9 canvas for projectors. Under 720px the canvas itself shrinks so type
+  // stays a readable size instead of a 1920-wide slide scaled to a thumbnail.
+  // Scroll view turns on when the laid-out slide is narrower than 780px, which
+  // is portrait phones and not a 1280×720 laptop.
+  function presentationSize() {
+    var narrow = window.matchMedia('(max-width: 720px)').matches
+    if (narrow) {
+      return { width: 430, height: 1000, margin: 0.012, minScale: 0.68, maxScale: 1.5 }
+    }
+    return { width: 1920, height: 1080, margin: 0.028, minScale: 0.28, maxScale: 2.5 }
+  }
+
+  var sizeQuery = window.matchMedia('(max-width: 720px)')
+  Reveal.initialize(Object.assign({
     hash: true,
-    slideNumber: true,
+    hashOneBasedIndex: false,
+    slideNumber: 'c/t',
+    touch: true,
+    controls: true,
+    controlsTutorial: false,
+    progress: true,
+    center: false,
+    scrollActivationWidth: 780,
+    scrollProgress: 'auto',
+    scrollLayout: 'full',
+    transition: 'fade',
+    transitionSpeed: 'fast',
+    backgroundTransition: 'fade',
+    viewDistance: 3,
+    mobileViewDistance: 4,
     plugins: [RevealNotes]
-  });
+  }, presentationSize()))
+
+  sizeQuery.addEventListener('change', function () {
+    Reveal.configure(presentationSize())
+  })
 </script>
 </body>
 </html>

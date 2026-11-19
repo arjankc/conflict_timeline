@@ -39,7 +39,7 @@
       <figcaption class="credit"><a href="https://commons.wikimedia.org/wiki/File:Beautiful_Rolpa,_The_Head_Quarter_Liwang.jpg">Liwang, Rolpa</a> · Kashiram Dangi · <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a></figcaption>
     </figure>
   </div>
-  <aside class="notes">Hook: one sheet, 2150 rows, thirty years. This talk is the story of turning a spreadsheet into an archive people can cite. If you remember one thing, remember the span: the war ended in 2006, the record runs to 2026.</aside>
+  <aside class="notes">Hook: one sheet, 2150 rows, thirty years. This talk is the story of turning a spreadsheet into an archive people can trust. If you remember one thing, remember the span: the war ended in 2006, the record runs to 2026.</aside>
 </section>
 
 <!-- 2. Why -->
@@ -48,12 +48,12 @@
     <p class="kicker">Why it exists</p>
     <h2>Built for transitional justice</h2>
     <ul>
-      <li>Researchers, journalists, victims&rsquo; groups, and legal teams need a <em>shared, citable</em> chronology</li>
+      <li>Researchers, journalists, victims&rsquo; groups, and legal teams need a <em>shared, trustworthy</em> chronology</li>
       <li>Answers: what happened, when, where — with the source attached</li>
       <li>Restrained by design: brief non-graphic narratives, a content-blur option, no sensational styling</li>
     </ul>
   </div>
-  <aside class="notes">The audience is not casual readers. Every design choice — permalinks, confidence labels, citations — serves someone building a case, writing a story, or seeking truth. Say the user groups out loud; someone here is one of them.</aside>
+  <aside class="notes">The audience is not casual readers. Every design choice — permalinks, confidence labels, source lists — serves someone building a case, writing a story, or seeking truth. Say the user groups out loud; someone here is one of them.</aside>
 </section>
 
 <!-- 3. Pipeline -->
@@ -121,7 +121,7 @@
         <ul>
           <li>Year-grouped feed on a spine; sticky year rail, bottom dock on phones</li>
           <li>One <b>Filters</b> toggle: themes, categories, organizations, districts, confidence, date range, saved views, export</li>
-          <li>Cards: teaser → expand → sources, confidence, citation, permalink</li>
+          <li>Cards: teaser → expand → sources, confidence, and a permalink</li>
         </ul>
         <p class="demo-url">https://arjankc.github.io/conflict_timeline/</p>
         <p class="lede">Demo script: search <code>Rolpa</code> → step through matches → open Filters → toggle a district → copy a card permalink.</p>
@@ -144,15 +144,15 @@
 <!-- 6. Trust -->
 <section>
   <div class="frame">
-    <p class="kicker">Why you can cite it</p>
+    <p class="kicker">Why you can trust it</p>
     <h2>Trust is a feature</h2>
     <ul>
       <li>Stable <code>Event_ID</code>s (<code>NCT-0001…NCT-2150</code>) — links never rot when rows are added</li>
-      <li>Every expanded card shows <b>Sources &amp; Confidence</b> plus a copyable citation</li>
+      <li>Every expanded card shows <b>Sources &amp; Confidence</b>, with the rationale behind the rating</li>
       <li>One canonical taxonomy: <code>Maoist/</code> and <code>Maoist.</code> merge at parse time, never by editing history</li>
     </ul>
   </div>
-  <aside class="notes">Three mechanisms, each solving one failure mode of activist datasets: link rot, unsourced claims, and tag chaos. The parser normalizes; the sheet stays verbatim. Stress that citations are per-card, not per-site.</aside>
+  <aside class="notes">Three mechanisms, each solving one failure mode of activist datasets: link rot, unsourced claims, and tag chaos. The parser normalizes; the sheet stays verbatim. Stress that provenance travels with every card, not just the site.</aside>
 </section>
 
 <!-- 7. Rigor -->
@@ -315,13 +315,13 @@
   <aside class="notes">The building is the Birendra International Convention Centre, which housed the Constituent Assembly. The point is the one you will land on the closing slide: the war ended in 2006 and the record keeps going. No casualty photograph on purpose. The photographer asks to be told when the picture is used off Wikimedia; the licence itself is CC BY-SA 3.0.</aside>
 </section>
 
-<!-- 12. Cite -->
+<!-- 12. Share -->
 <section>
   <div class="frame">
     <p class="kicker">Take it with you</p>
-    <h2>Cite &amp; contribute</h2>
+    <h2>Share &amp; contribute</h2>
     <ul>
-      <li>Cards: link icon copies a filter-free permalink; “Copy citation” for footnotes</li>
+      <li>Cards: link icon copies a filter-free permalink to a single event</li>
       <li>Views: Share button copies the filtered URL (<code>?tag=&amp;year=</code>)</li>
       <li>Repo: <code>github.com/arjankc/conflict_timeline</code> — schema in <code>DATA.md</code>, fact-check log in <code>docs/FACTCHECK.md</code></li>
     </ul>
@@ -334,7 +334,7 @@
   <div class="frame">
     <p class="kicker">One thing to remember</p>
     <h2>The war ended in 2006. The record runs to 2026.</h2>
-    <p class="lede">2,150 events. Every one citable, none invented. Thank you.</p>
+    <p class="lede">2,150 events. Every one sourced, none invented. Thank you.</p>
   </div>
   <aside class="notes">Land the span line again — it opened the talk and it closes it. Then stop talking and take questions.</aside>
 </section>

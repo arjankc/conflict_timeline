@@ -39,6 +39,9 @@ All notable changes to data handling and the app. Dates are release dates (UTC).
   `docs/FACTCHECK.md`); `data-lint` asserts doc claims and warns on raw
   spaces in Sources URLs; `scripts/factcheck-candidates.mjs` seeds the
   figure-claim review queue.
+- Presentation: removed citation framing from the deck (trust slide now
+  “Why you can trust it”, closing “Every one sourced, none invented”),
+  reconciled with merged accessibility/visual PRs.
 - Presentation: `presentation/index.html` (reveal.js, 10 slides, speaker
   notes) covering story, tour, trust, rigor, honesty, and roadmap.
 

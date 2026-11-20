@@ -4,6 +4,24 @@ All notable changes to data handling and the app. Dates are release dates (UTC).
 
 ## Unreleased
 
+- Analytics: Google Tag Manager (`GTM-PKN7T9SJ`) snippet in `index.html`
+  (production only, skipped on localhost and with Do Not Track) plus
+  `src/lib/analytics.ts` dataLayer events — virtual `page_view`s, `search`
+  (count + query length, never raw text), `filter_change`, `card_expand`,
+  `permalink_copy`, `citation_copy`, `export`, `share`, `year_navigate`,
+  `saved_view`. Container-side tag spec in `docs/ANALYTICS.md`.
+
+- Keyword taxonomy: `taxonomy/keyword-taxonomy.csv` (448 rows: Term,
+  Aliases, Facet, Status, Comment) is now the single source of truth for
+  keyword display, compiled at build time by
+  `scripts/keyword-taxonomy.mjs` (`data:lint` asserts sync, full coverage of
+  current keywords, and gazetteer match). 124 controlled themes render,
+  grouped by facet in the Filters drawer; pending/zero-hit terms stay in the
+  data but show no pills, chips, counts, or suggestions. Legacy spellings
+  (`UCPN-M`, `Nepal police`, `Kavrepalanchowk`) canonicalize at parse and
+  still match filters and search; 14 rows await editor review (see lint
+  warnings).
+
 - Scope cut to 8 Sept 2025: removed NCT-2113…NCT-2150 (38 rows after 8 Sept
   2025). Dataset is now 2112 rows, NCT-0001…NCT-2112, 1 Nov 1995 – 8 Sept 2025.
   Header simplified to “A chronological record of Nepal's internal armed

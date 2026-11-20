@@ -47,6 +47,24 @@
         } catch (e) {}
       })()
     </script>
+    <!-- Google Tag Manager (production only, skipped on localhost and with Do Not Track).
+         Custom interaction events are pushed to dataLayer by src/lib/analytics.ts —
+         see docs/ANALYTICS.md for the container-side tag spec. -->
+    <script>
+      (function () {
+        try {
+          var host = window.location.hostname;
+          if (host === 'localhost' || host === '127.0.0.1') return;
+          if (navigator.doNotTrack === '1' || window.doNotTrack === '1') return;
+          window.dataLayer = window.dataLayer || [];
+          window.dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+          var s = document.createElement('script');
+          s.async = true;
+          s.src = 'https://www.googletagmanager.com/gtm.js?id=GTM-PKN7T9SJ';
+          document.head.appendChild(s);
+        } catch (e) {}
+      })();
+    </script>
     <meta name="author" content="Nepal Conflict Timeline contributors" />
     <meta name="application-name" content="Nepal Conflict Timeline" />
     <meta name="apple-mobile-web-app-title" content="Nepal Conflict Timeline" />
@@ -119,6 +137,8 @@
     </script>
   </head>
   <body>
+    <!-- Google Tag Manager (noscript fallback). -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-PKN7T9SJ" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

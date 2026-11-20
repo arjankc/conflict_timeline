@@ -168,6 +168,21 @@ describe('filterEvents', () => {
       ).map((item) => item.id),
     ).toEqual(['1', '2'])
   })
+
+  it('matches legacy keyword variants against canonical event keywords', () => {
+    const placed = [
+      event({ id: '1', detail: 'Maoist rally', keywords: ['UCPN-Maoist'] }),
+      event({ id: '2', detail: 'Talks in Kathmandu', keywords: ['Maoist'] }),
+    ]
+    // Old URLs / saved views may carry pre-taxonomy spellings.
+    expect(
+      filterEvents(placed, { ...EMPTY_FILTERS, keywords: ['UCPN-M'] }).map((item) => item.id),
+    ).toEqual(['1'])
+    // Alias variants are indexed for full-text recall.
+    expect(
+      filterEvents(placed, { ...EMPTY_FILTERS, search: 'ucpn-m' }).map((item) => item.id),
+    ).toEqual(['1'])
+  })
 })
 
 describe('normalizeFilters', () => {

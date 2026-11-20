@@ -16,8 +16,14 @@ import {
 } from '../lib/eventCardTeaser'
 import { effectiveDistricts } from '../lib/eventGeography'
 import { splitHighlight } from '../lib/highlight'
+import { isVisibleKeyword } from '../lib/keywordTaxonomy'
 import { MONTH_SHORT } from '../lib/parseDate'
-import { formatCategoryLabel, formatKeywordLabel } from '../lib/parseTags'
+import { formatCategoryLabel } from '../lib/parseTags'
+import {
+  trackCardExpand,
+  trackCitationCopy,
+  trackPermalinkCopy,
+} from '../lib/analytics'
 import { showToast } from '../lib/toast'
 import type { ConflictEvent } from '../types/event'
 
@@ -62,15 +68,9 @@ function Pill({
       ? 'border-crimson bg-crimson-soft font-medium text-crimson'
       : `${PILL_STYLES[kind]} hover:border-control`,
   ].join(' ')
-  // Categories are stored with underscores (`transitional_justice`) and
-  // keywords mix lowercase, Title Case, and acronyms (`killing`, `TRC`) —
-  // show both humanized so cards read consistently.
-  const text =
-    kind === 'category'
-      ? formatCategoryLabel(label)
-      : kind === 'keyword'
-        ? formatKeywordLabel(label)
-        : label
+  // Categories are stored with underscores (`transitional_justice`) — show
+  // them with spaces. Keywords arrive as canonical display Terms already.
+  const text = kind === 'category' ? formatCategoryLabel(label) : label
 
   if (!onClick) {
     return <span className={className}>{text}</span>
@@ -134,6 +134,7 @@ function PermalinkControl({
         ),
       )
       showToast('Link to this event copied to the clipboard')
+      trackPermalinkCopy(cardId.replace(/^event-/, ''))
       setCopied(true)
       window.clearTimeout(copiedTimer.current)
       copiedTimer.current = window.setTimeout(() => setCopied(false), 2000)
@@ -349,7 +350,13 @@ export function EventCard({
   const DateHeading = dateHeadingLevel
   const highlightChunks = splitHighlight(event.detail, search)
   const districts = useMemo(() => effectiveDistricts(event), [event])
-  const pills = metadataPills({ ...event, districts })
+  // Only taxonomy-visible keywords get pills (pending/zero-hit stay out).
+  const pills = metadataPills({
+    keywords: event.keywords.filter(isVisibleKeyword),
+    categories: event.categories,
+    organizations: event.organizations,
+    districts,
+  })
   const wide = useWideTeaser()
   const tagLimit = compact ? 2 : wide ? DESKTOP_TAG_LIMIT : MOBILE_TAG_LIMIT
   const searching = search.trim() !== ''
@@ -396,7 +403,9 @@ export function EventCard({
   }, [isExpanded, event.detail, search, wide])
 
   function onToggleExpand() {
-    setExpanded((current) => !current)
+    const expanding = !expanded
+    setExpanded(expanding)
+    if (expanding) trackCardExpand(event.id)
   }
 
   function onArticleClick(click: MouseEvent<HTMLElement>) {
@@ -640,6 +649,7 @@ function Provenance({
     try {
       await navigator.clipboard.writeText(citation)
       showToast('Citation copied to the clipboard')
+      trackCitationCopy(event.id)
     } catch {
       showToast('Could not copy the citation')
     }

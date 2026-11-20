@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { KEYWORD_CLOUD_LIMIT, canonicalKeyword, countTags, formatCategoryLabel, formatKeywordLabel, parseOrganizations, parseTags, uniqueTags } from './parseTags'
+import { canonicalKeyword, countTags, formatCategoryLabel, formatKeywordLabel, parseOrganizations, parseTags, uniqueTags } from './parseTags'
 
 describe('parseTags', () => {
   it('splits, trims, and drops empty fragments', () => {
     expect(parseTags(' election, political dialogue , , Maoist')).toEqual([
-      'election',
-      'political dialogue',
+      'Election',
+      'Political Dialogue',
       'Maoist',
     ])
   })
@@ -16,7 +16,7 @@ describe('parseTags', () => {
 
   it('canonicalizes trailing-punctuation variants', () => {
     expect(parseTags('Maoist/, Maoist., Maoist')).toEqual(['Maoist'])
-    expect(canonicalKeyword('Nepal police')).toBe('police')
+    expect(canonicalKeyword('Nepal police')).toBe('Police')
   })
 
   it('returns an empty array for missing values', () => {
@@ -27,9 +27,9 @@ describe('parseTags', () => {
 
 describe('formatCategoryLabel', () => {
   it('replaces underscores and hyphens with spaces for display', () => {
-    expect(formatCategoryLabel('transitional_justice')).toBe('transitional justice')
-    expect(formatCategoryLabel('sexual-violence')).toBe('sexual violence')
-    expect(formatCategoryLabel('killing')).toBe('killing')
+    expect(formatCategoryLabel('transitional_justice')).toBe('Transitional Justice')
+    expect(formatCategoryLabel('sexual-violence')).toBe('Sexual Violence')
+    expect(formatCategoryLabel('killing')).toBe('Killing')
   })
 })
 
@@ -97,9 +97,5 @@ describe('countTags', () => {
       { label: 'Maoist', count: 2 },
       { label: 'state', count: 2 },
     ])
-  })
-
-  it('caps the filter-bar cloud at KEYWORD_CLOUD_LIMIT', () => {
-    expect(KEYWORD_CLOUD_LIMIT).toBe(16)
   })
 })

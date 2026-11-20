@@ -44,7 +44,7 @@ Please do not commit `node_modules/`, `dist/`, or `.env` files.
 | Search typeahead (fills `q` only) | `src/lib/searchSuggest.ts`, `src/components/SearchSuggest.tsx` (Event_ID + district + tag + year + term) |
 | Search highlighting (`<mark>` text nodes) | `src/lib/highlight.ts` |
 | Card teasers (line/tag limits) | `src/lib/eventCardTeaser.ts`, `src/components/EventCard.tsx` |
-| Keyword chip cap (top 16) | `KEYWORD_CLOUD_LIMIT` in `src/lib/parseTags.ts` |
+| Keyword taxonomy (Term/Aliases/Facet/Status/Comment) | `taxonomy/keyword-taxonomy.csv`, `scripts/keyword-taxonomy.mjs` → `src/lib/keywordTaxonomy.generated.ts`, helpers in `src/lib/keywordTaxonomy.ts` |
 | Query-string view state | `src/lib/urlState.ts` |
 | Card permalinks | `src/lib/eventAnchor.ts`, `src/components/EventCard.tsx` |
 | Copy / share confirmations | `src/lib/toast.ts`, `src/components/Toast.tsx` |

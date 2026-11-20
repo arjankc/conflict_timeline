@@ -1,4 +1,5 @@
 import type { ConflictEvent, ConfidenceLevel } from '../types/event'
+import { KEYWORD_ALIAS_TO_CANONICAL } from './keywordTaxonomy.generated'
 import { eventSearchIndex } from './eventSearch'
 
 export type SortMode = 'chronological' | 'reverse' | 'category'
@@ -93,6 +94,17 @@ function lowerList(values: string[]): Set<string> {
   return set
 }
 
+/** Selected keywords may use legacy variants (URLs, saved views) — canonicalize. */
+function canonicalKeywordSet(values: string[]): Set<string> {
+  const set = new Set<string>()
+  for (const value of values) {
+    const key = value.toLowerCase()
+    if (!key) continue
+    set.add(KEYWORD_ALIAS_TO_CANONICAL[key] ?? key)
+  }
+  return set
+}
+
 function hasAny(haystack: Set<string>, needles: Set<string>): boolean {
   for (const needle of needles) {
     if (haystack.has(needle)) return true
@@ -139,7 +151,7 @@ export function filterEvents(
   filters: TimelineFilters,
 ): ConflictEvent[] {
   const needle = filters.search.trim().toLowerCase()
-  const keywordSet = lowerList(filters.keywords)
+  const keywordSet = canonicalKeywordSet(filters.keywords)
   const categorySet = lowerList(filters.categories)
   const organizationSet = lowerList(filters.organizations)
   const districtSet = lowerList(filters.districts)

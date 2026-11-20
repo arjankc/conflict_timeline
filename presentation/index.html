@@ -17,12 +17,12 @@
 <section>
   <div class="title-grid">
     <div class="title-copy">
-      <p class="kicker">Digital archive · 1995–2026</p>
+      <p class="kicker">Digital archive · 1995–2025</p>
       <h1>Nepal Conflict Timeline</h1>
-      <p class="lede">An open-source, chronological archive of Nepal&rsquo;s internal armed conflict (1996–2006) and its transitional-justice aftermath — built for the people who need the record to be right.</p>
+      <p class="lede">A chronological record of Nepal's internal armed conflict (1 November 1995 - 8 September 2025).</p>
       <div class="stat-row">
-        <div class="stat"><b>2,150</b><span>events, NCT-0001…NCT-2150</span></div>
-        <div class="stat"><b>1995–2026</b><span>pre-conflict → aftermath</span></div>
+        <div class="stat"><b>2,112</b><span>events, NCT-0001…NCT-2112</span></div>
+        <div class="stat"><b>1995–2025</b><span>pre-conflict → 8 Sept 2025</span></div>
         <div class="stat"><b>100%</b><span>static, no backend</span></div>
       </div>
     </div>
@@ -39,7 +39,7 @@
       <figcaption class="credit"><a href="https://commons.wikimedia.org/wiki/File:Beautiful_Rolpa,_The_Head_Quarter_Liwang.jpg">Liwang, Rolpa</a> · Kashiram Dangi · <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a></figcaption>
     </figure>
   </div>
-  <aside class="notes">Hook: one sheet, 2150 rows, thirty years. This talk is the story of turning a spreadsheet into an archive people can trust. If you remember one thing, remember the span: the war ended in 2006, the record runs to 2026.</aside>
+  <aside class="notes">Hook: one sheet, 2112 rows, thirty years. This talk is the story of turning a spreadsheet into an archive people can trust. If you remember one thing, remember the span: 1 November 1995 to 8 September 2025.</aside>
 </section>
 
 <!-- 2. Why -->
@@ -147,7 +147,7 @@
     <p class="kicker">Why you can trust it</p>
     <h2>Trust is a feature</h2>
     <ul>
-      <li>Stable <code>Event_ID</code>s (<code>NCT-0001…NCT-2150</code>) — links never rot when rows are added</li>
+      <li>Stable <code>Event_ID</code>s (<code>NCT-0001…NCT-2112</code>) — links never rot when rows are added</li>
       <li>Every expanded card shows <b>Sources &amp; Confidence</b>, with the rationale behind the rating</li>
       <li>One canonical taxonomy: <code>Maoist/</code> and <code>Maoist.</code> merge at parse time, never by editing history</li>
     </ul>
@@ -173,9 +173,9 @@
 <section>
   <div class="frame">
     <p class="kicker">From the committed sheet</p>
-    <h2>What 2,150 rows look like</h2>
+    <h2>What 2,112 rows look like</h2>
     <p class="lede">Same date parser as the site. Fifty-four rows stay undated and are not drawn as bars. The shaded band is 1996–2006.</p>
-    <div class="year-plot" role="img" aria-label="Bar chart of dated events per year, 1995 to 2026. The tallest bar is 2007 with 238 events. 2003 has 230, 2005 has 229, and 2006 has 205. Fifty-four undated rows are not plotted.">
+    <div class="year-plot" role="img" aria-label="Bar chart of dated events per year, 1995 to 2025. The tallest bar is 2007 with 238 events. 2003 has 230, 2005 has 229, and 2006 has 205. Fifty-four undated rows are not plotted.">
       <div class="bar pre labeled" style="--n:1" title="1995: 1"><span>1995</span></div>
       <div class="bar war" style="--n:8" title="1996: 8"></div>
       <div class="bar war" style="--n:6" title="1997: 6"></div>
@@ -206,30 +206,29 @@
       <div class="bar after" style="--n:9" title="2022: 9"></div>
       <div class="bar after" style="--n:7" title="2023: 7"></div>
       <div class="bar after" style="--n:12" title="2024: 12"></div>
-      <div class="bar after labeled" style="--n:48" title="2025: 48"><span>2025</span></div>
-      <div class="bar after" style="--n:27" title="2026: 27"></div>
+      <div class="bar after labeled" style="--n:37" title="2025: 37"><span>2025</span></div>
     </div>
     <p class="legend">
       <span><i class="swatch-pre"></i>1995 · 1</span>
       <span><i class="swatch-war"></i>1996–2006 · 947</span>
-      <span><i class="swatch-after"></i>2007–2026 · 1,148</span>
+      <span><i class="swatch-after"></i>2007–2025 · 1,110</span>
       <span>Undated, not plotted · 54</span>
     </p>
     <div class="chart-cols">
       <div>
         <h3>Category, one per row</h3>
         <div class="hbar-list" aria-label="Events by category">
-          <div class="hbar"><span>Other</span><span class="track"><span style="width:100%"></span></span><b>449</b></div>
-          <div class="hbar"><span>Killing</span><span class="track"><span style="width:98.9%"></span></span><b>444</b></div>
-          <div class="hbar"><span>Combat</span><span class="track"><span style="width:81.7%"></span></span><b>367</b></div>
-          <div class="hbar"><span>Transitional justice</span><span class="track"><span style="width:57.2%"></span></span><b>257</b></div>
-          <div class="hbar"><span>Detention</span><span class="track"><span style="width:43.9%"></span></span><b>197</b></div>
-          <div class="hbar"><span>Peace process</span><span class="track"><span style="width:35.9%"></span></span><b>161</b></div>
-          <div class="hbar"><span>Protest</span><span class="track"><span style="width:19.8%"></span></span><b>89</b></div>
-          <div class="hbar"><span>Policy</span><span class="track"><span style="width:17.4%"></span></span><b>78</b></div>
-          <div class="hbar"><span>Media</span><span class="track"><span style="width:7.6%"></span></span><b>34</b></div>
-          <div class="hbar"><span>Sexual violence</span><span class="track"><span style="width:6.7%"></span></span><b>30</b></div>
-          <div class="hbar"><span>Civil society</span><span class="track"><span style="width:5.3%"></span></span><b>24</b></div>
+          <div class="hbar"><span>Other</span><span class="track"><span style="width:100%"></span></span><b>443</b></div>
+          <div class="hbar"><span>Killing</span><span class="track"><span style="width:99.5%"></span></span><b>441</b></div>
+          <div class="hbar"><span>Combat</span><span class="track"><span style="width:82.8%"></span></span><b>367</b></div>
+          <div class="hbar"><span>Transitional justice</span><span class="track"><span style="width:53.3%"></span></span><b>236</b></div>
+          <div class="hbar"><span>Detention</span><span class="track"><span style="width:44.5%"></span></span><b>197</b></div>
+          <div class="hbar"><span>Peace process</span><span class="track"><span style="width:36.3%"></span></span><b>161</b></div>
+          <div class="hbar"><span>Protest</span><span class="track"><span style="width:19.9%"></span></span><b>88</b></div>
+          <div class="hbar"><span>Policy</span><span class="track"><span style="width:17.2%"></span></span><b>76</b></div>
+          <div class="hbar"><span>Media</span><span class="track"><span style="width:7.7%"></span></span><b>34</b></div>
+          <div class="hbar"><span>Sexual violence</span><span class="track"><span style="width:6.1%"></span></span><b>27</b></div>
+          <div class="hbar"><span>Civil society</span><span class="track"><span style="width:5.0%"></span></span><b>22</b></div>
           <div class="hbar"><span>Disappearance</span><span class="track"><span style="width:3.3%"></span></span><b>15</b></div>
           <div class="hbar"><span>Displacement</span><span class="track"><span style="width:1.1%"></span></span><b>5</b></div>
         </div>
@@ -246,11 +245,11 @@
           <div class="hbar"><span>Rautahat</span><span class="track"><span style="width:27.8%"></span></span><b>42</b></div>
           <div class="hbar"><span>Siraha</span><span class="track"><span style="width:27.8%"></span></span><b>42</b></div>
         </div>
-        <p class="fine">Keyword and detail text, the same inference as the site — not a location field. Rolpa, the demo search, is 15th (30). Confidence on the archival sheet: 1,167 high · 351 medium · 632 low.</p>
+        <p class="fine">Keyword and detail text, the same inference as the site — not a location field. Rolpa, the demo search, is 15th (30). Confidence on the archival sheet: 1,150 high · 351 medium · 611 low.</p>
       </div>
     </div>
   </div>
-  <aside class="notes">Do not read every bar. The conflict years climb through 2003 and stay high to 2006. The tallest bar is 2007, the first year after the peace accord, at 238. Fifty-four rows stay undated and are not plotted. Confidence on the archival sheet is 1,167 high, 351 medium, 632 low. The district bars are inferred from keywords and detail, the same method as the site — Kathmandu leads because that is where institutions are written down. Rolpa, which you will search, is 15th with 30 mentions. That is the bridge into the honesty slide.</aside>
+  <aside class="notes">Do not read every bar. The conflict years climb through 2003 and stay high to 2006. The tallest bar is 2007, the first year after the peace accord, at 238. Fifty-four rows stay undated and are not plotted. Confidence on the archival sheet is 1,150 high, 351 medium, 611 low. The district bars are inferred from keywords and detail, the same method as the site — Kathmandu leads because that is where institutions are written down. Rolpa, which you will search, is 15th with 30 mentions. That is the bridge into the honesty slide.</aside>
 </section>
 
 <!-- 9. Honesty -->
@@ -333,8 +332,8 @@
 <section>
   <div class="frame">
     <p class="kicker">One thing to remember</p>
-    <h2>The war ended in 2006. The record runs to 2026.</h2>
-    <p class="lede">2,150 events. Every one sourced, none invented. Thank you.</p>
+    <h2>The war ended in 2006. The record runs to 2025.</h2>
+      <p class="lede">2,112 events. Every one sourced, none invented. Thank you.</p>
   </div>
   <aside class="notes">Land the span line again — it opened the talk and it closes it. Then stop talking and take questions.</aside>
 </section>
@@ -351,7 +350,7 @@
       <li><a href="https://commons.wikimedia.org/wiki/File:Nepalese_Constituent_Assembly_Building.jpg">Birendra International Convention Centre</a> — Tevaprapas (เทวประภาส มากคล้าย), 2011. <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a>. The photographer asks to be notified of use outside Wikimedia. Hotlinked from upload.wikimedia.org.</li>
       <li>App screenshot — Nepal Conflict Timeline, this repository, searching <code>Rolpa</code>. Committed because it has no other host. The interface is MIT; the event texts are compiled research and are not MIT.</li>
     </ul>
-    <p class="fine">Wikimedia Commons serves these files from upload.wikimedia.org and allows hotlinking. Thumbnail widths are ones Commons accepts (1,920 and 3,840). Chart counts were taken from <code>public/data/mastersheet.csv</code> and the archival sources sheet with this site’s date, category, and district parsers: 2,096 dated rows (1 in 1995, 947 in 1996–2006, 1,148 in 2007–2026) and 54 undated. Confidence is 1,167 high, 351 medium, 632 low.</p>
+    <p class="fine">Wikimedia Commons serves these files from upload.wikimedia.org and allows hotlinking. Thumbnail widths are ones Commons accepts (1,920 and 3,840). Chart counts were taken from <code>public/data/mastersheet.csv</code> and the archival sources sheet with this site’s date, category, and district parsers: 2,058 dated rows (1 in 1995, 947 in 1996–2006, 1,110 in 2007–2025) and 54 undated. Confidence is 1,150 high, 351 medium, 611 low.</p>
   </div>
   <aside class="notes">If someone asks about an image, the licence and the file page are on this slide. Photographs are hotlinked from Wikimedia, not copied into the repo. Counts on the chart are from the committed CSV, parsed the same way as the site. Offer to pass Tevaprapas’s notification request on if the room is reusing that photograph.</aside>
 </section>

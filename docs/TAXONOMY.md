@@ -15,11 +15,11 @@ Current sheet: ~500 unique keywords after canonicalization (was 502 raw),
 
 ## Known quality issues (from `npm run data:lint`)
 
-- 279 `Organizations` cells use commas without semicolons
+- 272 `Organizations` cells use commas without semicolons
   (e.g. `Royal Nepal Army, Nepal Army`). Parser falls back to comma-split
   when no `;` is present; comma-bearing official names must keep using `;`.
 - 277 single-use keywords — candidates for merging or back-filling in the Sheet.
-- `other` category holds 449 rows — audit for `abduction`/`torture` splits.
+- `other` category holds 443 rows — audit for `abduction`/`torture` splits.
 
 ## Next steps
 

@@ -16,7 +16,7 @@ describe('pageTitle', () => {
 
 describe('shareText', () => {
   it('falls back to the tagline on the unfiltered archive', () => {
-    expect(shareText(EMPTY_FILTERS)).toMatch(/1996–2006/)
+    expect(shareText(EMPTY_FILTERS)).toMatch(/1 November 1995 - 8 September 2025/)
   })
 })
 

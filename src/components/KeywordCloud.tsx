@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useScrollOverflow } from '../lib/useScrollOverflow'
 import type { TagCount } from '../lib/parseTags'
+import { formatKeywordLabel } from '../lib/parseTags'
 import { ScrollFade } from './ScrollFade'
 
 /** Horizontal theme chips. Hidden entirely when Keywords is empty across the sheet. */
@@ -44,6 +45,7 @@ export function KeywordCloud({
           const pressed = activeKeywords.some(
             (value) => value.toLowerCase() === tag.label.toLowerCase(),
           )
+          const text = formatKeywordLabel(tag.label)
           return (
             <li key={tag.label.toLowerCase()} className="shrink-0">
               <button
@@ -51,8 +53,8 @@ export function KeywordCloud({
                 aria-pressed={pressed}
                 aria-label={
                   pressed
-                    ? `${tag.label}, ${tag.count} events, selected. Activate to remove filter.`
-                    : `Filter by keyword ${tag.label}, ${tag.count} events`
+                    ? `${text}, ${tag.count} events, selected. Activate to remove filter.`
+                    : `Filter by keyword ${text}, ${tag.count} events`
                 }
                 onClick={() => onKeywordClick(tag.label)}
                 className={[
@@ -62,7 +64,7 @@ export function KeywordCloud({
                     : 'border-line bg-surface text-ink hover:border-control hover:bg-chip',
                 ].join(' ')}
               >
-                <span>{tag.label}</span>
+                <span>{text}</span>
                 <span className={pressed ? 'text-crimson' : 'text-muted'}>
                   {tag.count}
                 </span>

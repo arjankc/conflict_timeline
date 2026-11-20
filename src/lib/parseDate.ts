@@ -62,7 +62,7 @@ function normalizeDateString(raw: string): string {
 }
 
 /**
- * Two-digit years in this archive span 1995–2026 (conflict 1996–2006 plus
+ * Two-digit years in this archive span 1995–2025 (conflict 1996–2006 plus
  * transitional-justice aftermath).
  * 00–49 → 2000–2049; 50–99 → 1950–1999.
  */

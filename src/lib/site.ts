@@ -2,16 +2,16 @@
  * Canonical strings for the header, JSON-LD, and Open Graph.
  * `%SITE_URL%` in static files is replaced at build time — see `vite.site-url.ts`.
  * Fact baseline: armed conflict 1996–2006; dataset spans 1995 (Operation Romeo)
- * through 2026 (transitional-justice aftermath), 2150 rows.
+ * through 8 September 2025, 2112 rows.
  */
 
 export const SITE_NAME = 'Nepal Conflict Timeline'
 
 export const SITE_TAGLINE =
-  "A digital archive of Nepal's internal armed conflict (1996–2006) and its transitional-justice aftermath through 2026."
+  "A digital archive of Nepal's internal armed conflict (1 November 1995 - 8 September 2025)."
 
 export const SITE_DESCRIPTION =
-  "An interactive, chronological archive of Nepal's internal armed conflict (1996–2006) — from 1995 pre-conflict events through 2026 transitional-justice aftermath — compiled for transitional justice civil society. Browse events by year, theme, and search."
+  "A chronological record of Nepal's internal armed conflict (1 November 1995 - 8 September 2025)."
 
 /** Fallback used in HTML meta tags when VITE_SITE_URL is not set at build time. */
 export const PLACEHOLDER_SITE_URL =

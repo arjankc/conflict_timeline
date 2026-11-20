@@ -163,12 +163,12 @@ function lintFile(path, { expectSources }) {
         }
       }
     }
-    // Year-range sanity: dataset spans 1995–2026.
+    // Year-range sanity: dataset spans 1995–2025.
     const ym = cell(r, idx.Date).match(/(19|20)\d{2}/)
     if (ym) {
       const y = Number(ym[0])
-      if (y < 1995 || y > 2026) {
-        warnings.push(`${name}:${line}: Date year ${y} outside 1995–2026 span`)
+      if (y < 1995 || y > 2025) {
+        warnings.push(`${name}:${line}: Date year ${y} outside 1995–2025 span`)
       }
     }
     // Raw spaces glued to a URL are invalid and break naive extractors
@@ -238,16 +238,16 @@ function assertClaims() {
 
   for (const res of [slim, full]) {
     if (!res) continue
-    check(`${res.name} rows`, res.rows, 2150)
-    check(`${res.name} unique ids`, res.ids.size, 2150)
+    check(`${res.name} rows`, res.rows, 2112)
+    check(`${res.name} unique ids`, res.ids.size, 2112)
     const canonicalKw = new Set(
       [...res.kwCounts.keys()].map((k) => k.replace(/\s+/g, ' ').replace(/[./:;]+$/g, '')),
     )
     check(`${res.name} canonical keywords`, canonicalKw.size, 500)
-    check(`${res.name} year span`, [res.minYear, res.maxYear], [1995, 2026])
+    check(`${res.name} year span`, [res.minYear, res.maxYear], [1995, 2025])
   }
   if (slim) {
-    check('mastersheet.csv rows with Organizations', slim.rows - slim.missingOrg, 899)
+    check('mastersheet.csv rows with Organizations', slim.rows - slim.missingOrg, 885)
     check('mastersheet.csv categories', [...slim.catSet].sort(), [
       'civil_society', 'combat', 'detention', 'disappearance', 'displacement',
       'killing', 'media', 'other', 'peace_process', 'policy', 'protest',
@@ -255,7 +255,7 @@ function assertClaims() {
     ])
   }
   if (full) {
-    check('archival confidence split', [full.confLevels.high, full.confLevels.medium, full.confLevels.low, full.missingConfidence], [1167, 351, 632, 0])
+    check('archival confidence split', [full.confLevels.high, full.confLevels.medium, full.confLevels.low, full.missingConfidence], [1150, 351, 611, 0])
   }
 }
 

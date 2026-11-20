@@ -28,12 +28,26 @@ export function metadataPills(event: {
   organizations: string[]
   districts?: string[]
 }): MetaPill[] {
-  return [
-    ...event.keywords.map((label) => ({ kind: 'keyword' as const, label })),
-    ...event.categories.map((label) => ({ kind: 'category' as const, label })),
-    ...event.organizations.map((label) => ({ kind: 'organization' as const, label })),
-    ...(event.districts ?? []).map((label) => ({ kind: 'district' as const, label })),
-  ]
+  const seen = new Set<string>()
+  const pills: MetaPill[] = []
+  const kinds: MetaPillKind[] = ['keyword', 'category', 'organization', 'district']
+  const byKind: Record<MetaPillKind, string[]> = {
+    keyword: event.keywords,
+    category: event.categories,
+    organization: event.organizations,
+    district: event.districts ?? [],
+  }
+  for (const kind of kinds) {
+    for (const label of byKind[kind]) {
+      // Categories use underscores (`transitional_justice`) where keywords use
+      // spaces (`transitional justice`) — same concept, one pill.
+      const key = label.toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim()
+      if (seen.has(key)) continue
+      seen.add(key)
+      pills.push({ kind, label })
+    }
+  }
+  return pills
 }
 
 function pillKey(pill: MetaPill): string {

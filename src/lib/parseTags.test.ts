@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { KEYWORD_CLOUD_LIMIT, canonicalKeyword, countTags, parseOrganizations, parseTags, uniqueTags } from './parseTags'
+import { KEYWORD_CLOUD_LIMIT, canonicalKeyword, countTags, formatCategoryLabel, formatKeywordLabel, parseOrganizations, parseTags, uniqueTags } from './parseTags'
 
 describe('parseTags', () => {
   it('splits, trims, and drops empty fragments', () => {
@@ -22,6 +22,32 @@ describe('parseTags', () => {
   it('returns an empty array for missing values', () => {
     expect(parseTags(undefined)).toEqual([])
     expect(parseTags('')).toEqual([])
+  })
+})
+
+describe('formatCategoryLabel', () => {
+  it('replaces underscores and hyphens with spaces for display', () => {
+    expect(formatCategoryLabel('transitional_justice')).toBe('transitional justice')
+    expect(formatCategoryLabel('sexual-violence')).toBe('sexual violence')
+    expect(formatCategoryLabel('killing')).toBe('killing')
+  })
+})
+
+describe('formatKeywordLabel', () => {
+  it('title-cases ordinary words', () => {
+    expect(formatKeywordLabel('killing')).toBe('Killing')
+    expect(formatKeywordLabel('transitional justice')).toBe('Transitional Justice')
+    expect(formatKeywordLabel('protest')).toBe('Protest')
+    expect(formatKeywordLabel('police crackdown')).toBe('Police Crackdown')
+  })
+
+  it('keeps acronyms, codes, and numbers untouched', () => {
+    expect(formatKeywordLabel('TRC')).toBe('TRC')
+    expect(formatKeywordLabel('CPN-Maoist')).toBe('CPN-Maoist')
+    expect(formatKeywordLabel('TRC Act amendment')).toBe('TRC Act Amendment')
+    expect(formatKeywordLabel('UNSCR 1325')).toBe('UNSCR 1325')
+    expect(formatKeywordLabel('extortion/land')).toBe('Extortion/Land')
+    expect(formatKeywordLabel("people's war")).toBe("People's War")
   })
 })
 

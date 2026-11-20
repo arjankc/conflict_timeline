@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react'
 import type { SortMode, TimelineFilters } from '../lib/filterEvents'
 import type { TagCount } from '../lib/parseTags'
+import { formatCategoryLabel, formatKeywordLabel } from '../lib/parseTags'
 import type { SavedView } from '../lib/savedViews'
 import type { SearchSuggestion } from '../lib/searchSuggest'
 import { DistrictOverview } from './DistrictOverview'
@@ -61,6 +62,7 @@ function FacetList({
   selected,
   onToggle,
   onClear,
+  formatOption,
 }: {
   id: string
   label: string
@@ -69,6 +71,7 @@ function FacetList({
   selected: string[]
   onToggle: (value: string) => void
   onClear: () => void
+  formatOption?: (value: string) => string
 }) {
   const countByKey = new Map(counts.map((c) => [c.label.toLowerCase(), c.count]))
   const selectedSet = new Set(selected.map((s) => s.toLowerCase()))
@@ -104,7 +107,7 @@ function FacetList({
                     onChange={() => onToggle(option)}
                     className="size-4 shrink-0 accent-crimson"
                   />
-                  <span className="min-w-0 flex-1 truncate">{option}</span>
+                  <span className="min-w-0 flex-1 truncate">{formatOption ? formatOption(option) : option}</span>
                   {count != null ? (
                     <span className="shrink-0 text-xs text-muted tabular-nums">{count}</span>
                   ) : null}
@@ -322,11 +325,11 @@ export function FilterBar({
                 <li key={`kw-${keyword.toLowerCase()}`}>
                   <button
                     type="button"
-                    aria-label={`${keyword}, selected. Activate to remove filter.`}
+                    aria-label={`${formatKeywordLabel(keyword)}, selected. Activate to remove filter.`}
                     onClick={() => onToggleKeyword(keyword)}
                     className="inline-flex min-h-9 max-w-[12rem] items-center truncate rounded-sm border border-crimson bg-crimson-soft px-2.5 text-[0.8125rem] font-medium text-crimson"
                   >
-                    {keyword} ✕
+                    {formatKeywordLabel(keyword)} ✕
                   </button>
                 </li>
               ))}
@@ -334,11 +337,11 @@ export function FilterBar({
                 <li key={`cat-${category.toLowerCase()}`}>
                   <button
                     type="button"
-                    aria-label={`${category}, selected. Activate to remove filter.`}
+                    aria-label={`${formatCategoryLabel(category)}, selected. Activate to remove filter.`}
                     onClick={() => onToggleCategory(category)}
                     className="inline-flex min-h-9 max-w-[12rem] items-center truncate rounded-sm border border-crimson bg-crimson-soft px-2.5 text-[0.8125rem] font-medium text-crimson"
                   >
-                    {category} ✕
+                    {formatCategoryLabel(category)} ✕
                   </button>
                 </li>
               ))}
@@ -414,6 +417,7 @@ export function FilterBar({
                       selected={filters.categories}
                       onToggle={onToggleCategory}
                       onClear={() => onClearFacet('categories')}
+                      formatOption={formatCategoryLabel}
                     />
                     <FacetList
                       id="timeline-organization"
@@ -472,7 +476,7 @@ export function FilterBar({
                         type="month"
                         value={filters.from}
                         min="1995-01"
-                        max="2026-12"
+                        max="2025-12"
                         onChange={(event) => onFromChange(event.target.value)}
                         className="input-field min-w-0 flex-1"
                         aria-label="Filter from month"
@@ -484,7 +488,7 @@ export function FilterBar({
                         type="month"
                         value={filters.to}
                         min="1995-01"
-                        max="2026-12"
+                        max="2025-12"
                         onChange={(event) => onToChange(event.target.value)}
                         className="input-field min-w-0 flex-1"
                         aria-label="Filter to month"
@@ -674,7 +678,7 @@ function AllThemes({
                       : 'border-line bg-surface text-ink hover:border-control hover:bg-chip',
                   ].join(' ')}
                 >
-                  <span>{tag.label}</span>
+                  <span>{formatKeywordLabel(tag.label)}</span>
                   <span className={pressed ? 'text-crimson' : 'text-muted'}>{tag.count}</span>
                 </button>
               </li>

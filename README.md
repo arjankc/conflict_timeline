@@ -1,6 +1,6 @@
 # Nepal Conflict Timeline
 
-An interactive, mobile-first digital archive of Nepal's internal armed conflict (1996–2006) and its transitional-justice aftermath through 2026. The timeline is intended for transitional justice civil society: a chronological card explorer of events, filterable metadata, and a year-density navigator. Dataset spans 1995 (Operation Romeo) to May 2026, 2150 events.
+An interactive, mobile-first digital archive of Nepal's internal armed conflict (1 November 1995 - 8 September 2025). The timeline is intended for transitional justice civil society: a chronological card explorer of events, filterable metadata, and a year-density navigator. Dataset spans 1995 (Operation Romeo) to 8 September 2025, 2112 events.
 
 This is an open-source project. Event data currently ships as a static CSV exported from a Google Sheet.
 
@@ -16,7 +16,7 @@ This is an open-source project. Event data currently ships as a static CSV expor
 - Multi-select categories/organizations/themes/districts (OR within, AND across; optional `?match=all` for AND-within), date range (`from`/`to` YYYY-MM), sort (oldest/newest/by category), density toggle, saved views, and export — all behind one Filters toggle so the timeline leads; search-match stepping (next/previous with position announced) walks through hits
 - District view (inferred from keywords/detail — 75 legacy districts, top-8 ranking with counts, inside the Filters drawer), per-year share pages (`/year/YYYY/` with year meta + sitemap), filtered CSV/JSON export (incl. enrichment columns)
 - Offline mirror `dist/data/events.json` (raw row mirror, generated at build) doubles as a CSV-fetch fallback for field use; enrichment columns + `docs/CHANGELOG.md`
-- Typeahead covers Event_IDs (`NCT-…` jumps to one card), districts, tags, years, terms; `data:lint` reports district keyword coverage (~56%)
+- Typeahead covers Event_IDs (`NCT-…` jumps to one card), districts, tags, years, terms; `data:lint` reports district keyword coverage (~57%)
 - Archive overview: event counts, source coverage, confidence split, and a per-year histogram that jumps to a year
 - Light, dark, system appearance, text size, and high contrast, remembered in the browser
 - Share control (Web Share on supported devices, copy-link fallback)
@@ -55,7 +55,7 @@ Copy [`.env.example`](.env.example) to `.env` only if you need `VITE_DATA_URL` o
 
 The runtime dataset is [`public/data/mastersheet.csv`](public/data/mastersheet.csv). See [DATA.md](DATA.md) for the column schema, date formats, event IDs (used in permalinks), and how to refresh the file from Google Sheets.
 
-The current sheet has **2150 events** with a stable `Event_ID` (`NCT-0001` … `NCT-2150`; Romeo is `NCT-0001`). Card permalinks are `#event-NCT-0001`. Keywords, Category, and Organizations are populated (Category on every row; Organizations on about 900). Search, keyword pills, category, organization, and confidence filters, typeahead, and the year navigator all work against this data. The filter bar shows the 16 most frequent keywords; “Browse all themes” exposes the full ~500-keyword index. An archival CSV with Sources and Confidence is at [`public/data/mastersheet_with_sources.csv`](public/data/mastersheet_with_sources.csv); the app parses those columns when present. Schema: [`docs/EVENT_SCHEMA.md`](docs/EVENT_SCHEMA.md); taxonomy notes: [`docs/TAXONOMY.md`](docs/TAXONOMY.md).
+The current sheet has **2112 events** with a stable `Event_ID` (`NCT-0001` … `NCT-2112`; Romeo is `NCT-0001`). Card permalinks are `#event-NCT-0001`. Keywords, Category, and Organizations are populated (Category on every row; Organizations on about 900). Search, keyword pills, category, organization, and confidence filters, typeahead, and the year navigator all work against this data. The filter bar shows the 16 most frequent keywords; “Browse all themes” exposes the full ~500-keyword index. An archival CSV with Sources and Confidence is at [`public/data/mastersheet_with_sources.csv`](public/data/mastersheet_with_sources.csv); the app parses those columns when present. Schema: [`docs/EVENT_SCHEMA.md`](docs/EVENT_SCHEMA.md); taxonomy notes: [`docs/TAXONOMY.md`](docs/TAXONOMY.md).
 
 ## Architecture
 
@@ -100,7 +100,6 @@ The header paints before the CSV is parsed. Rows are published in batches so the
 | [`src/components/ChronologyExplorer.tsx`](src/components/ChronologyExplorer.tsx) | Year-grouped feed + dock/rail |
 | [`src/components/ArchiveOverview.tsx`](src/components/ArchiveOverview.tsx) | Collection stats + per-year histogram |
 | [`src/components/DistrictOverview.tsx`](src/components/DistrictOverview.tsx) | Inferred-district ranking + filter |
-| [`src/components/AboutArchive.tsx`](src/components/AboutArchive.tsx) | About, methodology, how-to-cite |
 | [`src/components/TimelineFeed.tsx`](src/components/TimelineFeed.tsx) | Windowed cards on a year spine |
 | [`src/components/EventCard.tsx`](src/components/EventCard.tsx) | Teaser card, expand, permalink |
 | [`src/components/YearNavigator.tsx`](src/components/YearNavigator.tsx) | Jump-to-year density rail or mobile dock (scrub strip + year chips) |
@@ -185,7 +184,7 @@ VITE_SITE_URL=https://YOUR-GITHUB-USERNAME.github.io/conflict_timeline npm run b
 npm run preview
 ```
 
-JSON-LD describes a `WebSite` and a `Dataset` with `temporalCoverage` `1995/2026` and `spatialCoverage` Nepal. Event texts are **not** marked MIT in that markup. Uncomment `twitter:site` in `index.html` when the project has an official account.
+JSON-LD describes a `WebSite` and a `Dataset` with `temporalCoverage` `1995/2025` and `spatialCoverage` Nepal. Event texts are **not** marked MIT in that markup. Uncomment `twitter:site` in `index.html` when the project has an official account.
 
 ## Accessibility
 

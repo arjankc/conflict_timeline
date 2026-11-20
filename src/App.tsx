@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react'
-import { AboutArchive } from './components/AboutArchive'
 import { ArchiveOverview } from './components/ArchiveOverview'
 import { BackToTop } from './components/BackToTop'
 import { ChronologyExplorer } from './components/ChronologyExplorer'
@@ -278,12 +277,6 @@ export default function App() {
             <div className="min-w-0 flex-1">
               <p className="text-xs font-medium tracking-[0.16em] text-crimson uppercase sm:text-sm">
                 Digital archive
-                <span className="mx-2 text-muted" aria-hidden="true">
-                  ·
-                </span>
-                <span className="tracking-[0.12em] text-muted">
-                  {collectionMeta?.span ?? '1995–2026'}
-                </span>
               </p>
               <h1 className="mt-2.5 text-balance font-display text-[2rem] leading-[1.05] tracking-tight text-ink sm:text-5xl sm:leading-[1.08]">
                 {SITE_NAME}
@@ -303,9 +296,7 @@ export default function App() {
           </div>
           <p className="mt-4 max-w-prose text-pretty text-sm leading-[1.75] text-muted sm:mt-6 sm:text-base">
             A chronological record of Nepal&apos;s internal armed conflict
-            (1996–2006) — from pre-conflict Operation Romeo (1995) through
-            transitional-justice aftermath (2026) — compiled for transitional
-            justice civil society.
+            (1 November 1995 - 8 September 2025)
           </p>
           {collectionMeta ? (
             <p className="mt-4 text-xs font-medium tracking-[0.12em] text-muted uppercase">
@@ -386,7 +377,6 @@ export default function App() {
               focusYear={focusYear}
               onYearSelect={(year) => setFocusYear(year ?? undefined)}
             />
-            <AboutArchive />
           </div>
         ) : null}
 

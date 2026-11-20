@@ -3,15 +3,15 @@
 The Nepal Conflict Timeline reads a CSV at runtime. There is no database server. Google Sheets remains the editorial workspace; the committed CSV is what the website actually loads.
 
 Fact baseline: armed conflict 13 Feb 1996 – 21 Nov 2006 (Comprehensive Peace Accord).
-Dataset spans 1 Nov 1995 (NCT-0001 Operation Romeo) to 21 May 2026 (NCT-2150),
-**2150** rows: ~1 pre-conflict, ~958 conflict-era (1996–2006), ~1191
-transitional-justice aftermath (2007–2026).
+Dataset spans 1 Nov 1995 (NCT-0001 Operation Romeo) to 8 Sept 2025 (NCT-2112),
+**2112** rows: ~1 pre-conflict, ~958 conflict-era (1996–2006), ~1153
+transitional-justice aftermath (2007–2025).
 
 ## File location
 
 | Environment | Source |
 | --- | --- |
-| Default | [`public/data/mastersheet.csv`](public/data/mastersheet.csv) (**2150** events) |
+| Default | [`public/data/mastersheet.csv`](public/data/mastersheet.csv) (**2112** events) |
 | Archive (not loaded) | [`public/data/mastersheet_with_sources.csv`](public/data/mastersheet_with_sources.csv) |
 | Offline mirror (build artifact) | `dist/data/events.json` (raw row mirror for field use; app still loads CSV first) |
 | Override | `VITE_DATA_URL` (see `.env.example`). When unset and the CSV fetch fails, the app falls back to `data/events.json` (raw row mirror, no Sources/Confidence) — useful for field/captive-portal use. |
@@ -20,7 +20,7 @@ See [`docs/CHANGELOG.md`](docs/CHANGELOG.md) for data/app history.
 
 ### Offline and field use
 
-- `npm run build` writes `dist/data/events.json` (2150 raw rows) alongside the 32 per-year share pages.
+- `npm run build` writes `dist/data/events.json` (2112 raw rows) alongside the 31 per-year share pages.
 - The runtime still fetches `mastersheet.csv` first (localStorage + `If-None-Match`); `events.json` is a fallback only, so provenance columns stay authoritative.
 - For fully offline work, use the filtered CSV/JSON download in the filter bar.
 
@@ -36,7 +36,7 @@ That form works in local Vite, GitHub Pages (`/conflict_timeline/`), and a futur
 
 ## Column schema
 
-The shipped runtime CSV starts with a stable `Event_ID` (`NCT-0001` … `NCT-2150`). There is **no** leading blank column. The parser still ignores unnamed headers if an export includes one, and it ignores extra columns it does not map. Locked column notes: [`docs/EVENT_SCHEMA.md`](docs/EVENT_SCHEMA.md).
+The shipped runtime CSV starts with a stable `Event_ID` (`NCT-0001` … `NCT-2112`). There is **no** leading blank column. The parser still ignores unnamed headers if an export includes one, and it ignores extra columns it does not map. Locked column notes: [`docs/EVENT_SCHEMA.md`](docs/EVENT_SCHEMA.md).
 
 | Column | Type | Notes |
 | --- | --- | --- |
@@ -45,9 +45,9 @@ The shipped runtime CSV starts with a stable `Event_ID` (`NCT-0001` … `NCT-215
 | Detail | string | Plain text event narrative. Rendered as text, never as HTML |
 | Keywords | comma-separated string | Theme tags; ~**500** unique values after canonicalization (raw 502; see `docs/TAXONOMY.md`) |
 | Category | comma-separated string | Populated on every row (**13** values: `civil_society`, `combat`, `detention`, `disappearance`, `displacement`, `killing`, `media`, `other`, `peace_process`, `policy`, `protest`, `sexual_violence`, `transitional_justice`) |
-| Organizations | semicolon-separated string (legacy comma fallback) | Populated on **899** of **2150** rows. Cells with `;` split on semicolons (comma-bearing names preserved); legacy cells without `;` split on commas (`Royal Nepal Army, Nepal Army` → two orgs). See `docs/TAXONOMY.md` |
+| Organizations | semicolon-separated string (legacy comma fallback) | Populated on **885** of **2112** rows. Cells with `;` split on semicolons (comma-bearing names preserved); legacy cells without `;` split on commas (`Royal Nepal Army, Nepal Army` → two orgs). See `docs/TAXONOMY.md` |
 | Sources | `;`-separated string | Parsed from the archival CSV into citations + extracted URLs (`src/lib/provenance.ts`). Shown in the expanded card under “Sources & confidence”. Empty in the slim runtime CSV |
-| Confidence | `high` / `medium` / `low` + rationale | Parsed into level + note. Filterable via `?confidence=`. Current archival split: ~1167 high / 351 medium / 632 low |
+| Confidence | `high` / `medium` / `low` + rationale | Parsed into level + note. Filterable via `?confidence=`. Current archival split: ~1150 high / 351 medium / 611 low |
 | District | `;`-separated string, optional | **Not in current sheet.** When present, canonicalized (`src/lib/districts.ts`) and overrides inference. Shown in expanded card. |
 | Victims_Killed / Victims_Injured / Victims_Disappeared | non-negative integer, optional | **Not in current sheet.** Null when blank; never 0-by-default. Shown in expanded card; included in CSV/JSON export. |
 | Perpetrator_Alleged | `;`-separated string, optional | **Not in current sheet.** Attribution, not verdict. Searchable; shown in expanded card. |
@@ -100,7 +100,7 @@ Search (`?q=`) is case-insensitive and matches **Event_ID**, **Detail**, the raw
 
 ## Event identifiers
 
-Each CSV row has a stable `Event_ID` (`NCT-0001` … `NCT-2150`), minted in chronological order. The loaded event’s `id` **is** that value. Romeo (Operation Romeo, November 1995) is `NCT-0001`.
+Each CSV row has a stable `Event_ID` (`NCT-0001` … `NCT-2112`), minted in chronological order. The loaded event’s `id` **is** that value. Romeo (Operation Romeo, November 1995) is `NCT-0001`.
 
 The permalink on each card is:
 

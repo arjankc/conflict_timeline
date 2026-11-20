@@ -17,6 +17,7 @@ import {
 import { effectiveDistricts } from '../lib/eventGeography'
 import { splitHighlight } from '../lib/highlight'
 import { MONTH_SHORT } from '../lib/parseDate'
+import { formatCategoryLabel, formatKeywordLabel } from '../lib/parseTags'
 import { showToast } from '../lib/toast'
 import type { ConflictEvent } from '../types/event'
 
@@ -57,14 +58,22 @@ function Pill({
 }) {
   const className = [
     'inline-flex min-h-11 items-center rounded-sm border px-2.5 py-1.5 text-[0.8125rem] leading-snug transition-colors',
-    kind === 'category' ? 'text-[0.7rem] tracking-[0.08em] uppercase' : '',
     pressed
       ? 'border-crimson bg-crimson-soft font-medium text-crimson'
       : `${PILL_STYLES[kind]} hover:border-control`,
   ].join(' ')
+  // Categories are stored with underscores (`transitional_justice`) and
+  // keywords mix lowercase, Title Case, and acronyms (`killing`, `TRC`) —
+  // show both humanized so cards read consistently.
+  const text =
+    kind === 'category'
+      ? formatCategoryLabel(label)
+      : kind === 'keyword'
+        ? formatKeywordLabel(label)
+        : label
 
   if (!onClick) {
-    return <span className={className}>{label}</span>
+    return <span className={className}>{text}</span>
   }
 
   return (
@@ -74,12 +83,12 @@ function Pill({
       aria-pressed={pressed}
       aria-label={
         pressed
-          ? `${kind} ${label}, selected. Activate to remove filter.`
-          : `Filter by ${kind} ${label}`
+          ? `${kind} ${text}, selected. Activate to remove filter.`
+          : `Filter by ${kind} ${text}`
       }
       onClick={onClick}
     >
-      {label}
+      {text}
     </button>
   )
 }

@@ -4,6 +4,18 @@ All notable changes to data handling and the app. Dates are release dates (UTC).
 
 ## Unreleased
 
+- Scope cut to 8 Sept 2025: removed NCT-2113…NCT-2150 (38 rows after 8 Sept
+  2025). Dataset is now 2112 rows, NCT-0001…NCT-2112, 1 Nov 1995 – 8 Sept 2025.
+  Header simplified to “A chronological record of Nepal's internal armed
+  conflict (1 November 1995 - 8 September 2025)”. Year pages 1995–2025 (31),
+  `temporalCoverage` `1995/2025`, org coverage 885 rows, confidence
+  1150 high / 351 medium / 611 low.
+- Keyword display standardized to Title Case (`killing` → `Killing`,
+  `transitional justice` → `Transitional Justice`); acronyms/codes stay
+  uppercase (`TRC`, `CPN-Maoist`). Category pills show spaces instead of
+  underscores with no all-caps styling. Cross-facet duplicate pills
+  (`protest` keyword + `protest` category) collapsed to one. Raw filter
+  values and URLs unchanged.
 - Forward-compatible enrichment columns: `District`, `Victims_Killed`,
   `Victims_Injured`, `Victims_Disappeared`, `Perpetrator_Alleged`,
   `Related_Events` parsed when present (absent in current sheet → empty).
@@ -11,8 +23,8 @@ All notable changes to data handling and the app. Dates are release dates (UTC).
 - Reading preference: “Reduce graphic detail” blur toggle (persisted
   `nct-blur-detail`, `blur-detail` class, unblurs on expand/hover/focus).
 - Offline artifact: `dist/data/events.json` raw row mirror generated at build.
-- `data:lint`: year-range (1995–2026), victim-integer, related-id, and District
-  sanity checks; district keyword coverage (~56% of rows); enrichment columns optional.
+- `data:lint`: year-range (1995–2025), victim-integer, related-id, and District
+  sanity checks; district keyword coverage (~57% of rows); enrichment columns optional.
 - Typeahead: Event_ID (`NCT-…`), district, tag, year, and term suggestions
   (picking fills `q` only).
 - Loader: CSV-first with `data/events.json` fallback when the CSV fetch fails

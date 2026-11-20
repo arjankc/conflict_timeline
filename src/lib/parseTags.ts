@@ -38,6 +38,35 @@ export function canonicalKeyword(tag: string): string {
   return canonicalKeywordDisplay(tag)
 }
 
+/**
+ * Display-only humanization for category values (`transitional_justice` →
+ * `transitional justice`). Filter values, URLs, and CSV parsing keep the raw
+ * underscore form — this is for visible text so cards never show ALL_CAPS
+ * underscore pills.
+ */
+export function formatCategoryLabel(label: string): string {
+  return label.replace(/[_-]+/g, ' ')
+}
+
+/**
+ * Display-only Title Case for keyword labels (`killing` → `Killing`,
+ * `transitional justice` → `Transitional Justice`). Runs of letters that are
+ * already all-uppercase (`TRC`, `CPN`, `II`, `NPL`) are acronyms/codes and
+ * kept as-is; apostrophes stay inside words (`people's` → `People's`).
+ * Filter values, URLs, and counts keep the raw label.
+ */
+export function formatKeywordLabel(label: string): string {
+  return label
+    .split(/([^A-Za-z']+)/)
+    .map((part) => {
+      if (!/[A-Za-z]/.test(part)) return part
+      const letters = part.replace(/'/g, '')
+      if (letters === letters.toUpperCase()) return part
+      return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+    })
+    .join('')
+}
+
 function parseDelimitedTags(value: string | undefined, delimiter: string): string[] {
   if (!value) return []
 

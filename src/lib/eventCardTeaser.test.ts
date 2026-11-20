@@ -35,6 +35,33 @@ describe('metadataPills', () => {
       { kind: 'organization', label: 'RNA' },
     ])
   })
+
+  it('drops a later pill that repeats an earlier label (e.g. protest keyword + protest category)', () => {
+    expect(
+      metadataPills({
+        keywords: ['killing', 'protest'],
+        categories: ['protest'],
+        organizations: [],
+      }),
+    ).toEqual([
+      { kind: 'keyword', label: 'killing' },
+      { kind: 'keyword', label: 'protest' },
+    ])
+  })
+
+  it('treats underscores and spaces as the same label (transitional justice vs transitional_justice)', () => {
+    expect(
+      metadataPills({
+        keywords: ['TRC', 'transitional justice'],
+        categories: ['transitional_justice'],
+        organizations: ['Truth and Reconciliation Commission'],
+      }),
+    ).toEqual([
+      { kind: 'keyword', label: 'TRC' },
+      { kind: 'keyword', label: 'transitional justice' },
+      { kind: 'organization', label: 'Truth and Reconciliation Commission' },
+    ])
+  })
 })
 
 describe('pickVisiblePills', () => {

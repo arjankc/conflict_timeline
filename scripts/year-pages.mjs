@@ -18,7 +18,7 @@ if (!existsSync(join(dist, 'index.html'))) {
 
 const siteUrl = (process.env.VITE_SITE_URL || 'https://YOUR-GITHUB-USERNAME.github.io/conflict_timeline').replace(/\/+$/, '')
 const years = []
-for (let y = 1995; y <= 2026; y += 1) years.push(y)
+for (let y = 1995; y <= 2025; y += 1) years.push(y)
 
 const indexHtml = readFileSync(join(dist, 'index.html'), 'utf8')
 const themeColor = indexHtml.match(/<meta name="theme-color" content="[^"]*" \/>/)?.[0] ?? ''
@@ -27,7 +27,7 @@ for (const year of years) {
   const dir = join(dist, 'year', String(year))
   mkdirSync(dir, { recursive: true })
   const title = `${year} · Nepal Conflict Timeline`
-  const desc = `Nepal Conflict Timeline: events from ${year} — armed conflict (1996–2006) and transitional-justice aftermath through 2026.`
+  const desc = `Nepal Conflict Timeline: events from ${year} — chronological record 1 Nov 1995 – 8 Sept 2025.`
   const page = `<!doctype html>
 <html lang="en">
 <head>

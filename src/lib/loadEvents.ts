@@ -237,11 +237,12 @@ async function fetchCsv(): Promise<{ body: string; etag: string | null; notModif
 
 /**
  * Offline/field fallback: `dist/data/events.json` (raw row mirror from
- * `scripts/events-json.mjs`). Only tried for the default path when the CSV
- * fetch fails. Returns CSV text so the progressive parser stays single-path.
+ * `scripts/events-json.mjs`). Tried whenever the CSV fetch fails — including
+ * when a live Sheet URL is set but unreachable — so the archive still renders
+ * from the last committed data. Returns CSV text so the progressive parser
+ * stays single-path.
  */
 async function fetchJsonFallback(): Promise<string | null> {
-  if (import.meta.env.VITE_DATA_URL) return null
   const url = `${import.meta.env.BASE_URL}data/events.json`
   try {
     const response = await fetch(url)

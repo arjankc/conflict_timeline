@@ -4,6 +4,14 @@ All notable changes to data handling and the app. Dates are release dates (UTC).
 
 ## Unreleased
 
+- Google Sheets as data source: `sheets/NepalConflictTimeline.xlsx`
+  bootstrap workbook (Events 2,112 rows incl. empty enrichment columns,
+  Keywords 408 taxonomy rows with dropdown validation, ReadMe tab).
+  Upload once; wire via `VITE_DATA_URL` / `TAXONOMY_CSV_URL` repo variables
+  (deploy passes both through, empty = committed CSVs). Runtime Sheet
+  failure now falls back to the offline JSON mirror. See
+  `sheets/README.md` and `DATA.md`.
+
 - Analytics: Google Tag Manager (`GTM-PKN7T9SJ`) snippet in `index.html`
   (production only, skipped on localhost and with Do Not Track) plus
   `src/lib/analytics.ts` dataLayer events — virtual `page_view`s, `search`

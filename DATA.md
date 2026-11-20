@@ -114,14 +114,30 @@ If the same `Event_ID` appears twice, the parser keeps the first row and skips t
 
 Do not reuse an `Event_ID`. Append new events with the next id. Inserting a row no longer rewrites other permalinks, because links follow `Event_ID` rather than the row index.
 
-## Refreshing the CSV from Google Sheets
+## Refreshing the data from Google Sheets
 
+The editorial workspace is the `NepalConflictTimeline.xlsx` workbook in
+[`sheets/`](sheets/) (tabs: Events, Keywords, ReadMe) — upload it to Google
+Sheets once; the Sheet is the living source afterwards. Two modes:
+
+**Live (editors change the Sheet, app follows on next deploy).**
+Share the spreadsheet as *Anyone with the link can view* and save the
+per-tab `export?format=csv&gid=…` links as repository variables
+(**Settings → Variables → Actions**): Events tab → `VITE_DATA_URL`,
+Keywords tab → `TAXONOMY_CSV_URL`. The deploy workflow passes both through
+at build time; empty variables build from the committed CSVs. If the Sheet
+is unreachable at runtime, the app falls back to the committed offline
+mirror.
+
+**Manual (editors export, repo stays pinned).**
 1. Open the master spreadsheet.
-2. **File → Download → Comma Separated Values (.csv)**.
-3. Replace `public/data/mastersheet.csv` (the runtime file) with a **clean** export: `Event_ID` first, **no** leading blank column. Optionally also replace `public/data/mastersheet_with_sources.csv` if Sources / Confidence changed. Do not reuse Event_IDs.
-4. Run `npm test` and `npm run dev`, then commit the CSV if the parse still looks right.
-
-If Sheets later adds an official published-CSV link, set `VITE_DATA_URL` to that URL. Keep a committed CSV fallback until the live URL is treated as reliable.
+2. **File → Download → Comma Separated Values (.csv)** per tab.
+3. Events tab → replace `public/data/mastersheet_with_sources.csv`; slim
+   runtime `public/data/mastersheet.csv` is the first 6 columns
+   (`Event_ID` first, **no** leading blank column). Keywords tab → replace
+   `taxonomy/keyword-taxonomy.csv` (keep the header row exactly).
+   Do not reuse Event_IDs; new events append with the next id.
+4. Run `npm test` and `npm run data:lint`, then commit.
 
 ## License and provenance
 

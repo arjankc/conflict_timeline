@@ -10,6 +10,7 @@ const SAMPLE = `,Date,Detail,Keywords,Category,Organizations
 
 afterEach(() => {
   vi.unstubAllGlobals()
+  vi.unstubAllEnvs()
 })
 
 describe('parseCsvEvents', () => {
@@ -201,6 +202,33 @@ describe('loadEvents', () => {
           })
         }
         return Promise.reject(new Error('csv offline'))
+      }),
+    )
+
+    const { loadEvents } = await import('./loadEvents')
+    const events = await loadEvents()
+
+    expect(events).toHaveLength(1)
+    expect(events[0]?.id).toBe('NCT-0001')
+  })
+
+  it('still falls back to events.json when the live Sheet URL fails', async () => {
+    vi.resetModules()
+    vi.stubEnv('VITE_DATA_URL', 'https://docs.google.com/spreadsheets/d/abc/export?format=csv')
+    vi.stubGlobal('localStorage', { getItem: () => null })
+    const rows = [
+      { Event_ID: 'NCT-0001', Date: '1/1/96', Detail: 'Fallback event' },
+    ]
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockImplementation((url: string) => {
+        if (String(url).endsWith('events.json')) {
+          return Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve(rows),
+          })
+        }
+        return Promise.reject(new Error('sheet offline'))
       }),
     )
 

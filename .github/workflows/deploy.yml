@@ -43,6 +43,10 @@ jobs:
         env:
           # Override with repo variable SITE_URL for a custom domain.
           VITE_SITE_URL: ${{ vars.SITE_URL || format('https://{0}.github.io/{1}', github.repository_owner, github.event.repository.name) }}
+          # Live Google Sheet tabs (export?format=csv links). Empty = build from the committed CSVs.
+          # Set as repo variables (Settings → Variables → Actions) after publishing the Sheet.
+          VITE_DATA_URL: ${{ vars.VITE_DATA_URL }}
+          TAXONOMY_CSV_URL: ${{ vars.TAXONOMY_CSV_URL }}
 
       - name: Smoke-test dist artifacts
         run: npm run smoke:dist

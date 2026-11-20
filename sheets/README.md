@@ -33,6 +33,10 @@ The committed CSVs stay the repo source of truth and the offline fallback:
 4. If the Sheet is unreachable at runtime, the app falls back to the
    committed offline mirror (`dist/data/events.json`); taxonomy always
    ships the last generated build.
+5. Timing: every page load fetches the Events export fresh (never
+   browser-cached), but Google generates the export a few minutes behind
+   Sheet edits — allow ~5 minutes, then hard-refresh. Keywords-tab edits
+   are baked at build time, so those need a rebuild + deploy to go live.
 
 ## Syncing back to the repo
 

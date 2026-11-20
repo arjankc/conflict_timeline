@@ -221,7 +221,10 @@ async function fetchCsv(): Promise<{ body: string; etag: string | null; notModif
   const stored = readStoredCsv()
   const headers = new Headers()
   if (stored?.etag) headers.set('If-None-Match', stored.etag)
-  const response = await fetch(url, { headers })
+  // Never serve the Sheet from the browser HTTP cache: Google marks the
+  // export max-age=300, so plain refreshes could show up-to-5-minute-old
+  // edits. (Google's own export generation can still lag edits by minutes.)
+  const response = await fetch(url, { headers, cache: 'no-store' })
   if (response.status === 304 && stored) {
     return { body: stored.body, etag: stored.etag, notModified: true }
   }

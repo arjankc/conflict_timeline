@@ -48,7 +48,7 @@ describe('suggestSearch', () => {
     event({
       id: 'NCT-0001',
       detail: 'Maoist leader Baburam Bhattarai submitted demands in Kathmandu.',
-      keywords: ['Maoist', '40-point demand'],
+      keywords: ['Maoist', 'Maoist offensive', '40-point demand'],
       year: 1996,
     }),
     event({
@@ -72,8 +72,14 @@ describe('suggestSearch', () => {
 
   it('matches a later word in a multi-word theme', () => {
     expect(
-      suggestSearch(index, 'demand').some((item) => item.label === '40-point demand'),
+      suggestSearch(index, 'offen').some((item) => item.label === 'Maoist offensive'),
     ).toBe(true)
+  })
+
+  it('does not suggest pending (unmapped) themes', () => {
+    expect(
+      suggestSearch(index, 'demand').some((item) => item.label === '40-point demand'),
+    ).toBe(false)
   })
 
   it('suggests Event_IDs so typing NCT- narrows to one card', () => {

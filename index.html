@@ -12,7 +12,7 @@
     />
     <meta
       name="description"
-      content="An interactive, chronological archive of Nepal's internal armed conflict (1996–2006) — from 1995 pre-conflict events through 2026 transitional-justice aftermath — compiled for transitional justice civil society. Browse events by year, theme, and search."
+      content="A chronological record of Nepal's internal armed conflict (1 November 1995 - 8 September 2025)."
     />
     <meta name="robots" content="index, follow" />
     <meta name="theme-color" content="#f3eee4" />
@@ -47,6 +47,24 @@
         } catch (e) {}
       })()
     </script>
+    <!-- Google Tag Manager (production only, skipped on localhost and with Do Not Track).
+         Custom interaction events are pushed to dataLayer by src/lib/analytics.ts —
+         see docs/ANALYTICS.md for the container-side tag spec. -->
+    <script>
+      (function () {
+        try {
+          var host = window.location.hostname;
+          if (host === 'localhost' || host === '127.0.0.1') return;
+          if (navigator.doNotTrack === '1' || window.doNotTrack === '1') return;
+          window.dataLayer = window.dataLayer || [];
+          window.dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+          var s = document.createElement('script');
+          s.async = true;
+          s.src = 'https://www.googletagmanager.com/gtm.js?id=GTM-PKN7T9SJ';
+          document.head.appendChild(s);
+        } catch (e) {}
+      })();
+    </script>
     <meta name="author" content="Nepal Conflict Timeline contributors" />
     <meta name="application-name" content="Nepal Conflict Timeline" />
     <meta name="apple-mobile-web-app-title" content="Nepal Conflict Timeline" />
@@ -57,7 +75,7 @@
     <meta property="og:title" content="Nepal Conflict Timeline" />
     <meta
       property="og:description"
-      content="A digital archive of Nepal's internal armed conflict (1996–2006) and its transitional-justice aftermath through 2026. Browse events by year, theme, and search."
+      content="A chronological record of Nepal's internal armed conflict (1 November 1995 - 8 September 2025)."
     />
     <meta property="og:url" content="%SITE_URL%/" />
     <meta property="og:image" content="%SITE_URL%/og-image.png" />
@@ -66,19 +84,19 @@
     <meta property="og:image:height" content="630" />
     <meta
       property="og:image:alt"
-      content="Nepal Conflict Timeline: a digital archive of the 1996 to 2006 conflict and its aftermath through 2026"
+      content="Nepal Conflict Timeline: (1 November 1995 - 8 September 2025)"
     />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Nepal Conflict Timeline" />
     <meta
       name="twitter:description"
-      content="A digital archive of Nepal's internal armed conflict (1996–2006) and its transitional-justice aftermath through 2026. Browse events by year, theme, and search."
+      content="A chronological record of Nepal's internal armed conflict (1 November 1995 - 8 September 2025)."
     />
     <meta name="twitter:image" content="%SITE_URL%/og-image.png" />
     <meta
       name="twitter:image:alt"
-      content="Nepal Conflict Timeline: a digital archive of the 1996 to 2006 conflict and its aftermath through 2026"
+      content="Nepal Conflict Timeline: (1 November 1995 - 8 September 2025)"
     />
     <!-- Optional: <meta name="twitter:site" content="@YOUR_TWITTER_HANDLE" /> -->
 
@@ -93,7 +111,7 @@
             "@type": "WebSite",
             "name": "Nepal Conflict Timeline",
             "url": "%SITE_URL%/",
-            "description": "An interactive, chronological archive of Nepal's internal armed conflict (1996–2006) — from 1995 pre-conflict events through 2026 transitional-justice aftermath — compiled for transitional justice civil society.",
+            "description": "A chronological record of Nepal's internal armed conflict (1 November 1995 - 8 September 2025).",
             "inLanguage": "en",
             "image": "%SITE_URL%/og-image.png"
           },
@@ -102,7 +120,7 @@
             "name": "Nepal Conflict Timeline",
             "description": "A chronological event archive of Nepal's internal armed conflict and its transitional-justice aftermath, compiled for transitional justice civil society.",
             "url": "%SITE_URL%/",
-            "temporalCoverage": "1995/2026",
+            "temporalCoverage": "1995/2025",
             "spatialCoverage": {
               "@type": "Place",
               "name": "Nepal"
@@ -119,6 +137,8 @@
     </script>
   </head>
   <body>
+    <!-- Google Tag Manager (noscript fallback). -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-PKN7T9SJ" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

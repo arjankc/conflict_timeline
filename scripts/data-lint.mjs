@@ -7,12 +7,14 @@
  * Usage: node scripts/data-lint.mjs [--strict]
  */
 import { readFileSync, existsSync } from 'node:fs'
+import { execFileSync } from 'node:child_process'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const slimPath = join(root, 'public/data/mastersheet.csv')
 const fullPath = join(root, 'public/data/mastersheet_with_sources.csv')
+const taxonomyPath = join(root, 'taxonomy', 'keyword-taxonomy.csv')
 const strict = process.argv.includes('--strict')
 
 function parseCsv(text) {
@@ -163,12 +165,12 @@ function lintFile(path, { expectSources }) {
         }
       }
     }
-    // Year-range sanity: dataset spans 1995–2026.
+    // Year-range sanity: dataset spans 1995–2025.
     const ym = cell(r, idx.Date).match(/(19|20)\d{2}/)
     if (ym) {
       const y = Number(ym[0])
-      if (y < 1995 || y > 2026) {
-        warnings.push(`${name}:${line}: Date year ${y} outside 1995–2026 span`)
+      if (y < 1995 || y > 2025) {
+        warnings.push(`${name}:${line}: Date year ${y} outside 1995–2025 span`)
       }
     }
     // Raw spaces glued to a URL are invalid and break naive extractors
@@ -221,6 +223,97 @@ function lintFile(path, { expectSources }) {
 const slim = lintFile(slimPath, { expectSources: false })
 const full = lintFile(fullPath, { expectSources: true })
 
+/** Keyword taxonomy: CSV validity, generated-module sync, coverage, district sync. */
+let taxonomy = null
+
+function normTaxKey(raw) {
+  return raw
+    .replace(/ /g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/[./:;]+$/g, '')
+    .trim()
+    .toLowerCase()
+}
+
+function lintTaxonomy() {
+  if (!existsSync(taxonomyPath)) {
+    errors.push('taxonomy/keyword-taxonomy.csv: file missing')
+    return
+  }
+  // The generator validates columns, statuses, and duplicate terms/aliases.
+  try {
+    execFileSync('node', [join(root, 'scripts', 'keyword-taxonomy.mjs'), '--check'], { stdio: 'pipe' })
+  } catch {
+    errors.push('keywordTaxonomy.generated.ts is out of sync with taxonomy/keyword-taxonomy.csv — run node scripts/keyword-taxonomy.mjs')
+    return
+  }
+  const { header, rows } = parseCsv(readFileSync(taxonomyPath, 'utf8'))
+  const idx = Object.fromEntries(header.map((h, i) => [h, i]))
+  const aliasToTerm = new Map()
+  const termRows = []
+  rows.forEach((r) => {
+    if (r.every((cell) => (cell ?? '').trim() === '')) return
+    const term = (r[idx.Term] ?? '').trim()
+    const facet = (r[idx.Facet] ?? '').trim()
+    const status = (r[idx.Status] ?? '').trim()
+    const comment = (r[idx.Comment] ?? '').trim()
+    const key = normTaxKey(term)
+    termRows.push({ term, key, facet, status, comment })
+    aliasToTerm.set(key, key)
+    for (const a of (r[idx.Aliases] ?? '').split(';')) {
+      const ak = normTaxKey(a)
+      if (ak && ak !== key && !aliasToTerm.has(ak)) aliasToTerm.set(ak, key)
+    }
+  })
+  const canonOf = (raw) => aliasToTerm.get(normTaxKey(raw)) ?? normTaxKey(raw)
+
+  // Every current keyword must be covered (as Term or alias) — single source of truth.
+  const uncovered = []
+  const hitCanonicals = new Set()
+  if (slim) {
+    for (const key of slim.kwCounts.keys()) {
+      const canon = canonOf(key)
+      if (!aliasToTerm.has(key)) uncovered.push(key)
+      hitCanonicals.add(canon)
+    }
+  }
+  if (uncovered.length > 0) {
+    errors.push(`taxonomy covers ${termRows.length} rows but ${uncovered.length} current keywords are unmapped, e.g. ${uncovered.slice(0, 5).map((k) => JSON.stringify(k)).join(', ')}`)
+  }
+  // Every active term should occur in the data (catches alias typos).
+  const unhit = termRows.filter((t) => t.status === 'active' && !hitCanonicals.has(t.key))
+  if (unhit.length > 0) {
+    errors.push(`taxonomy active terms with zero events (alias typo?): ${unhit.map((t) => t.term).join(', ')}`)
+  }
+  // District facet must match the app gazetteer exactly.
+  // (Madesh stays out: it is review status, so never renders.)
+  const taxDistricts = new Set(
+    termRows.filter((t) => t.facet === 'Districts' && (t.status === 'active' || t.status === 'zero-hit')).map((t) => t.key),
+  )
+  const gazetteerSrc = readFileSync(join(root, 'src', 'lib', 'districts.ts'), 'utf8')
+  // Narrow to the DISTRICTS array literal only.
+  const districtsBlock = gazetteerSrc.match(/export const DISTRICTS: string\[\] = \[([\s\S]*?)\]/)
+  const gazetteerDistricts = new Set(
+    districtsBlock ? [...districtsBlock[1].matchAll(/'([^']+)'/g)].map((m) => m[1].toLowerCase()) : [],
+  )
+  for (const d of gazetteerDistricts) {
+    if (!taxDistricts.has(d)) errors.push(`taxonomy Districts facet is missing gazetteer district ${JSON.stringify(d)}`)
+  }
+  for (const d of taxDistricts) {
+    if (!gazetteerDistricts.has(d)) errors.push(`taxonomy Districts facet has extra district ${JSON.stringify(d)} not in the gazetteer`)
+  }
+  const visible = termRows.filter((t) => t.status === 'active' || t.status === 'review')
+  const review = termRows.filter((t) => t.status === 'review')
+  console.log(`\n== taxonomy: ${termRows.length} terms, ${visible.length} visible, ${review.length} in review ==`)
+  for (const t of review.slice(0, 20)) {
+    warnings.push(`taxonomy review: ${t.term} [${t.facet || 'unfaceted'}] — ${t.comment || 'needs editor decision'}`)
+  }
+  taxonomy = { terms: termRows.length, visible: visible.length, review: review.length }
+}
+
+lintTaxonomy()
+
 /**
  * Copy-vs-data assertions: every hardcoded claim in README/DATA must match.
  * Failures are errors (not warnings) — update the docs and this script together.
@@ -238,16 +331,16 @@ function assertClaims() {
 
   for (const res of [slim, full]) {
     if (!res) continue
-    check(`${res.name} rows`, res.rows, 2150)
-    check(`${res.name} unique ids`, res.ids.size, 2150)
+    check(`${res.name} rows`, res.rows, 2112)
+    check(`${res.name} unique ids`, res.ids.size, 2112)
     const canonicalKw = new Set(
       [...res.kwCounts.keys()].map((k) => k.replace(/\s+/g, ' ').replace(/[./:;]+$/g, '')),
     )
     check(`${res.name} canonical keywords`, canonicalKw.size, 500)
-    check(`${res.name} year span`, [res.minYear, res.maxYear], [1995, 2026])
+    check(`${res.name} year span`, [res.minYear, res.maxYear], [1995, 2025])
   }
   if (slim) {
-    check('mastersheet.csv rows with Organizations', slim.rows - slim.missingOrg, 899)
+    check('mastersheet.csv rows with Organizations', slim.rows - slim.missingOrg, 885)
     check('mastersheet.csv categories', [...slim.catSet].sort(), [
       'civil_society', 'combat', 'detention', 'disappearance', 'displacement',
       'killing', 'media', 'other', 'peace_process', 'policy', 'protest',
@@ -255,7 +348,11 @@ function assertClaims() {
     ])
   }
   if (full) {
-    check('archival confidence split', [full.confLevels.high, full.confLevels.medium, full.confLevels.low, full.missingConfidence], [1167, 351, 632, 0])
+    check('archival confidence split', [full.confLevels.high, full.confLevels.medium, full.confLevels.low, full.missingConfidence], [1150, 351, 611, 0])
+  }
+  if (taxonomy) {
+    check('taxonomy rows', taxonomy.terms, 408)
+    check('taxonomy visible themes', taxonomy.visible, 124)
   }
 }
 

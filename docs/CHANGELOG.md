@@ -4,6 +4,36 @@ All notable changes to data handling and the app. Dates are release dates (UTC).
 
 ## Unreleased
 
+- Analytics: Google Tag Manager (`GTM-PKN7T9SJ`) snippet in `index.html`
+  (production only, skipped on localhost and with Do Not Track) plus
+  `src/lib/analytics.ts` dataLayer events — virtual `page_view`s, `search`
+  (count + query length, never raw text), `filter_change`, `card_expand`,
+  `permalink_copy`, `citation_copy`, `export`, `share`, `year_navigate`,
+  `saved_view`. Container-side tag spec in `docs/ANALYTICS.md`.
+
+- Keyword taxonomy: `taxonomy/keyword-taxonomy.csv` (448 rows: Term,
+  Aliases, Facet, Status, Comment) is now the single source of truth for
+  keyword display, compiled at build time by
+  `scripts/keyword-taxonomy.mjs` (`data:lint` asserts sync, full coverage of
+  current keywords, and gazetteer match). 124 controlled themes render,
+  grouped by facet in the Filters drawer; pending/zero-hit terms stay in the
+  data but show no pills, chips, counts, or suggestions. Legacy spellings
+  (`UCPN-M`, `Nepal police`, `Kavrepalanchowk`) canonicalize at parse and
+  still match filters and search; 14 rows await editor review (see lint
+  warnings).
+
+- Scope cut to 8 Sept 2025: removed NCT-2113…NCT-2150 (38 rows after 8 Sept
+  2025). Dataset is now 2112 rows, NCT-0001…NCT-2112, 1 Nov 1995 – 8 Sept 2025.
+  Header simplified to “A chronological record of Nepal's internal armed
+  conflict (1 November 1995 - 8 September 2025)”. Year pages 1995–2025 (31),
+  `temporalCoverage` `1995/2025`, org coverage 885 rows, confidence
+  1150 high / 351 medium / 611 low.
+- Keyword display standardized to Title Case (`killing` → `Killing`,
+  `transitional justice` → `Transitional Justice`); acronyms/codes stay
+  uppercase (`TRC`, `CPN-Maoist`). Category pills show spaces instead of
+  underscores with no all-caps styling. Cross-facet duplicate pills
+  (`protest` keyword + `protest` category) collapsed to one. Raw filter
+  values and URLs unchanged.
 - Forward-compatible enrichment columns: `District`, `Victims_Killed`,
   `Victims_Injured`, `Victims_Disappeared`, `Perpetrator_Alleged`,
   `Related_Events` parsed when present (absent in current sheet → empty).
@@ -11,8 +41,8 @@ All notable changes to data handling and the app. Dates are release dates (UTC).
 - Reading preference: “Reduce graphic detail” blur toggle (persisted
   `nct-blur-detail`, `blur-detail` class, unblurs on expand/hover/focus).
 - Offline artifact: `dist/data/events.json` raw row mirror generated at build.
-- `data:lint`: year-range (1995–2026), victim-integer, related-id, and District
-  sanity checks; district keyword coverage (~56% of rows); enrichment columns optional.
+- `data:lint`: year-range (1995–2025), victim-integer, related-id, and District
+  sanity checks; district keyword coverage (~57% of rows); enrichment columns optional.
 - Typeahead: Event_ID (`NCT-…`), district, tag, year, and term suggestions
   (picking fills `q` only).
 - Loader: CSV-first with `data/events.json` fallback when the CSV fetch fails

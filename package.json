@@ -2,14 +2,14 @@
   "name": "nepal-conflict-timeline",
   "private": true,
   "version": "0.1.0",
-  "description": "An interactive digital archive of Nepal's internal armed conflict (1996–2006) and its transitional-justice aftermath through 2026.",
+  "description": "A chronological record of Nepal's internal armed conflict (1 November 1995 - 8 September 2025).",
   "type": "module",
   "engines": {
     "node": ">=20"
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build && node scripts/year-pages.mjs && node scripts/events-json.mjs",
+    "build": "node scripts/keyword-taxonomy.mjs && tsc -b && vite build && node scripts/year-pages.mjs && node scripts/events-json.mjs",
     "lint": "oxlint",
     "data:lint": "node scripts/data-lint.mjs",
     "link:check": "node scripts/link-check.mjs",

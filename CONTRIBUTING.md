@@ -33,7 +33,7 @@ Please do not commit `node_modules/`, `dist/`, or `.env` files.
 | Data lint | `scripts/data-lint.mjs` (`npm run data:lint`), taxonomy notes in `docs/TAXONOMY.md` |
 | Link rot | `scripts/link-check.mjs` (`npm run link:check`), log in `docs/FACTCHECK.md` |
 | Fact-check review queue | `scripts/factcheck-candidates.mjs`, log in `docs/FACTCHECK.md` |
-| Archive overview / histogram | `src/components/ArchiveOverview.tsx`, `src/components/AboutArchive.tsx` |
+| Archive overview / histogram | `src/components/ArchiveOverview.tsx` |
 | Search, filters, year grouping | `src/lib/filterEvents.ts` (OR-within/AND-across, `?match=all` option, sort, YYYY-MM range, districts; `normalizeFilters` migrates legacy shapes) |
 | Filter bar layout | `src/components/FilterBar.tsx` (sticky search + Filters toggle; drawer holds themes, facets, districts, range, sort, saved views, export) |
 | Districts (inferred) | `src/lib/districts.ts`, `src/lib/eventGeography.ts`, `src/components/DistrictOverview.tsx` |
@@ -44,7 +44,7 @@ Please do not commit `node_modules/`, `dist/`, or `.env` files.
 | Search typeahead (fills `q` only) | `src/lib/searchSuggest.ts`, `src/components/SearchSuggest.tsx` (Event_ID + district + tag + year + term) |
 | Search highlighting (`<mark>` text nodes) | `src/lib/highlight.ts` |
 | Card teasers (line/tag limits) | `src/lib/eventCardTeaser.ts`, `src/components/EventCard.tsx` |
-| Keyword chip cap (top 16) | `KEYWORD_CLOUD_LIMIT` in `src/lib/parseTags.ts` |
+| Keyword taxonomy (Term/Aliases/Facet/Status/Comment) | `taxonomy/keyword-taxonomy.csv`, `scripts/keyword-taxonomy.mjs` → `src/lib/keywordTaxonomy.generated.ts`, helpers in `src/lib/keywordTaxonomy.ts` |
 | Query-string view state | `src/lib/urlState.ts` |
 | Card permalinks | `src/lib/eventAnchor.ts`, `src/components/EventCard.tsx` |
 | Copy / share confirmations | `src/lib/toast.ts`, `src/components/Toast.tsx` |

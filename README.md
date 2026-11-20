@@ -1,6 +1,6 @@
 # Nepal Conflict Timeline
 
-An interactive, mobile-first digital archive of Nepal's internal armed conflict (1996–2006) and its transitional-justice aftermath through 2026. The timeline is intended for transitional justice civil society: a chronological card explorer of events, filterable metadata, and a year-density navigator. Dataset spans 1995 (Operation Romeo) to May 2026, 2150 events.
+An interactive, mobile-first digital archive of Nepal's internal armed conflict (1 November 1995 - 8 September 2025). The timeline is intended for transitional justice civil society: a chronological card explorer of events, filterable metadata, and a year-density navigator. Dataset spans 1995 (Operation Romeo) to 8 September 2025, 2112 events.
 
 This is an open-source project. Event data currently ships as a static CSV exported from a Google Sheet.
 
@@ -12,17 +12,18 @@ This is an open-source project. Event data currently ships as a static CSV expor
 - Reading toolbar: System → Light → Dark, Default → Large → Larger text, high contrast, and Reduce graphic detail blur (persisted, unblurs on expand/hover)
 - Per-card permalink (link icon copies `#event-…`; a toast confirms; the feed does not jump)
 - Side year navigator with a month-density heatmap; click, drag, or arrow-key scrub (the mobile density strip is a real slider)
-- Theme chips (most frequent 16) plus a searchable “Browse all themes” index, confidence filter, and shareable URL filters (`?q=&tag=&year=&confidence=`), all inside the Filters drawer
+- Theme chips grouped by taxonomy facet (Action, Policy, Actors, Institutions, Transitional justice, Parties, Regions) with search, confidence filter, and shareable URL filters (`?q=&tag=&year=&confidence=`), all inside the Filters drawer
 - Multi-select categories/organizations/themes/districts (OR within, AND across; optional `?match=all` for AND-within), date range (`from`/`to` YYYY-MM), sort (oldest/newest/by category), density toggle, saved views, and export — all behind one Filters toggle so the timeline leads; search-match stepping (next/previous with position announced) walks through hits
 - District view (inferred from keywords/detail — 75 legacy districts, top-8 ranking with counts, inside the Filters drawer), per-year share pages (`/year/YYYY/` with year meta + sitemap), filtered CSV/JSON export (incl. enrichment columns)
 - Offline mirror `dist/data/events.json` (raw row mirror, generated at build) doubles as a CSV-fetch fallback for field use; enrichment columns + `docs/CHANGELOG.md`
-- Typeahead covers Event_IDs (`NCT-…` jumps to one card), districts, tags, years, terms; `data:lint` reports district keyword coverage (~56%)
+- Typeahead covers Event_IDs (`NCT-…` jumps to one card), districts, tags, years, terms; `data:lint` reports district keyword coverage (~57%)
 - Archive overview: event counts, source coverage, confidence split, and a per-year histogram that jumps to a year
 - Light, dark, system appearance, text size, and high contrast, remembered in the browser
 - Share control (Web Share on supported devices, copy-link fallback)
 - Open Graph / Twitter preview cards, JSON-LD, robots.txt, and sitemap
 - Mobile-first layout with a bottom year dock (density strip + year chips) on small screens
 - Accessibility target: [WCAG 2.2](https://www.w3.org/TR/WCAG22/) Level AA
+- Anonymous usage analytics via Google Tag Manager (production only, skipped with Do Not Track; raw search text is never sent — see [`docs/ANALYTICS.md`](docs/ANALYTICS.md))
 - GitHub Pages deployment with Vite `base` set to `/conflict_timeline/`
 
 ## Requirements
@@ -55,7 +56,7 @@ Copy [`.env.example`](.env.example) to `.env` only if you need `VITE_DATA_URL` o
 
 The runtime dataset is [`public/data/mastersheet.csv`](public/data/mastersheet.csv). See [DATA.md](DATA.md) for the column schema, date formats, event IDs (used in permalinks), and how to refresh the file from Google Sheets.
 
-The current sheet has **2150 events** with a stable `Event_ID` (`NCT-0001` … `NCT-2150`; Romeo is `NCT-0001`). Card permalinks are `#event-NCT-0001`. Keywords, Category, and Organizations are populated (Category on every row; Organizations on about 900). Search, keyword pills, category, organization, and confidence filters, typeahead, and the year navigator all work against this data. The filter bar shows the 16 most frequent keywords; “Browse all themes” exposes the full ~500-keyword index. An archival CSV with Sources and Confidence is at [`public/data/mastersheet_with_sources.csv`](public/data/mastersheet_with_sources.csv); the app parses those columns when present. Schema: [`docs/EVENT_SCHEMA.md`](docs/EVENT_SCHEMA.md); taxonomy notes: [`docs/TAXONOMY.md`](docs/TAXONOMY.md).
+The current sheet has **2112 events** with a stable `Event_ID` (`NCT-0001` … `NCT-2112`; Romeo is `NCT-0001`). Card permalinks are `#event-NCT-0001`. Keywords, Category, and Organizations are populated (Category on every row; Organizations on about 900). Search, keyword pills, category, organization, and confidence filters, typeahead, and the year navigator all work against this data. The filter bar shows controlled themes from `taxonomy/keyword-taxonomy.csv` (124 visible, grouped by facet); unmapped and zero-hit terms stay out of the UI. An archival CSV with Sources and Confidence is at [`public/data/mastersheet_with_sources.csv`](public/data/mastersheet_with_sources.csv); the app parses those columns when present. Schema: [`docs/EVENT_SCHEMA.md`](docs/EVENT_SCHEMA.md); taxonomy notes: [`docs/TAXONOMY.md`](docs/TAXONOMY.md).
 
 ## Architecture
 
@@ -96,19 +97,22 @@ The header paints before the CSV is parsed. Rows are published in batches so the
 | [`src/lib/matchNav.ts`](src/lib/matchNav.ts) | Next/previous search-match cycling index |
 | [`src/lib/toast.ts`](src/lib/toast.ts) | Copy/share status messages |
 | [`src/lib/seo.ts`](src/lib/seo.ts) | Document title, share text, filtered share URL |
+| [`src/lib/analytics.ts`](src/lib/analytics.ts) | GTM dataLayer events; container spec in `docs/ANALYTICS.md` |
 | [`src/lib/site.ts`](src/lib/site.ts) | Site name, description, `%SITE_URL%` substitution |
 | [`src/components/ChronologyExplorer.tsx`](src/components/ChronologyExplorer.tsx) | Year-grouped feed + dock/rail |
 | [`src/components/ArchiveOverview.tsx`](src/components/ArchiveOverview.tsx) | Collection stats + per-year histogram |
 | [`src/components/DistrictOverview.tsx`](src/components/DistrictOverview.tsx) | Inferred-district ranking + filter |
-| [`src/components/AboutArchive.tsx`](src/components/AboutArchive.tsx) | About, methodology, how-to-cite |
 | [`src/components/TimelineFeed.tsx`](src/components/TimelineFeed.tsx) | Windowed cards on a year spine |
 | [`src/components/EventCard.tsx`](src/components/EventCard.tsx) | Teaser card, expand, permalink |
 | [`src/components/YearNavigator.tsx`](src/components/YearNavigator.tsx) | Jump-to-year density rail or mobile dock (scrub strip + year chips) |
 | [`src/components/YearCue.tsx`](src/components/YearCue.tsx) | Brief year overlay while scrolling or scrubbing |
 | [`src/components/ScrollFade.tsx`](src/components/ScrollFade.tsx) | Edge fade when a horizontal scroller can still move |
 | [`src/lib/scrollOverflow.ts`](src/lib/scrollOverflow.ts) | Start/end overflow flags for those fades |
-| [`src/components/FilterBar.tsx`](src/components/FilterBar.tsx) | Sticky search row + Filters toggle; drawer holds themes, facets, districts, range, sort, saved views, export; publishes `--filter-h` |
-| [`src/components/KeywordCloud.tsx`](src/components/KeywordCloud.tsx) | Theme chips in the Filters drawer |
+| [`src/components/FilterBar.tsx`](src/components/FilterBar.tsx) | Sticky search row + Filters toggle; drawer holds facet-grouped themes, facets, districts, range, sort, saved views, export; publishes `--filter-h` |
+| [`src/components/KeywordFacets.tsx`](src/components/KeywordFacets.tsx) | Theme chips grouped by taxonomy facet, with search |
+| [`src/lib/keywordTaxonomy.ts`](src/lib/keywordTaxonomy.ts) | Visible/facet helpers over the generated taxonomy |
+| [`taxonomy/keyword-taxonomy.csv`](taxonomy/keyword-taxonomy.csv) | Controlled keyword vocabulary: Term, Aliases, Facet, Status, Comment |
+| [`scripts/keyword-taxonomy.mjs`](scripts/keyword-taxonomy.mjs) | Compiles the taxonomy CSV to `keywordTaxonomy.generated.ts` (runs in build; `data:lint` asserts sync) |
 | [`scripts/data-lint.mjs`](scripts/data-lint.mjs) | CSV structure checks + doc-claim assertions (`npm run data:lint`) |
 | [`scripts/link-check.mjs`](scripts/link-check.mjs) | Sources URL health check (`npm run link:check`) |
 | [`scripts/factcheck-candidates.mjs`](scripts/factcheck-candidates.mjs) | Figure-claim review queue seeding |
@@ -185,7 +189,7 @@ VITE_SITE_URL=https://YOUR-GITHUB-USERNAME.github.io/conflict_timeline npm run b
 npm run preview
 ```
 
-JSON-LD describes a `WebSite` and a `Dataset` with `temporalCoverage` `1995/2026` and `spatialCoverage` Nepal. Event texts are **not** marked MIT in that markup. Uncomment `twitter:site` in `index.html` when the project has an official account.
+JSON-LD describes a `WebSite` and a `Dataset` with `temporalCoverage` `1995/2025` and `spatialCoverage` Nepal. Event texts are **not** marked MIT in that markup. Uncomment `twitter:site` in `index.html` when the project has an official account.
 
 ## Accessibility
 

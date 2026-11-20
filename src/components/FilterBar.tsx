@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react'
 import type { SortMode, TimelineFilters } from '../lib/filterEvents'
 import type { TagCount } from '../lib/parseTags'
+import { formatCategoryLabel } from '../lib/parseTags'
+import { displayKeyword } from '../lib/keywordTaxonomy'
 import type { SavedView } from '../lib/savedViews'
 import type { SearchSuggestion } from '../lib/searchSuggest'
 import { DistrictOverview } from './DistrictOverview'
-import { KeywordCloud } from './KeywordCloud'
+import { KeywordFacets, type FacetGroup } from './KeywordFacets'
 import { SearchSuggest } from './SearchSuggest'
 
 /**
@@ -21,8 +23,8 @@ type FilterBarProps = {
   categoryCounts: TagCount[]
   organizationCounts: TagCount[]
   districtCounts: TagCount[]
-  keywords: TagCount[]
-  allKeywords: TagCount[]
+  facetGroups: FacetGroup[]
+  themeCount: number
   searchIndex: SearchSuggestion[]
   resultCount: number
   totalCount: number
@@ -61,6 +63,7 @@ function FacetList({
   selected,
   onToggle,
   onClear,
+  formatOption,
 }: {
   id: string
   label: string
@@ -69,6 +72,7 @@ function FacetList({
   selected: string[]
   onToggle: (value: string) => void
   onClear: () => void
+  formatOption?: (value: string) => string
 }) {
   const countByKey = new Map(counts.map((c) => [c.label.toLowerCase(), c.count]))
   const selectedSet = new Set(selected.map((s) => s.toLowerCase()))
@@ -104,7 +108,7 @@ function FacetList({
                     onChange={() => onToggle(option)}
                     className="size-4 shrink-0 accent-crimson"
                   />
-                  <span className="min-w-0 flex-1 truncate">{option}</span>
+                  <span className="min-w-0 flex-1 truncate">{formatOption ? formatOption(option) : option}</span>
                   {count != null ? (
                     <span className="shrink-0 text-xs text-muted tabular-nums">{count}</span>
                   ) : null}
@@ -143,8 +147,8 @@ export function FilterBar({
   categoryCounts,
   organizationCounts,
   districtCounts,
-  keywords,
-  allKeywords,
+  facetGroups,
+  themeCount,
   searchIndex,
   resultCount,
   totalCount,
@@ -175,7 +179,6 @@ export function FilterBar({
   onReset,
 }: FilterBarProps) {
   const stickyRef = useRef<HTMLDivElement>(null)
-  const hasKeywords = keywords.length > 0
   const [viewName, setViewName] = useState('')
   const [drawerOpen, setDrawerOpen] = useState(false)
   const hasActiveFilters =
@@ -322,11 +325,11 @@ export function FilterBar({
                 <li key={`kw-${keyword.toLowerCase()}`}>
                   <button
                     type="button"
-                    aria-label={`${keyword}, selected. Activate to remove filter.`}
+                    aria-label={`${displayKeyword(keyword)}, selected. Activate to remove filter.`}
                     onClick={() => onToggleKeyword(keyword)}
                     className="inline-flex min-h-9 max-w-[12rem] items-center truncate rounded-sm border border-crimson bg-crimson-soft px-2.5 text-[0.8125rem] font-medium text-crimson"
                   >
-                    {keyword} ✕
+                    {displayKeyword(keyword)} ✕
                   </button>
                 </li>
               ))}
@@ -334,11 +337,11 @@ export function FilterBar({
                 <li key={`cat-${category.toLowerCase()}`}>
                   <button
                     type="button"
-                    aria-label={`${category}, selected. Activate to remove filter.`}
+                    aria-label={`${formatCategoryLabel(category)}, selected. Activate to remove filter.`}
                     onClick={() => onToggleCategory(category)}
                     className="inline-flex min-h-9 max-w-[12rem] items-center truncate rounded-sm border border-crimson bg-crimson-soft px-2.5 text-[0.8125rem] font-medium text-crimson"
                   >
-                    {category} ✕
+                    {formatCategoryLabel(category)} ✕
                   </button>
                 </li>
               ))}
@@ -387,16 +390,11 @@ export function FilterBar({
           {drawerOpen ? (
             <div className="max-h-[70dvh] overflow-y-auto border-t border-line/60 pt-3">
               <div className="flex flex-col gap-5 pb-1">
-                {hasKeywords ? (
-                  <section aria-label="Themes">
-                    <DrawerLabel>Themes</DrawerLabel>
-                    <KeywordCloud
-                      tags={keywords}
-                      activeKeywords={filters.keywords}
-                      onKeywordClick={onToggleKeyword}
-                    />
-                    <AllThemes
-                      tags={allKeywords}
+                {facetGroups.length > 0 ? (
+                  <section aria-label={`Themes, ${themeCount} controlled terms`}>
+                    <DrawerLabel>Themes · {themeCount}</DrawerLabel>
+                    <KeywordFacets
+                      groups={facetGroups}
                       activeKeywords={filters.keywords}
                       onKeywordClick={onToggleKeyword}
                     />
@@ -414,6 +412,7 @@ export function FilterBar({
                       selected={filters.categories}
                       onToggle={onToggleCategory}
                       onClear={() => onClearFacet('categories')}
+                      formatOption={formatCategoryLabel}
                     />
                     <FacetList
                       id="timeline-organization"
@@ -472,7 +471,7 @@ export function FilterBar({
                         type="month"
                         value={filters.from}
                         min="1995-01"
-                        max="2026-12"
+                        max="2025-12"
                         onChange={(event) => onFromChange(event.target.value)}
                         className="input-field min-w-0 flex-1"
                         aria-label="Filter from month"
@@ -484,7 +483,7 @@ export function FilterBar({
                         type="month"
                         value={filters.to}
                         min="1995-01"
-                        max="2026-12"
+                        max="2025-12"
                         onChange={(event) => onToChange(event.target.value)}
                         className="input-field min-w-0 flex-1"
                         aria-label="Filter to month"
@@ -623,70 +622,3 @@ export function FilterBar({
   )
 }
 
-function AllThemes({
-  tags,
-  activeKeywords,
-  onKeywordClick,
-}: {
-  tags: TagCount[]
-  activeKeywords: string[]
-  onKeywordClick: (keyword: string) => void
-}) {
-  const [query, setQuery] = useState('')
-  const needle = query.trim().toLowerCase()
-  const activeSet = new Set(activeKeywords.map((k) => k.toLowerCase()))
-  const matches = needle
-    ? tags.filter((tag) => tag.label.toLowerCase().includes(needle))
-    : tags
-  const shown = matches.slice(0, 100)
-
-  return (
-    <details className="mt-2">
-      <summary className="cursor-pointer text-sm font-medium text-crimson underline decoration-crimson/35 underline-offset-4">
-        Browse all {tags.length} themes
-        {needle ? ` matching “${query.trim()}”` : ''}
-      </summary>
-      <div className="mt-2">
-        <label htmlFor="all-themes-search" className="sr-only">
-          Search all themes
-        </label>
-        <input
-          id="all-themes-search"
-          type="search"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="Search themes…"
-          className="input-field max-w-xs"
-        />
-        <ul className="mt-2 flex max-h-64 flex-wrap gap-2 overflow-y-auto" aria-label="All themes">
-          {shown.map((tag) => {
-            const pressed = activeSet.has(tag.label.toLowerCase())
-            return (
-              <li key={tag.label.toLowerCase()} className="shrink-0">
-                <button
-                  type="button"
-                  aria-pressed={pressed}
-                  onClick={() => onKeywordClick(tag.label)}
-                  className={[
-                    'inline-flex min-h-9 items-center gap-1.5 rounded-sm border px-2.5 py-1 text-[0.8125rem]',
-                    pressed
-                      ? 'border-crimson bg-crimson-soft font-medium text-crimson'
-                      : 'border-line bg-surface text-ink hover:border-control hover:bg-chip',
-                  ].join(' ')}
-                >
-                  <span>{tag.label}</span>
-                  <span className={pressed ? 'text-crimson' : 'text-muted'}>{tag.count}</span>
-                </button>
-              </li>
-            )
-          })}
-        </ul>
-        {matches.length > shown.length ? (
-          <p className="mt-2 text-xs text-muted" role="status">
-            Showing {shown.length} of {matches.length} matching themes. Refine the search to see more.
-          </p>
-        ) : null}
-      </div>
-    </details>
-  )
-}

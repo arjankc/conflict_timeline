@@ -1,4 +1,5 @@
 import type { TimelineFilters } from '../lib/filterEvents'
+import { trackShare } from '../lib/analytics'
 import { pageTitle, shareText, shareUrl } from '../lib/seo'
 import { showToast } from '../lib/toast'
 import { writeExplorerQuery } from '../lib/urlState'
@@ -21,6 +22,7 @@ export function ShareButton({ filters, year }: ShareButtonProps) {
       try {
         await navigator.share({ title, text, url })
         showToast('Shared this view')
+        trackShare('web-share')
         return
       } catch (error) {
         if (error instanceof DOMException && error.name === 'AbortError') return
@@ -30,6 +32,7 @@ export function ShareButton({ filters, year }: ShareButtonProps) {
     try {
       await navigator.clipboard.writeText(url)
       showToast('Link to this view copied to the clipboard')
+      trackShare('clipboard')
     } catch {
       showToast('Copy the address bar to share this view')
     }

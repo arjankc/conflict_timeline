@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
-import { AboutArchive } from './components/AboutArchive'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { ArchiveOverview } from './components/ArchiveOverview'
 import { BackToTop } from './components/BackToTop'
 import { ChronologyExplorer } from './components/ChronologyExplorer'
@@ -13,7 +12,12 @@ import { EMPTY_FILTERS, filterEvents, normalizeFilters, type TimelineFilters } f
 import { eventCardId } from './lib/eventAnchor'
 import { cycleMatchIndex } from './lib/matchNav'
 import { subscribeTimelineLoad } from './lib/loadEvents'
-import { countTags, KEYWORD_CLOUD_LIMIT, uniqueTags } from './lib/parseTags'
+import { countTags, uniqueTags, type TagCount } from './lib/parseTags'
+import {
+  KEYWORD_FACETS,
+  isVisibleKeyword,
+  keywordFacet,
+} from './lib/keywordTaxonomy'
 import { buildSearchIndex } from './lib/searchSuggest'
 import { effectiveDistricts } from './lib/eventGeography'
 import { downloadFile, eventsToCsv, eventsToJson } from './lib/exportView'
@@ -25,6 +29,16 @@ import {
 } from './lib/savedViews'
 import { pageDescription, pageTitle } from './lib/seo'
 import { DATA_DOC_URL, SITE_NAME } from './lib/site'
+import {
+  detectFilterChange,
+  trackExport,
+  trackFilterChange,
+  trackFilterReset,
+  trackPageView,
+  trackSavedView,
+  trackSearch,
+  trackYearNavigate,
+} from './lib/analytics'
 import { readExplorerQuery, writeExplorerQuery } from './lib/urlState'
 import { useDebouncedValue } from './lib/useDebouncedValue'
 import type { ConflictEvent } from './types/event'
@@ -80,6 +94,7 @@ export default function App() {
   // Debounced filters so the address bar and the list stay in sync without a write on every keystroke.
   useEffect(() => {
     writeExplorerQuery(appliedFilters, focusYear)
+    trackPageView(window.location.pathname + window.location.search)
   }, [appliedFilters, focusYear])
 
   const categories = useMemo(
@@ -127,17 +142,34 @@ export default function App() {
   const keywordCounts = useMemo(
     () =>
       loadState.events.length > 0
-        ? countTags(loadState.events.map((event) => event.keywords), KEYWORD_CLOUD_LIMIT)
+        ? countTags(
+            loadState.events.map((event) =>
+              event.keywords.filter(isVisibleKeyword),
+            ),
+          )
         : [],
     [loadState],
   )
 
-  const allKeywordCounts = useMemo(
-    () =>
-      loadState.events.length > 0
-        ? countTags(loadState.events.map((event) => event.keywords))
-        : [],
-    [loadState],
+  /** Visible keywords grouped by taxonomy facet (Districts live in their own UI). */
+  const facetGroups = useMemo(() => {
+    const byFacet = new Map<string, TagCount[]>()
+    for (const tag of keywordCounts) {
+      const facet = keywordFacet(tag.label)
+      if (!facet || facet === 'Districts') continue
+      const list = byFacet.get(facet) ?? []
+      list.push(tag)
+      byFacet.set(facet, list)
+    }
+    return KEYWORD_FACETS.map((facet) => ({
+      facet,
+      tags: byFacet.get(facet) ?? [],
+    })).filter((group) => group.tags.length > 0)
+  }, [keywordCounts])
+
+  const visibleThemeCount = useMemo(
+    () => facetGroups.reduce((sum, group) => sum + group.tags.length, 0),
+    [facetGroups],
   )
 
   const searchIndex = useMemo(
@@ -153,6 +185,35 @@ export default function App() {
         : [],
     [loadState, appliedFilters],
   )
+
+  // One search event per distinct query (raw text never leaves the browser).
+  const prevTrackedSearch = useRef('')
+  useEffect(() => {
+    const query = debouncedSearch.trim()
+    if (query === '') {
+      prevTrackedSearch.current = ''
+      return
+    }
+    if (query !== prevTrackedSearch.current) {
+      prevTrackedSearch.current = query
+      trackSearch(filteredEvents.length, query.length)
+    }
+  }, [debouncedSearch, filteredEvents.length])
+
+  // One filter event per change, naming the first facet that differs.
+  const prevTrackedFilters = useRef<TimelineFilters | null>(null)
+  const skipFilterDiff = useRef(false)
+  useEffect(() => {
+    const prev = prevTrackedFilters.current
+    prevTrackedFilters.current = appliedFilters
+    if (!prev) return
+    if (skipFilterDiff.current) {
+      skipFilterDiff.current = false
+      return
+    }
+    const change = detectFilterChange(prev, appliedFilters)
+    if (change) trackFilterChange(change.facet, change.valueCount, change.values)
+  }, [appliedFilters])
 
   const searching = appliedFilters.search.trim() !== ''
   // Every filtered event contains the needle, so the feed order is the match order.
@@ -248,6 +309,11 @@ export default function App() {
     })
   }
 
+  function handleYearSelect(year: number | null) {
+    setFocusYear(year ?? undefined)
+    trackYearNavigate(year)
+  }
+
   return (
     <div className="min-h-dvh bg-paper text-ink">
       <div className="masthead-rule" aria-hidden="true" />
@@ -278,12 +344,6 @@ export default function App() {
             <div className="min-w-0 flex-1">
               <p className="text-xs font-medium tracking-[0.16em] text-crimson uppercase sm:text-sm">
                 Digital archive
-                <span className="mx-2 text-muted" aria-hidden="true">
-                  ·
-                </span>
-                <span className="tracking-[0.12em] text-muted">
-                  {collectionMeta?.span ?? '1995–2026'}
-                </span>
               </p>
               <h1 className="mt-2.5 text-balance font-display text-[2rem] leading-[1.05] tracking-tight text-ink sm:text-5xl sm:leading-[1.08]">
                 {SITE_NAME}
@@ -303,9 +363,7 @@ export default function App() {
           </div>
           <p className="mt-4 max-w-prose text-pretty text-sm leading-[1.75] text-muted sm:mt-6 sm:text-base">
             A chronological record of Nepal&apos;s internal armed conflict
-            (1996–2006) — from pre-conflict Operation Romeo (1995) through
-            transitional-justice aftermath (2026) — compiled for transitional
-            justice civil society.
+            (1 November 1995 - 8 September 2025)
           </p>
           {collectionMeta ? (
             <p className="mt-4 text-xs font-medium tracking-[0.12em] text-muted uppercase">
@@ -326,8 +384,8 @@ export default function App() {
           categoryCounts={categoryCounts}
           organizationCounts={organizationCounts}
           districtCounts={districtCounts}
-          keywords={keywordCounts}
-          allKeywords={allKeywordCounts}
+          facetGroups={facetGroups}
+          themeCount={visibleThemeCount}
           searchIndex={searchIndex}
           resultCount={filteredEvents.length}
           totalCount={loadState.events.length}
@@ -352,23 +410,34 @@ export default function App() {
           showMatches={searching && matchTotal > 0}
           onNextMatch={() => stepMatch(1)}
           onPrevMatch={() => stepMatch(-1)}
-          onSaveView={(name) =>
+          onSaveView={(name) => {
             setSavedViews(saveView(name, appliedFilters, focusYear))
-          }
+            trackSavedView('save')
+          }}
           onApplyView={(view) => {
             setFilters(normalizeFilters(view.filters))
             setFocusYear(view.year)
+            trackSavedView('apply')
           }}
-          onDeleteView={(id) => setSavedViews(deleteView(id))}
+          onDeleteView={(id) => {
+            setSavedViews(deleteView(id))
+            trackSavedView('delete')
+          }}
           onExportCsv={() => {
             downloadFile('nepal-conflict-timeline.csv', 'text/csv', eventsToCsv(filteredEvents))
             showToast(`Exported ${filteredEvents.length} events as CSV`)
+            trackExport('csv', filteredEvents.length)
           }}
           onExportJson={() => {
             downloadFile('nepal-conflict-timeline.json', 'application/json', eventsToJson(filteredEvents))
             showToast(`Exported ${filteredEvents.length} events as JSON`)
+            trackExport('json', filteredEvents.length)
           }}
-          onReset={() => setFilters(EMPTY_FILTERS)}
+          onReset={() => {
+            skipFilterDiff.current = true
+            setFilters(EMPTY_FILTERS)
+            trackFilterReset()
+          }}
         />
       ) : null}
 
@@ -384,9 +453,8 @@ export default function App() {
               confidence={collectionMeta.confidence}
               span={collectionMeta.span}
               focusYear={focusYear}
-              onYearSelect={(year) => setFocusYear(year ?? undefined)}
+              onYearSelect={(year) => handleYearSelect(year)}
             />
-            <AboutArchive />
           </div>
         ) : null}
 
@@ -430,7 +498,7 @@ export default function App() {
             activeDistricts={filters.districts}
             compact={compact}
             matchAnchor={matchAnchor}
-            onYearChange={(year) => setFocusYear(year ?? undefined)}
+            onYearChange={(year) => handleYearSelect(year)}
             onKeywordClick={(keyword) => toggleListFilter('keywords', keyword)}
             onCategoryClick={(category) => toggleListFilter('categories', category)}
             onOrganizationClick={(organization) =>

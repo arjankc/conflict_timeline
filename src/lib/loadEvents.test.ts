@@ -22,7 +22,7 @@ describe('parseCsvEvents', () => {
       'March 1996',
       '4/2/96',
     ])
-    expect(events[0]?.keywords).toEqual(['Holeri', 'Rolpa'])
+    expect(events[0]?.keywords).toEqual(['Rolpa'])
     expect(events[2]?.categories).toEqual(['dialogue'])
     expect(events[2]?.organizations).toEqual(['CPN'])
   })
@@ -31,7 +31,7 @@ describe('parseCsvEvents', () => {
     const csv = readFileSync('public/data/mastersheet.csv', 'utf8')
     const events = parseCsvEvents(csv)
 
-    expect(events).toHaveLength(2150)
+    expect(events).toHaveLength(2112)
     const sortKeys = events.map((event) => event.sortKey)
     expect(sortKeys).toEqual([...sortKeys].sort((a, b) => a - b))
     expect(events[0]?.rawDate).toBe('11/1/95')
@@ -59,7 +59,7 @@ describe('parseCsvEvents', () => {
     const csv = readFileSync('public/data/mastersheet_with_sources.csv', 'utf8')
     const events = parseCsvEvents(csv)
 
-    expect(events).toHaveLength(2150)
+    expect(events).toHaveLength(2112)
     expect(events[0]?.id).toBe('NCT-0001')
     expect(events[0]?.rawDate).toBe('11/1/95')
     expect(events.every((event) => event.categories.length > 0)).toBe(true)
@@ -105,6 +105,15 @@ NCT-0002,2/1/96,Second,Kathmandu,other,,Kathmandu,,,,,
     expect(events[0]?.districtOverride).toEqual(['Rolpa', 'Kavrepalanchok'])
     expect(events[1]?.victims).toEqual({ killed: null, injured: null, disappeared: null })
     expect(events[1]?.relatedIds).toEqual([])
+  })
+
+  it('canonicalizes keywords through the taxonomy at parse time', () => {
+    const events = parseCsvEvents(`Event_ID,Date,Detail,Keywords,Category,Organizations
+NCT-0990,1/1/05,Rally,UCPN-M,killing,
+NCT-0991,2/1/05,Clash,killing,combat,
+`)
+    expect(events[0]?.keywords).toEqual(['UCPN-Maoist'])
+    expect(events[1]?.keywords).toEqual(['Killing'])
   })
 
   it('keeps the first row when Event_ID is duplicated and does not merge the incidents', () => {

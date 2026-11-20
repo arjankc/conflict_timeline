@@ -1,5 +1,7 @@
 import type { ConflictEvent } from '../types/event'
 import { effectiveDistricts } from './eventGeography'
+import { formatCategoryLabel } from './parseTags'
+import { isVisibleKeyword } from './keywordTaxonomy'
 
 export type SuggestionKind =
   | 'theme'
@@ -115,8 +117,11 @@ export function buildSearchIndex(events: ConflictEvent[]): SearchSuggestion[] {
 
   for (const event of events) {
     addTerm(map, event.id.toUpperCase(), 'event')
-    for (const tag of event.keywords) addTerm(map, tag, 'theme')
-    for (const tag of event.categories) addTerm(map, tag, 'category')
+    // Only taxonomy-visible keywords are suggested (pending/zero-hit stay out).
+    for (const tag of event.keywords) {
+      if (isVisibleKeyword(tag)) addTerm(map, tag, 'theme')
+    }
+    for (const tag of event.categories) addTerm(map, formatCategoryLabel(tag), 'category')
     for (const tag of event.organizations) addTerm(map, tag, 'organization')
     for (const district of effectiveDistricts(event)) addTerm(map, district, 'district')
     if (event.year != null) addTerm(map, String(event.year), 'year')

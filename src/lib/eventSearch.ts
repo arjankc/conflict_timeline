@@ -1,5 +1,6 @@
 import type { ConflictEvent } from '../types/event'
 import { effectiveDistricts } from './eventGeography'
+import { KEYWORD_VARIANTS } from './keywordTaxonomy.generated'
 
 export type EventSearchIndex = {
   /** Lowercased Event_ID, dates, narrative, and tags. Built once per event object. */
@@ -20,6 +21,15 @@ function lowerSet(values: string[]): Set<string> {
 
 function buildIndex(event: ConflictEvent): EventSearchIndex {
   const districts = effectiveDistricts(event)
+  // Alias variants so legacy spellings (UCPN-M, Nepalgunj…) still find hits.
+  const keywordVariants = event.keywords.flatMap(
+    (keyword) => KEYWORD_VARIANTS[keyword.toLowerCase()] ?? [],
+  )
+  // Space-normalized categories so `transitional justice` matches the
+  // underscore form stored on events.
+  const categoryVariants = event.categories.flatMap((category) =>
+    category.includes('_') ? [category.replace(/_/g, ' ')] : [],
+  )
   return {
     searchText: [
       event.id,
@@ -28,7 +38,9 @@ function buildIndex(event: ConflictEvent): EventSearchIndex {
       event.year ?? '',
       event.detail,
       event.keywords.join('\n'),
+      keywordVariants.join('\n'),
       event.categories.join('\n'),
+      categoryVariants.join('\n'),
       event.organizations.join('\n'),
       (event.perpetrators ?? []).join('\n'),
       event.confidence ?? '',

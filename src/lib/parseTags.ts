@@ -1,25 +1,14 @@
 /**
  * Canonical display names for keyword variants found in the sheet.
- * Keys are lowercased, punctuation-stripped forms; values are the display form.
- * The sheet is not rewritten — this maps at parse time so filters merge.
+ * Source of truth is taxonomy/keyword-taxonomy.csv, compiled to
+ * keywordTaxonomy.generated.ts (alias map + display names). The hand map
+ * below is gone — run node scripts/keyword-taxonomy.mjs after editing the CSV.
  */
-const KEYWORD_ALIASES: Record<string, string> = {
-  'maoist': 'Maoist',
-  'maoist offensive': 'Maoist offensive',
-  'nepal police': 'police',
-  'police shooting': 'police shooting',
-  'police killings': 'police killings',
-  'police crackdown': 'police crackdown',
-  'armed police force': 'APF',
-  'cpn-maoist': 'CPN-Maoist',
-  'unified cpn-maoist': 'Unified CPN-Maoist',
-  'ucpn-m': 'UCPN-M',
-  'cpn-uml': 'CPN-UML',
-  'nepali congress': 'Nepali Congress',
-  'truth and reconciliation commission': 'TRC',
-  'commission of investigation on enforced disappeared persons': 'CIEDP',
-  'young communist league': 'YCL',
-}
+
+import {
+  KEYWORD_ALIAS_TO_CANONICAL,
+  KEYWORD_DISPLAY,
+} from './keywordTaxonomy.generated'
 
 function canonicalKeywordDisplay(tag: string): string {
   // Collapse whitespace, strip trailing ./:/; fragments like `Maoist.` / `Maoist/`.
@@ -31,11 +20,49 @@ function canonicalKeywordDisplay(tag: string): string {
     .trim()
   if (!cleaned) return ''
   const key = cleaned.toLowerCase()
-  return KEYWORD_ALIASES[key] ?? cleaned
+  const canonical = KEYWORD_ALIAS_TO_CANONICAL[key] ?? key
+  return KEYWORD_DISPLAY[canonical] ?? cleaned
 }
 
 export function canonicalKeyword(tag: string): string {
   return canonicalKeywordDisplay(tag)
+}
+
+/**
+ * Display-only humanization for category values (`transitional_justice` →
+ * `Transitional Justice`). Filter values, URLs, and CSV parsing keep the raw
+ * underscore form — this is for visible text so cards never show ALL_CAPS
+ * underscore pills.
+ */
+export function formatCategoryLabel(label: string): string {
+  return label
+    .replace(/[_-]+/g, ' ')
+    .split(' ')
+    .map((word) =>
+      /[A-Za-z]/.test(word)
+        ? word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+        : word,
+    )
+    .join(' ')
+}
+
+/**
+ * Display-only Title Case for keyword labels (`killing` → `Killing`,
+ * `transitional justice` → `Transitional Justice`). Runs of letters that are
+ * already all-uppercase (`TRC`, `CPN`, `II`, `NPL`) are acronyms/codes and
+ * kept as-is; apostrophes stay inside words (`people's` → `People's`).
+ * Filter values, URLs, and counts keep the raw label.
+ */
+export function formatKeywordLabel(label: string): string {
+  return label
+    .split(/([^A-Za-z']+)/)
+    .map((part) => {
+      if (!/[A-Za-z]/.test(part)) return part
+      const letters = part.replace(/'/g, '')
+      if (letters === letters.toUpperCase()) return part
+      return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+    })
+    .join('')
 }
 
 function parseDelimitedTags(value: string | undefined, delimiter: string): string[] {
@@ -102,9 +129,7 @@ export function uniqueTags(values: string[][]): string[] {
   return tags.sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' }))
 }
 
-/** Frequency-ranked chips in the filter bar; remaining keywords stay on cards. */
-export const KEYWORD_CLOUD_LIMIT = 16
-
+/** Frequency-ranked tag counts; the Filters drawer groups them by taxonomy facet. */
 export type TagCount = {
   label: string
   count: number

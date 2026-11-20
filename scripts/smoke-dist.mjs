@@ -26,12 +26,12 @@ const sitemap = join(dist, 'sitemap.xml')
 const sitemapText = existsSync(sitemap) ? readFileSync(sitemap, 'utf8') : ''
 check('dist/sitemap.xml exists', existsSync(sitemap))
 check('sitemap has homepage entry', sitemapText.includes('/conflict_timeline/') || sitemapText.includes('%SITE_URL%'))
-check('sitemap has year entries', sitemapText.includes('/year/1995/') && sitemapText.includes('/year/2026/'))
+check('sitemap has year entries', sitemapText.includes('/year/1995/') && sitemapText.includes('/year/2025/'))
 
 check('dist/robots.txt exists', existsSync(join(dist, 'robots.txt')))
 
 let yearPages = 0
-for (let y = 1995; y <= 2026; y += 1) {
+for (let y = 1995; y <= 2025; y += 1) {
   const page = join(dist, 'year', String(y), 'index.html')
   if (!existsSync(page)) {
     failures.push(`missing dist/year/${y}/index.html`)
@@ -41,14 +41,14 @@ for (let y = 1995; y <= 2026; y += 1) {
   if (!text.includes(`?year=${y}`)) failures.push(`year page ${y} lacks ?year=${y} canonical`)
   else yearPages += 1
 }
-console.log(`ok: ${yearPages}/32 year pages with canonicals`)
+console.log(`ok: ${yearPages}/31 year pages with canonicals`)
 
 const eventsJson = join(dist, 'data', 'events.json')
 check('dist/data/events.json exists', existsSync(eventsJson))
 if (existsSync(eventsJson)) {
   try {
     const rows = JSON.parse(readFileSync(eventsJson, 'utf8'))
-    check('events.json has 2150 rows', Array.isArray(rows) && rows.length === 2150)
+    check('events.json has 2112 rows', Array.isArray(rows) && rows.length === 2112)
     check(
       'events.json rows have Event_ID/Date/Detail',
       Array.isArray(rows) && rows.length > 0 && rows.every((r) => r.Event_ID && r.Date && r.Detail),

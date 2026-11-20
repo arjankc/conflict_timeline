@@ -114,7 +114,7 @@ export function parseCsvEvents(csvText: string): ConflictEvent[] {
   return sortEvents(events)
 }
 
-/** Rows per turn so the main thread can paint between chunks of the ~2150-row sheet. */
+/** Rows per turn so the main thread can paint between chunks of the ~2112-row sheet. */
 export const PARSE_BATCH_SIZE = 80
 
 const CSV_CACHE_KEY = 'nct-mastersheet-v1'

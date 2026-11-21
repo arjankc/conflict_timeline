@@ -96,9 +96,6 @@ export function ArchiveOverview({
             )
           })}
         </div>
-        <p className="mt-2 text-xs text-muted">
-          Bars show the full archive ({totalCount} events). Filters narrow the feed below.
-        </p>
       </div>
     </section>
   )

@@ -21,7 +21,6 @@ export function DistrictOverview({
   const [expanded, setExpanded] = useState(false)
   const max = Math.max(1, ...districtCounts.map((d) => d.count))
   const activeSet = new Set(activeDistricts.map((d) => d.toLowerCase()))
-  const covered = districtCounts.reduce((sum, d) => sum + d.count, 0)
   // Always keep selected districts visible, even outside the collapsed top slice.
   const shown = expanded
     ? districtCounts
@@ -46,10 +45,6 @@ export function DistrictOverview({
     <div className="rounded-sm border border-line bg-surface p-4 sm:p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         {heading}
-        <p className="text-xs text-muted">
-          Inferred from keywords + detail ({districtCounts.length} districts,{' '}
-          {covered} assignments). No sheet District column yet.
-        </p>
       </div>
         <ul className="mt-3 grid grid-cols-1 gap-1 sm:grid-cols-2">
           {shown.map((d) => {
@@ -105,9 +100,7 @@ export function DistrictOverview({
         ) : null}
         <p className="mt-3 text-xs leading-relaxed text-muted">
           Methodology: keyword exact/alias match first (incl. Kavre→Kavrepalanchok,
-          Nepalgunj→Banke), else word-boundary match in Detail. A true SVG
-          choropleth and a sheet District column are planned; this ranking is the
-          honest interim.
+          Nepalgunj→Banke), else word-boundary match in Detail.
         </p>
       </div>
   )

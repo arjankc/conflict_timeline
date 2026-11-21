@@ -6,9 +6,9 @@
  */
 
 import {
-  KEYWORD_ALIAS_TO_CANONICAL,
-  KEYWORD_DISPLAY,
-} from './keywordTaxonomy.generated'
+  aliasToCanonical,
+  displayNames,
+} from './taxonomyMaps'
 
 function canonicalKeywordDisplay(tag: string): string {
   // Collapse whitespace, strip trailing ./:/; fragments like `Maoist.` / `Maoist/`.
@@ -20,8 +20,8 @@ function canonicalKeywordDisplay(tag: string): string {
     .trim()
   if (!cleaned) return ''
   const key = cleaned.toLowerCase()
-  const canonical = KEYWORD_ALIAS_TO_CANONICAL[key] ?? key
-  return KEYWORD_DISPLAY[canonical] ?? cleaned
+  const canonical = aliasToCanonical[key] ?? key
+  return displayNames[canonical] ?? cleaned
 }
 
 export function canonicalKeyword(tag: string): string {

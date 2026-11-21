@@ -10,9 +10,32 @@ import {
 } from './enrichment'
 import { parseConfidence, parseSources } from './provenance'
 import { parseOrganizations, parseTags } from './parseTags'
+import { applyTaxonomyCsv } from './taxonomyMaps'
 
 /** Relative URL so GitHub Pages (`/conflict_timeline/`) and a later Capacitor shell both resolve. */
 const DEFAULT_DATA_PATH = `${import.meta.env.BASE_URL}data/mastersheet.csv`
+
+/**
+ * Live taxonomy Sheet URL (repo variable `VITE_TAXONOMY_CSV_URL`).
+ * Unset in dev, so local work uses the baked generated maps; production
+ * wires the published Keywords tab. Null means "no live taxonomy".
+ */
+const TAXONOMY_URL: string = import.meta.env.VITE_TAXONOMY_CSV_URL || import.meta.env.TAXONOMY_CSV_URL || ''
+
+/**
+ * Fetch the live taxonomy CSV, or null when no Sheet is configured (dev).
+ * Throws on network failure — the caller treats a configured-but-broken
+ * Sheet as a load error rather than silently rendering stale taxonomy.
+ */
+async function fetchTaxonomyCsv(): Promise<string | null> {
+  if (!TAXONOMY_URL) return null
+  const response = await fetch(TAXONOMY_URL, {
+    cache: 'no-store',
+    signal: AbortSignal.timeout(15000),
+  })
+  if (!response.ok) throw new Error(`taxonomy fetch failed (${response.status})`)
+  return response.text()
+}
 
 function cell(row: RawCsvRow, key: string): string {
   const direct = row[key]
@@ -117,41 +140,10 @@ export function parseCsvEvents(csvText: string): ConflictEvent[] {
 /** Rows per turn so the main thread can paint between chunks of the ~2112-row sheet. */
 export const PARSE_BATCH_SIZE = 80
 
-const CSV_CACHE_KEY = 'nct-mastersheet-v1'
-
 export type TimelineLoadUpdate = {
   events: ConflictEvent[]
   done: boolean
   error?: string
-}
-
-type StoredCsv = { etag: string | null; body: string }
-
-function readStoredCsv(): StoredCsv | null {
-  if (typeof localStorage === 'undefined') return null
-  try {
-    const raw = localStorage.getItem(CSV_CACHE_KEY)
-    if (!raw) return null
-    const parsed = JSON.parse(raw) as StoredCsv
-    if (!parsed || typeof parsed.body !== 'string' || !parsed.body.includes('Event_ID')) {
-      return null
-    }
-    return {
-      etag: typeof parsed.etag === 'string' ? parsed.etag : null,
-      body: parsed.body,
-    }
-  } catch {
-    return null
-  }
-}
-
-function writeStoredCsv(value: StoredCsv): void {
-  if (typeof localStorage === 'undefined') return
-  try {
-    localStorage.setItem(CSV_CACHE_KEY, JSON.stringify(value))
-  } catch {
-    /* quota or private mode — the network copy still renders */
-  }
 }
 
 /**
@@ -216,105 +208,47 @@ function publish(update: TimelineLoadUpdate) {
   for (const listener of listeners) listener(update)
 }
 
-async function fetchCsv(): Promise<{ body: string; etag: string | null; notModified: boolean }> {
+async function fetchCsv(): Promise<string> {
   const url = import.meta.env.VITE_DATA_URL || DEFAULT_DATA_PATH
-  const stored = readStoredCsv()
-  const headers = new Headers()
-  if (stored?.etag) headers.set('If-None-Match', stored.etag)
   // Never serve the Sheet from the browser HTTP cache: Google marks the
   // export max-age=300, so plain refreshes could show up-to-5-minute-old
   // edits. (Google's own export generation can still lag edits by minutes.)
-  const response = await fetch(url, { headers, cache: 'no-store' })
-  if (response.status === 304 && stored) {
-    return { body: stored.body, etag: stored.etag, notModified: true }
-  }
+  const response = await fetch(url, { cache: 'no-store' })
   if (!response.ok) {
     throw new Error(`Unable to load timeline data (${response.status})`)
   }
-  return {
-    body: await response.text(),
-    etag: response.headers.get('etag'),
-    notModified: false,
-  }
+  return response.text()
 }
 
 /**
- * Offline/field fallback: `dist/data/events.json` (raw row mirror from
- * `scripts/events-json.mjs`). Tried whenever the CSV fetch fails — including
- * when a live Sheet URL is set but unreachable — so the archive still renders
- * from the last committed data. Returns CSV text so the progressive parser
- * stays single-path.
+ * Live-only load: the events CSV and the taxonomy CSV are fetched fresh on
+ * every page load. There is deliberately no localStorage cache and no
+ * events.json fallback — the committed files go stale once editors work in
+ * the Sheet, and showing stale data silently is worse than showing an
+ * honest error with a retry button. (Dev builds with no Sheet URLs set
+ * simply load the committed CSVs; the exported mirror in dist/ remains for
+ * researchers.)
  */
-async function fetchJsonFallback(): Promise<string | null> {
-  const url = `${import.meta.env.BASE_URL}data/events.json`
-  try {
-    const response = await fetch(url)
-    if (!response.ok) return null
-    const rows = (await response.json()) as RawCsvRow[]
-    if (!Array.isArray(rows) || rows.length === 0) return null
-    const header = 'Event_ID,Date,Detail,Keywords,Category,Organizations,Sources,Confidence'
-    const esc = (value: string | undefined): string => {
-      const flat = (value ?? '').replace(/\r?\n/g, ' ')
-      if (/[",\n]/.test(flat)) return `"${flat.replace(/"/g, '""')}"`
-      return flat
-    }
-    const lines = rows.map((row) =>
-      [
-        esc(row['Event_ID']),
-        esc(row['Date']),
-        esc(row['Detail']),
-        esc(row['Keywords']),
-        esc(row['Category']),
-        esc(row['Organizations']),
-        esc(row['Sources']),
-        esc(row['Confidence']),
-      ].join(','),
-    )
-    return [header, ...lines].join('\n')
-  } catch {
-    return null
-  }
-}
-
 async function runTimelineLoad() {
-  const stored = readStoredCsv()
-  let generation = 0
-  let cancel: (() => void) | null = null
-  let parsingBody: string | null = null
-
-  const startParse = (body: string) => {
-    if (parsingBody === body) return
-    const token = ++generation
-    parsingBody = body
-    cancel?.()
-    cancel = parseCsvEventsProgressive(body, (events, done) => {
-      if (token !== generation) return
-      publish({ events, done })
-    })
-  }
-
-  if (stored?.body) startParse(stored.body)
-
   try {
-    const result = await fetchCsv()
-    writeStoredCsv({ etag: result.etag, body: result.body })
-    startParse(result.body)
-  } catch (error) {
-    // Field fallback: events.json mirror (no Sources/Confidence) when CSV is unreachable.
-    try {
-      const fallback = await fetchJsonFallback()
-      if (fallback) {
-        startParse(fallback)
-        return
+    const [taxResult, csvResult] = await Promise.allSettled([fetchTaxonomyCsv(), fetchCsv()])
+    if (taxResult.status === 'rejected') {
+      throw new Error('The live keyword list could not be reached. Check your connection and try again.')
+    }
+    if (csvResult.status === 'rejected') throw csvResult.reason
+    if (taxResult.value) {
+      const applied = applyTaxonomyCsv(taxResult.value)
+      if ('error' in applied) {
+        throw new Error(`The live keyword list is invalid: ${applied.error}`)
       }
-    } catch {
-      /* fall through to the error below */
     }
-    if (parsingBody) return
-    if (published && published.events.length > 0) {
-      publish({ events: published.events, done: true })
-      return
-    }
+    await new Promise<void>((resolve) => {
+      parseCsvEventsProgressive(csvResult.value, (events, done) => {
+        publish({ events, done })
+        if (done) resolve()
+      })
+    })
+  } catch (error) {
     const message =
       error instanceof Error ? error.message : 'Unable to load timeline data'
     publish({ events: [], done: true, error: message })

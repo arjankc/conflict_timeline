@@ -1,5 +1,5 @@
 import type { ConflictEvent, ConfidenceLevel } from '../types/event'
-import { KEYWORD_ALIAS_TO_CANONICAL } from './keywordTaxonomy.generated'
+import { aliasToCanonical } from './taxonomyMaps'
 import { eventSearchIndex } from './eventSearch'
 
 export type SortMode = 'chronological' | 'reverse' | 'category'
@@ -100,7 +100,7 @@ function canonicalKeywordSet(values: string[]): Set<string> {
   for (const value of values) {
     const key = value.toLowerCase()
     if (!key) continue
-    set.add(KEYWORD_ALIAS_TO_CANONICAL[key] ?? key)
+    set.add(aliasToCanonical[key] ?? key)
   }
   return set
 }

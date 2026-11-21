@@ -167,76 +167,99 @@ NCT-0002,3/3/96,Separate event,Rolpa,combat,
 })
 
 describe('loadEvents', () => {
-  it('waits for cached parsing to finish when the network refresh fails', async () => {
-    vi.resetModules()
-    const count = PARSE_BATCH_SIZE + 5
-    const lines = ['Event_ID,Date,Detail']
-    for (let index = 1; index <= count; index += 1) {
-      lines.push(`NCT-${String(index).padStart(4, '0')},1/1/96,Event ${index}`)
-    }
-    const body = lines.join('\n')
-    vi.stubGlobal('localStorage', {
-      getItem: () => JSON.stringify({ etag: null, body }),
-    })
-    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')))
+  const eventsCsv = (keyword: string) =>
+    `Event_ID,Date,Detail,Keywords,Category,Organizations\nNCT-0991,2/1/05,Clash,${keyword},combat,\n`
+  const taxonomyCsv = 'Term,Aliases,Facet,Status,Comment\nCivilians killed,killing,Action,active,\n'
 
-    const { loadEvents } = await import('./loadEvents')
-    const events = await loadEvents()
+  function stubFetch(handler: (url: string) => Promise<unknown>) {
+    vi.stubGlobal('fetch', vi.fn().mockImplementation(handler))
+  }
 
-    expect(events).toHaveLength(count)
-  })
-
-  it('falls back to events.json when the CSV fetch fails', async () => {
-    vi.resetModules()
-    vi.stubGlobal('localStorage', { getItem: () => null })
-    const rows = [
-      { Event_ID: 'NCT-0001', Date: '1/1/96', Detail: 'Fallback event' },
-    ]
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockImplementation((url: string) => {
-        if (String(url).endsWith('events.json')) {
-          return Promise.resolve({
-            ok: true,
-            json: () => Promise.resolve(rows),
-          })
-        }
-        return Promise.reject(new Error('csv offline'))
-      }),
-    )
-
-    const { loadEvents } = await import('./loadEvents')
-    const events = await loadEvents()
-
-    expect(events).toHaveLength(1)
-    expect(events[0]?.id).toBe('NCT-0001')
-  })
-
-  it('still falls back to events.json when the live Sheet URL fails', async () => {
+  it('loads live events and applies the live taxonomy before parsing', async () => {
     vi.resetModules()
     vi.stubEnv('VITE_DATA_URL', 'https://docs.google.com/spreadsheets/d/abc/export?format=csv')
-    vi.stubGlobal('localStorage', { getItem: () => null })
-    const rows = [
-      { Event_ID: 'NCT-0001', Date: '1/1/96', Detail: 'Fallback event' },
-    ]
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockImplementation((url: string) => {
-        if (String(url).endsWith('events.json')) {
-          return Promise.resolve({
-            ok: true,
-            json: () => Promise.resolve(rows),
-          })
-        }
-        return Promise.reject(new Error('sheet offline'))
-      }),
-    )
+    vi.stubEnv('VITE_TAXONOMY_CSV_URL', 'https://example.test/taxonomy.csv')
+    stubFetch((url) => {
+      if (String(url).includes('taxonomy')) {
+        return Promise.resolve({ ok: true, text: () => Promise.resolve(taxonomyCsv) })
+      }
+      return Promise.resolve({ ok: true, text: () => Promise.resolve(eventsCsv('killing')) })
+    })
 
     const { loadEvents } = await import('./loadEvents')
     const events = await loadEvents()
 
     expect(events).toHaveLength(1)
-    expect(events[0]?.id).toBe('NCT-0001')
+    expect(events[0]?.id).toBe('NCT-0991')
+    expect(events[0]?.keywords).toEqual(['Civilians killed'])
+  })
+
+  it('fetches the Sheet with caching disabled so edits show on refresh', async () => {
+    vi.resetModules()
+    vi.stubEnv('VITE_DATA_URL', 'https://docs.google.com/spreadsheets/d/abc/export?format=csv')
+    const fetchMock = vi.fn().mockImplementation((url: string) => {
+      if (String(url).includes('taxonomy')) return Promise.reject(new Error('no taxonomy configured'))
+      return Promise.resolve({ ok: true, text: () => Promise.resolve(eventsCsv('killing')) })
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const { loadEvents } = await import('./loadEvents')
+    await loadEvents()
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://docs.google.com/spreadsheets/d/abc/export?format=csv',
+      expect.objectContaining({ cache: 'no-store' }),
+    )
+  })
+
+  it('uses the baked taxonomy when no Sheet URL is configured', async () => {
+    vi.resetModules()
+    stubFetch(() => Promise.resolve({ ok: true, text: () => Promise.resolve(eventsCsv('UCPN-M')) }))
+
+    const { loadEvents } = await import('./loadEvents')
+    const events = await loadEvents()
+
+    expect(events).toHaveLength(1)
+    expect(events[0]?.keywords).toEqual(['UCPN-Maoist'])
+  })
+
+  it('shows an error instead of stale data when the events Sheet is unreachable', async () => {
+    vi.resetModules()
+    vi.stubEnv('VITE_DATA_URL', 'https://docs.google.com/spreadsheets/d/abc/export?format=csv')
+    stubFetch(() => Promise.reject(new Error('sheet offline')))
+
+    const { loadEvents } = await import('./loadEvents')
+
+    await expect(loadEvents()).rejects.toThrow('sheet offline')
+  })
+
+  it('shows an error instead of stale data when the taxonomy Sheet is unreachable', async () => {
+    vi.resetModules()
+    vi.stubEnv('VITE_DATA_URL', 'https://docs.google.com/spreadsheets/d/abc/export?format=csv')
+    vi.stubEnv('VITE_TAXONOMY_CSV_URL', 'https://example.test/taxonomy.csv')
+    stubFetch((url) => {
+      if (String(url).includes('taxonomy')) return Promise.reject(new Error('taxonomy offline'))
+      return Promise.resolve({ ok: true, text: () => Promise.resolve(eventsCsv('killing')) })
+    })
+
+    const { loadEvents } = await import('./loadEvents')
+
+    await expect(loadEvents()).rejects.toThrow('live keyword list')
+  })
+
+  it('shows an error instead of stale data when the live taxonomy is invalid', async () => {
+    vi.resetModules()
+    vi.stubEnv('VITE_TAXONOMY_CSV_URL', 'https://example.test/taxonomy.csv')
+    stubFetch((url) => {
+      if (String(url).includes('taxonomy')) {
+        return Promise.resolve({ ok: true, text: () => Promise.resolve('Term,Aliases\nonly,two\n') })
+      }
+      return Promise.resolve({ ok: true, text: () => Promise.resolve(eventsCsv('killing')) })
+    })
+
+    const { loadEvents } = await import('./loadEvents')
+
+    await expect(loadEvents()).rejects.toThrow('live keyword list is invalid')
   })
 
   it('replays a terminal error without throwing during subscription', async () => {

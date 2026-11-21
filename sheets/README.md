@@ -26,17 +26,17 @@ The committed CSVs stay the repo source of truth and the offline fallback:
    (**Settings → Variables → Actions**):
    `https://docs.google.com/spreadsheets/d/<KEY>/export?format=csv&gid=<TAB>`
    - Events tab → `VITE_DATA_URL`
-   - Keywords tab → `TAXONOMY_CSV_URL`
-3. The next push to `main` rebuilds the app from the Sheet
-   (`.github/workflows/deploy.yml` passes both variables through).
-   Unset/empty variables build from the committed CSVs — nothing else changes.
-4. If the Sheet is unreachable at runtime, the app falls back to the
-   committed offline mirror (`dist/data/events.json`); taxonomy always
-   ships the last generated build.
-5. Timing: every page load fetches the Events export fresh (never
-   browser-cached), but Google generates the export a few minutes behind
-   Sheet edits — allow ~5 minutes, then hard-refresh. Keywords-tab edits
-   are baked at build time, so those need a rebuild + deploy to go live.
+   - Keywords tab → `VITE_TAXONOMY_CSV_URL`
+3. The next push to `main` wires the variables in
+   (`.github/workflows/deploy.yml` passes both through).
+   Unset/empty variables use the committed CSVs — nothing else changes.
+4. If the Sheet is unreachable at runtime, or the live taxonomy is
+   invalid, the app shows an error screen with a retry button — it never
+   renders stale committed data. Both tabs are fetched fresh on every load
+   (no cache of any kind).
+5. Timing: Google generates the export a few minutes behind Sheet edits —
+   allow ~5 minutes, then refresh. No rebuild is ever needed for content
+   edits; only code changes require a deploy.
 
 ## Syncing back to the repo
 

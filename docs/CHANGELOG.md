@@ -4,6 +4,20 @@ All notable changes to data handling and the app. Dates are release dates (UTC).
 
 ## Unreleased
 
+- Live-only data: the app fetches the Sheet tabs fresh on every load with
+  no localStorage cache, no HTTP cache, and no fallback files — an
+  unreachable Sheet or invalid live taxonomy shows an error screen with a
+  retry button instead of stale committed data. (`dist/data/events.json`
+  is still generated as a machine-readable snapshot for researchers; the
+  app no longer reads it.)
+- Keyword taxonomy loads live: the app fetches the published Keywords tab
+  at startup (`VITE_TAXONOMY_CSV_URL`, 15 s timeout) and swaps the
+  alias/display/facet maps before parsing (invalid sheet = baked fallback +
+  warning), so Sheet edits to keywords go live with no rebuild. Parses are
+  versioned on (events body, taxonomy revision), fixing a race where a
+  Sheet-only taxonomy change with identical events bytes skipped
+  re-parsing. Generator accepts the URL too (`--url`, `TAXONOMY_CSV_URL`,
+  `VITE_TAXONOMY_CSV_URL`); deploys wire the repo variable through.
 - Google Sheets as data source: `sheets/NepalConflictTimeline.xlsx`
   bootstrap workbook (Events 2,112 rows incl. empty enrichment columns,
   Keywords 408 taxonomy rows with dropdown validation, ReadMe tab).
@@ -19,7 +33,7 @@ All notable changes to data handling and the app. Dates are release dates (UTC).
   `permalink_copy`, `citation_copy`, `export`, `share`, `year_navigate`,
   `saved_view`. Container-side tag spec in `docs/ANALYTICS.md`.
 
-- Keyword taxonomy: `taxonomy/keyword-taxonomy.csv` (448 rows: Term,
+- Keyword taxonomy: `taxonomy/keyword-taxonomy.csv` (408 rows: Term,
   Aliases, Facet, Status, Comment) is now the single source of truth for
   keyword display, compiled at build time by
   `scripts/keyword-taxonomy.mjs` (`data:lint` asserts sync, full coverage of
@@ -53,8 +67,10 @@ All notable changes to data handling and the app. Dates are release dates (UTC).
   sanity checks; district keyword coverage (~57% of rows); enrichment columns optional.
 - Typeahead: Event_ID (`NCT-…`), district, tag, year, and term suggestions
   (picking fills `q` only).
-- Loader: CSV-first with `data/events.json` fallback when the CSV fetch fails
-  (field/captive-portal use; fallback rows lack Sources/Confidence).
+- Loader: live Sheet CSVs fetched fresh every load (`cache: no-store`, no
+  localStorage, no fallback files) — failure shows an error screen with a
+  retry button instead of stale data. `dist/data/events.json` remains a
+  machine-readable mirror for researchers.
 - Filter hardening: `normalizeFilters` coerces legacy saved views and URLs;
   `?match=all` requires every selected value within a facet (default `any`);
   district inference memoized; facet dropdowns are exclusive accordions with

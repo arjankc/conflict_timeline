@@ -1,6 +1,6 @@
 import type { ConflictEvent } from '../types/event'
 import { effectiveDistricts } from './eventGeography'
-import { KEYWORD_VARIANTS } from './keywordTaxonomy.generated'
+import { variantsOf } from './taxonomyMaps'
 
 export type EventSearchIndex = {
   /** Lowercased Event_ID, dates, narrative, and tags. Built once per event object. */
@@ -23,7 +23,7 @@ function buildIndex(event: ConflictEvent): EventSearchIndex {
   const districts = effectiveDistricts(event)
   // Alias variants so legacy spellings (UCPN-M, Nepalgunj…) still find hits.
   const keywordVariants = event.keywords.flatMap(
-    (keyword) => KEYWORD_VARIANTS[keyword.toLowerCase()] ?? [],
+    (keyword) => variantsOf[keyword.toLowerCase()] ?? [],
   )
   // Space-normalized categories so `transitional justice` matches the
   // underscore form stored on events.

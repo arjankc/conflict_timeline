@@ -14,7 +14,7 @@ import { cycleMatchIndex } from './lib/matchNav'
 import { subscribeTimelineLoad } from './lib/loadEvents'
 import { countTags, uniqueTags, type TagCount } from './lib/parseTags'
 import {
-  KEYWORD_FACETS,
+  facetOrder,
   isVisibleKeyword,
   keywordFacet,
 } from './lib/keywordTaxonomy'
@@ -161,7 +161,7 @@ export default function App() {
       list.push(tag)
       byFacet.set(facet, list)
     }
-    return KEYWORD_FACETS.map((facet) => ({
+    return facetOrder().map((facet) => ({
       facet,
       tags: byFacet.get(facet) ?? [],
     })).filter((group) => group.tags.length > 0)

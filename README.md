@@ -15,7 +15,7 @@ This is an open-source project. Event data currently ships as a static CSV expor
 - Theme chips grouped by taxonomy facet (Action, Policy, Actors, Institutions, Transitional justice, Parties, Regions) with search, confidence filter, and shareable URL filters (`?q=&tag=&year=&confidence=`), all inside the Filters drawer
 - Multi-select categories/organizations/themes/districts (OR within, AND across; optional `?match=all` for AND-within), date range (`from`/`to` YYYY-MM), sort (oldest/newest/by category), density toggle, saved views, and export — all behind one Filters toggle so the timeline leads; search-match stepping (next/previous with position announced) walks through hits
 - District view (inferred from keywords/detail — 75 legacy districts, top-8 ranking with counts, inside the Filters drawer), per-year share pages (`/year/YYYY/` with year meta + sitemap), filtered CSV/JSON export (incl. enrichment columns)
-- Offline mirror `dist/data/events.json` (raw row mirror, generated at build) doubles as a CSV-fetch fallback for field use; enrichment columns + `docs/CHANGELOG.md`
+- Offline mirror `dist/data/events.json` (raw row mirror, generated at build) as a machine-readable snapshot for researchers; enrichment columns + `docs/CHANGELOG.md`
 - Typeahead covers Event_IDs (`NCT-…` jumps to one card), districts, tags, years, terms; `data:lint` reports district keyword coverage (~57%)
 - Archive overview: event counts, source coverage, confidence split, and a per-year histogram that jumps to a year
 - Light, dark, system appearance, text size, and high contrast, remembered in the browser
@@ -61,7 +61,7 @@ The current sheet has **2112 events** with a stable `Event_ID` (`NCT-0001` … `
 ## Architecture
 
 ```
-public/data/mastersheet.csv  →  one fetch (localStorage + If-None-Match; events.json fallback offline)
+public/data/mastersheet.csv  →  live Sheet CSV, one fresh fetch per load (no cache of any kind)
                              →  PapaParse in batches of 80
                              →  parseDate / parseTags / provenance / enrichment / Event_ID
                              →  chronological ConflictEvent[]
@@ -71,13 +71,13 @@ public/data/mastersheet.csv  →  one fetch (localStorage + If-None-Match; event
 
 There is no backend and no React Router. The product is a single page so it can later be wrapped with Capacitor without a routing rewrite. Fetch URLs are relative (`import.meta.env.BASE_URL`) on purpose.
 
-The header paints before the CSV is parsed. Rows are published in batches so the first events appear without waiting for the full sheet. A `localStorage` copy plus `If-None-Match` avoids a second download when the file is unchanged, and the page only starts one fetch (falling back to `data/events.json` offline). The feed mounts a window of rows around the scroll position (custom windowing, no list library) so 2,000 cards are not in the DOM at once. Search is debounced and matched against an index built once per event (`Event_ID`, date, detail, keywords, category, organizations, perpetrators, districts).
+The header paints before the CSV is fetched. Live Sheet tabs (events + taxonomy) are fetched fresh with `cache: no-store`, so refreshes never show cached data; rows are published in batches so the first events appear without waiting for the full sheet, and a failed or invalid live Sheet shows an error screen with a retry button instead of stale data. The feed mounts a window of rows around the scroll position (custom windowing, no list library) so 2,000 cards are not in the DOM at once. Search is debounced and matched against an index built once per event (`Event_ID`, date, detail, keywords, category, organizations, perpetrators, districts).
 
 ### Source map
 
 | Path | Role |
 | --- | --- |
-| [`src/lib/loadEvents.ts`](src/lib/loadEvents.ts) | One CSV fetch (events.json fallback), local cache, batched PapaParse |
+| [`src/lib/loadEvents.ts`](src/lib/loadEvents.ts) | Live events + taxonomy CSV fetch (no cache, no fallback), batched PapaParse |
 | [`src/lib/parseDate.ts`](src/lib/parseDate.ts) | Normalize mixed date strings; `M/D/YY` in, `2 March 1996` out |
 | [`src/lib/parseTags.ts`](src/lib/parseTags.ts) | Split metadata fields into filterable tags (canonicalized) |
 | [`src/lib/provenance.ts`](src/lib/provenance.ts) | Parse `Sources` + `Confidence` |
@@ -117,7 +117,7 @@ The header paints before the CSV is parsed. Rows are published in batches so the
 | [`scripts/link-check.mjs`](scripts/link-check.mjs) | Sources URL health check (`npm run link:check`) |
 | [`scripts/factcheck-candidates.mjs`](scripts/factcheck-candidates.mjs) | Figure-claim review queue seeding |
 | [`scripts/year-pages.mjs`](scripts/year-pages.mjs) | Per-year share pages + sitemap entries (runs in build) |
-| [`scripts/events-json.mjs`](scripts/events-json.mjs) | Offline `dist/data/events.json` mirror (runs in build) |
+| [`scripts/events-json.mjs`](scripts/events-json.mjs) | Machine-readable `dist/data/events.json` mirror for researchers (runs in build) |
 | [`scripts/smoke-dist.mjs`](scripts/smoke-dist.mjs) | Post-build dist verification (`npm run smoke:dist`) |
 | [`docs/FACTCHECK.md`](docs/FACTCHECK.md) | Fact-check log: link results, known issues, review queue |
 | [`docs/TAXONOMY.md`](docs/TAXONOMY.md) | Keyword taxonomy notes |
@@ -230,7 +230,7 @@ Keep these constraints when adding a native shell:
 
 ## Status and roadmap
 
-Implemented: chronological explorer with windowed feed, multi-select filters behind one toggle (keywords, categories, organizations, inferred districts, confidence, `?match=all`, YYYY-MM range, sort, density), search with typeahead + next/previous match stepping, saved views, CSV/JSON export, per-year share pages, offline `events.json` with CSV-fetch fallback, Sources/Confidence provenance with citation copy, trauma-informed blur toggle, print stylesheet, and a fact-check pipeline (`data:lint` doc-claim assertions, `link:check`, `FACTCHECK.md` review queue). See [`docs/CHANGELOG.md`](docs/CHANGELOG.md) for history.
+Implemented: chronological explorer with windowed feed, multi-select filters behind one toggle (keywords, categories, organizations, inferred districts, confidence, `?match=all`, YYYY-MM range, sort, density), search with typeahead + next/previous match stepping, saved views, CSV/JSON export, per-year share pages, live Google Sheets data (events + taxonomy fetched fresh, error screen with retry instead of stale data), Sources/Confidence provenance with citation copy, trauma-informed blur toggle, print stylesheet, and a fact-check pipeline (`data:lint` doc-claim assertions, `link:check`, `FACTCHECK.md` review queue). See [`docs/CHANGELOG.md`](docs/CHANGELOG.md) for history.
 
 Deferred — each needs a human decision, not more code:
 
@@ -241,7 +241,7 @@ Deferred — each needs a human decision, not more code:
 | Per-year PNG unfurls | A design asset (year pages already give crawlers year-specific meta) |
 | Sheet fixes (NCT-0002 split, org commas, `other` audit, district/victim columns) | Editor sign-off in the Sheet, then re-export — see [`docs/FACTCHECK.md`](docs/FACTCHECK.md) |
 | Data license confirmation | Maintainer sign-off; event texts are not MIT until then |
-| Full service worker | Deliberately not built: untestable here and risky on a Pages project path; the JSON fallback covers field use |
+| Full service worker | Deliberately not built: untestable here and risky on a Pages project path; the app requires the live Sheet and fails visibly instead |
 
 ## Contributing
 

@@ -26,7 +26,7 @@ Please do not commit `node_modules/`, `dist/`, or `.env` files.
 | --- | --- |
 | Event text, dates, tags | `public/data/mastersheet.csv` (or the Google Sheet, then re-export — see DATA.md) |
 | Date formats the app should accept | `src/lib/parseDate.ts` **and** `src/lib/parseDate.test.ts` |
-| Fetch / CSV mapping / event ids | `src/lib/loadEvents.ts` (ids feed permalinks; CSV-first with `events.json` fallback; see DATA.md) |
+| Fetch / CSV mapping / event ids | `src/lib/loadEvents.ts` (live Sheet CSVs, no cache or fallback; see DATA.md) |
 | Sources & Confidence | `src/lib/provenance.ts`, expanded card in `src/components/EventCard.tsx` |
 | Enrichment columns (District, Victims, Perpetrator, Related) | `src/lib/enrichment.ts`, `src/types/event.ts`, expanded card + `exportView.ts` |
 | Reading prefs (text size, contrast, blur) | `src/lib/reading.ts`, `src/components/ReadingControls.tsx`, boot script in `index.html` |

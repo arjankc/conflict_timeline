@@ -1,14 +1,18 @@
 # Keyword taxonomy — controlled vocabulary (v2)
 
 Source of truth: [`taxonomy/keyword-taxonomy.csv`](../taxonomy/keyword-taxonomy.csv)
-— or the published Google Sheet tab (same columns): set `TAXONOMY_CSV_URL`
-to its `export?format=csv` URL, or pass `--url` to the generator.
-The sheet is never rewritten by code; `scripts/keyword-taxonomy.mjs`
-compiles the CSV to
+— or the published Google Sheet tab (same columns): set
+`VITE_TAXONOMY_CSV_URL` (runtime; `TAXONOMY_CSV_URL` also works for the
+generator) to its `export?format=csv` URL.
+The sheet is never rewritten by code. At startup the app fetches the Sheet
+tab live and swaps the maps before parsing (invalid or unreachable sheet =
+whole load fails with a retryable error — no stale taxonomy is ever shown);
+`scripts/keyword-taxonomy.mjs` compiles the CSV to
 `src/lib/keywordTaxonomy.generated.ts` (alias map, display names, facet
-assignment, visible set) before `tsc`. `npm run data:lint` asserts the
-generated file is in sync with the committed CSV, every current keyword is
-covered, active terms all occur, and the Districts facet matches the gazetteer.
+assignment, visible set, facet order) for dev builds without a Sheet URL.
+`npm run data:lint` asserts the generated file is in sync with the committed
+CSV, every current keyword is covered, active terms all occur, and the
+Districts facet matches the gazetteer.
 
 ## Columns
 
@@ -70,10 +74,12 @@ living source. Wiring is config-only:
 1. Share the spreadsheet as *Anyone with the link can view*.
 2. Save the per-tab `export?format=csv&gid=…` links as repository variables
    (**Settings → Variables → Actions**): Events tab → `VITE_DATA_URL`,
-   Keywords tab → `TAXONOMY_CSV_URL`.
-3. The next push to `main` rebuilds from the Sheet (deploy passes both
-   through; empty = committed CSVs). Runtime Sheet failure falls back to
-   the offline JSON mirror.
+   Keywords tab → `VITE_TAXONOMY_CSV_URL`.
+3. The next push to `main` wires the variables in (deploy passes both
+   through; empty = committed CSVs). At runtime the app fetches both tabs
+   fresh on every load (15 s taxonomy timeout; no cache, no fallback
+   files) — an unreachable Sheet or invalid taxonomy fails the load with a
+   retryable error instead of showing stale data.
 4. Sync back periodically: download each tab as CSV over
    `public/data/mastersheet_with_sources.csv` (slim `mastersheet.csv` =
    first 6 columns) and `taxonomy/keyword-taxonomy.csv`, then

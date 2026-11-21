@@ -11,20 +11,23 @@ transitional-justice aftermath (2007–2025).
 
 | Environment | Source |
 | --- | --- |
-| Default | [`public/data/mastersheet.csv`](public/data/mastersheet.csv) (**2112** events) |
+| Live (production) | Google Sheet tabs (`VITE_DATA_URL`, `VITE_TAXONOMY_CSV_URL`), fetched fresh every load |
+| Default (dev / unset vars) | [`public/data/mastersheet.csv`](public/data/mastersheet.csv) (**2112** events) |
 | Archive (not loaded) | [`public/data/mastersheet_with_sources.csv`](public/data/mastersheet_with_sources.csv) |
-| Offline mirror (build artifact) | `dist/data/events.json` (raw row mirror for field use; app still loads CSV first) |
-| Override | `VITE_DATA_URL` (see `.env.example`). When unset and the CSV fetch fails, the app falls back to `data/events.json` (raw row mirror, no Sources/Confidence) — useful for field/captive-portal use. |
+| Machine-readable mirror (build artifact, not read by the app) | `dist/data/events.json` (raw row mirror for researchers) |
+| Overrides | `VITE_DATA_URL`, `VITE_TAXONOMY_CSV_URL` (see `.env.example`) |
 
 See [`docs/CHANGELOG.md`](docs/CHANGELOG.md) for data/app history.
 
-### Offline and field use
+### Loading contract
 
-- `npm run build` writes `dist/data/events.json` (2112 raw rows) alongside the 31 per-year share pages.
-- The runtime still fetches `mastersheet.csv` first (localStorage + `If-None-Match`); `events.json` is a fallback only, so provenance columns stay authoritative.
+- The app fetches the live Sheet CSVs on every page load with
+  `cache: no-store` — no browser cache, no localStorage, no fallback files.
+  Google still generates the export a few minutes behind Sheet edits, so
+  allow ~5 minutes, then refresh.
+- If a Sheet is unreachable or the taxonomy is invalid, the archive shows
+  an error screen with a retry button. It never renders stale committed data.
 - For fully offline work, use the filtered CSV/JSON download in the filter bar.
-
-`VITE_DATA_URL` is a documented hook for a later published Google Sheets CSV endpoint. This version does not fetch Sheets unless you set that variable at build time.
 
 The fetch path is:
 
@@ -120,14 +123,20 @@ The editorial workspace is the `NepalConflictTimeline.xlsx` workbook in
 [`sheets/`](sheets/) (tabs: Events, Keywords, ReadMe) — upload it to Google
 Sheets once; the Sheet is the living source afterwards. Two modes:
 
-**Live (editors change the Sheet, app follows on next deploy).**
+**Live (editors change the Sheet, app follows within minutes).**
 Share the spreadsheet as *Anyone with the link can view* and save the
 per-tab `export?format=csv&gid=…` links as repository variables
 (**Settings → Variables → Actions**): Events tab → `VITE_DATA_URL`,
-Keywords tab → `TAXONOMY_CSV_URL`. The deploy workflow passes both through
-at build time; empty variables build from the committed CSVs. If the Sheet
-is unreachable at runtime, the app falls back to the committed offline
-mirror.
+Keywords tab → `VITE_TAXONOMY_CSV_URL` (the build also reads the legacy
+name `TAXONOMY_CSV_URL`). The deploy workflow passes both through; empty
+variables build from the committed CSVs. At runtime the app fetches both
+tabs fresh on every load (15 s taxonomy timeout, no browser cache, no
+localStorage, no fallback files) — if either Sheet is unreachable or the
+taxonomy is invalid, the archive shows an error screen with a retry button
+instead of stale data. No rebuild is needed for Sheet edits — only code
+changes require a deploy. The `dist/data/events.json` mirror is still
+generated at build as a machine-readable snapshot for researchers; the app
+itself never reads it.
 
 **Manual (editors export, repo stays pinned).**
 1. Open the master spreadsheet.

@@ -22,6 +22,9 @@ export const REPO_URL = 'https://github.com/arjankc/conflict_timeline'
 
 export const DATA_DOC_URL = `${REPO_URL}/blob/main/DATA.md`
 
+/** Public form for corrections, contributions, and general feedback. */
+export const FEEDBACK_FORM_URL = 'https://forms.gle/igMwhnBsvPswuKf29'
+
 export function normalizeSiteUrl(url: string): string {
   return url.replace(/\/+$/, '')
 }

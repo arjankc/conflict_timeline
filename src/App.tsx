@@ -3,6 +3,7 @@ import { ArchiveOverview } from './components/ArchiveOverview'
 import { BackToTop } from './components/BackToTop'
 import { ChronologyExplorer } from './components/ChronologyExplorer'
 import { FilterBar } from './components/FilterBar'
+import { HeaderLinks } from './components/HeaderLinks'
 import { ShareButton } from './components/ShareButton'
 import { ThemeToggle } from './components/ThemeToggle'
 import { ReadingControls } from './components/ReadingControls'
@@ -28,7 +29,7 @@ import {
   type SavedView,
 } from './lib/savedViews'
 import { pageDescription, pageTitle } from './lib/seo'
-import { DATA_DOC_URL, SITE_NAME } from './lib/site'
+import { DATA_DOC_URL, FEEDBACK_FORM_URL, REPO_URL, SITE_NAME } from './lib/site'
 import {
   detectFilterChange,
   trackExport,
@@ -359,6 +360,7 @@ export default function App() {
                 <ReadingControls />
               </div>
               <ShareButton filters={appliedFilters} year={focusYear} />
+              <HeaderLinks />
             </div>
           </div>
           <p className="mt-4 max-w-prose text-pretty text-sm leading-[1.75] text-muted sm:mt-6 sm:text-base">
@@ -525,10 +527,22 @@ export default function App() {
         <div className="mx-auto max-w-5xl px-5 py-10 text-sm leading-[1.75] text-muted sm:px-8">
           <p className="font-display text-base text-ink">{SITE_NAME}</p>
           <p className="mt-3 max-w-prose">
-            Open-source public archive. Application code is MIT licensed. Event
-            texts retain the provenance of the source sheet, documented in{' '}
+            Open-source public archive. Application code is MIT licensed —
+            source on{' '}
+            <a href={REPO_URL} className="link-accent">
+              GitHub
+            </a>
+            . Event texts retain the provenance of the source sheet,
+            documented in{' '}
             <a href={DATA_DOC_URL} className="link-accent">
               DATA.md
+            </a>
+            .
+          </p>
+          <p className="mt-3 max-w-prose">
+            This is a living archive.{' '}
+            <a href={FEEDBACK_FORM_URL} className="link-accent">
+              Give feedback or contribute a correction
             </a>
             .
           </p>

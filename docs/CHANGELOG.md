@@ -78,6 +78,11 @@ All notable changes to data handling and the app. Dates are release dates (UTC).
 - Build pipeline: `scripts/smoke-dist.mjs` (`npm run smoke:dist`, wired into
   the deploy workflow) verifies year pages, sitemap entries, and the offline
   JSON after every build.
+- SEO: static per-event pages (`/event/NCT-…/`, titles use display dates)
+  because hash permalinks are invisible to crawlers; `scripts/sitemap.mjs`
+  rebuilds `dist/sitemap.xml` from generated artifacts (≈2,145 URLs);
+  year range and smoke expectations derive from the CSV instead of hardcoded
+  numbers.
 - Mobile filter bar collapses range/sort/facets behind a “Filters (n)”
   disclosure; the year-dock density strip is now a real `slider`
   (arrow/Home/End keys, blur releases the year cue); expanded cards get a

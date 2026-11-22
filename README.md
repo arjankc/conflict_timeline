@@ -116,9 +116,11 @@ The header paints before the CSV is fetched. Live Sheet tabs (events + taxonomy)
 | [`scripts/data-lint.mjs`](scripts/data-lint.mjs) | CSV structure checks + doc-claim assertions (`npm run data:lint`) |
 | [`scripts/link-check.mjs`](scripts/link-check.mjs) | Sources URL health check (`npm run link:check`) |
 | [`scripts/factcheck-candidates.mjs`](scripts/factcheck-candidates.mjs) | Figure-claim review queue seeding |
-| [`scripts/year-pages.mjs`](scripts/year-pages.mjs) | Per-year share pages + sitemap entries (runs in build) |
+| [`scripts/year-pages.mjs`](scripts/year-pages.mjs) | Per-year share pages, range derived from the CSV (runs in build) |
+| [`scripts/event-pages.mjs`](scripts/event-pages.mjs) | Static per-event pages for crawlers (runs in build) |
+| [`scripts/sitemap.mjs`](scripts/sitemap.mjs) | Rebuilds `dist/sitemap.xml` from generated artifacts (runs in build) |
 | [`scripts/events-json.mjs`](scripts/events-json.mjs) | Machine-readable `dist/data/events.json` mirror for researchers (runs in build) |
-| [`scripts/smoke-dist.mjs`](scripts/smoke-dist.mjs) | Post-build dist verification (`npm run smoke:dist`) |
+| [`scripts/smoke-dist.mjs`](scripts/smoke-dist.mjs) | Post-build dist verification: year/event pages, sitemap coverage, offline JSON (`npm run smoke:dist`) |
 | [`docs/FACTCHECK.md`](docs/FACTCHECK.md) | Fact-check log: link results, known issues, review queue |
 | [`docs/TAXONOMY.md`](docs/TAXONOMY.md) | Keyword taxonomy notes |
 | [`docs/CHANGELOG.md`](docs/CHANGELOG.md) | Release history |
@@ -177,6 +179,8 @@ Native form controls pick up `color-scheme`. Tokens live in [`src/index.css`](sr
 ## Sharing and SEO
 
 Social crawlers read the **static** tags in `index.html`; they do not execute the React app. A filtered URL such as `?year=2001&tag=Maoist` therefore still unfurls the homepage card ([`public/og-image.png`](public/og-image.png), 1200×630). The in-page **Share** button is what passes the filtered URL to a person. `document.title` does update with filters, which helps bookmarks and the share sheet.
+
+Hash permalinks (`#event-NCT-0001`) are stripped by crawlers, so the build also generates one static page per event at `/event/NCT-…/` — title, meta/OG description, narrative, tags, sources, and a link into the interactive timeline — and lists every page in `sitemap.xml` alongside the homepage, `/presentation/`, and `/year/*/` pages (rebuilt from scratch each build, so it always matches the artifacts). Event pages mirror the committed `mastersheet.csv`; if `VITE_DATA_URL` points at the live Sheet, re-export the CSV at release time so they stay in sync.
 
 `%SITE_URL%` in `index.html`, [`public/robots.txt`](public/robots.txt), and [`public/sitemap.xml`](public/sitemap.xml) is replaced at build time (see `VITE_SITE_URL`). Until that is set, the placeholder is `https://YOUR-GITHUB-USERNAME.github.io/conflict_timeline`.
 

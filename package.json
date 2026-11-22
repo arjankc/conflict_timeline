@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/keyword-taxonomy.mjs && tsc -b && vite build && node scripts/year-pages.mjs && node scripts/events-json.mjs",
+    "build": "node scripts/keyword-taxonomy.mjs && tsc -b && vite build && node scripts/year-pages.mjs && node scripts/event-pages.mjs && node scripts/sitemap.mjs && node scripts/events-json.mjs",
     "lint": "oxlint",
     "data:lint": "node scripts/data-lint.mjs",
     "link:check": "node scripts/link-check.mjs",
